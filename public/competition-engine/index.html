@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>丘奖课题定位引擎</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --surface2:#F4EFE7;
+  --ink:#23252C; --muted:#6B6E78; --faint:#9A9CA6;
+  --border:#E8E1D6; --border2:#D6CDBF;
+  --accent:#C96200; --accent-ink:#A85200; --accent-soft:#FDEFE0; --accent-bar:#F97E1C;
+  --good:#2E7D4F; --good-soft:#E4F1E9; --warn:#8F7500; --warn-soft:#F5F0D6; --crit:#B3403A; --crit-soft:#F8E7E5;
+  --shadow:0 1px 2px rgba(35,37,44,.06),0 4px 14px rgba(35,37,44,.05);
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151A; --surface:#1F1E25; --surface2:#26252E;
+    --ink:#ECEAF2; --muted:#A5A2B0; --faint:#7C7987;
+    --border:#33323C; --border2:#44424E;
+    --accent:#F97E1C; --accent-ink:#FFA85C; --accent-soft:#3A2712; --accent-bar:#F97E1C;
+    --good:#6FBF8F; --good-soft:#20301F; --warn:#D8C05A; --warn-soft:#333016; --crit:#E08079; --crit-soft:#3A2220;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16151A; --surface:#1F1E25; --surface2:#26252E;
+  --ink:#ECEAF2; --muted:#A5A2B0; --faint:#7C7987;
+  --border:#33323C; --border2:#44424E;
+  --accent:#F97E1C; --accent-ink:#FFA85C; --accent-soft:#3A2712; --accent-bar:#F97E1C;
+  --good:#6FBF8F; --good-soft:#20301F; --warn:#D8C05A; --warn-soft:#333016; --crit:#E08079; --crit-soft:#3A2220;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans SC',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;font-size:14px;line-height:1.65;margin:0}
+.mono{font-family:'IBM Plex Mono','SF Mono',Consolas,monospace}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{height:40px;width:auto;flex:none}
+.brandtxt{display:flex;flex-direction:column;gap:1px}
+.brand .sub{font-size:11px;color:var(--muted);letter-spacing:.05em}
+.brand h1{font-family:'Noto Serif SC',serif;font-size:19px;font-weight:700;margin:0;letter-spacing:.02em;line-height:1.2}
+.brand .en{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted)}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border:1px solid var(--border2);border-radius:99px;color:var(--muted);background:var(--surface2)}
+.chip.demo{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.spacer{flex:1}
+.viewtoggle{display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.viewtoggle button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:6px 14px;cursor:pointer}
+.viewtoggle button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.viewtoggle button.on{background:var(--accent);color:#fff;font-weight:500}
+:root[data-theme="dark"] .viewtoggle button.on{color:#16151A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .viewtoggle button.on{color:#16151A}}
+main{display:grid;grid-template-columns:340px 1fr;gap:20px;padding:20px 22px;max-width:1180px;margin:0 auto}
+@media(max-width:840px){main{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.panel-h{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.panel-h h2{font-size:13px;margin:0;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.panel-b{padding:16px}
+form label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 5px;letter-spacing:.04em}
+form label:first-child{margin-top:0}
+textarea,select,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px}
+textarea{min-height:88px;resize:vertical}
+textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.checks label{margin:0;font-weight:400;color:var(--ink);font-size:13px;border:1px solid var(--border2);border-radius:99px;padding:4px 12px;cursor:pointer;letter-spacing:0}
+.checks input{position:absolute;opacity:0;pointer-events:none}
+.checks label.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.runbtn{width:100%;margin-top:18px;background:var(--accent);color:#fff;border:0;border-radius:9px;font:inherit;font-size:15px;font-weight:700;padding:11px;cursor:pointer;letter-spacing:.05em}
+:root[data-theme="dark"] .runbtn{color:#16151A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .runbtn{color:#16151A}}
+.runbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.formnote{font-size:12px;color:var(--faint);margin-top:10px}
+#report{display:flex;flex-direction:column;gap:20px;min-width:0}
+.sec-title{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:700;margin:0}
+.sec-sub{font-size:12px;color:var(--muted)}
+.barrow{display:grid;grid-template-columns:118px 1fr 44px;align-items:center;gap:10px;padding:5px 0}
+.barrow .lab{font-size:13px;text-align:right;color:var(--ink)}
+.barrow .lab small{display:block;font-size:11px;color:var(--faint);line-height:1.3}
+.track{height:14px;background:var(--surface2);border-radius:4px;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent-bar);border-radius:0 4px 4px 0;transition:width .5s ease}
+.barrow.top .fill{background:var(--accent)}
+.barrow .val{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.barrow.top .val{color:var(--accent-ink);font-weight:600}
+.dimrow{display:grid;grid-template-columns:150px 1fr 40px;gap:10px;align-items:start;padding:9px 0;border-bottom:1px dashed var(--border)}
+.dimrow:last-child{border-bottom:0}
+.dimrow .dname{font-size:13px;font-weight:700}
+.dimrow .dwhy{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
+.dots{display:flex;gap:4px;margin-top:5px}
+.dot{width:22px;height:8px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)}
+.dot.f{background:var(--accent-bar);border-color:var(--accent-bar)}
+.dot.f.weak{background:var(--warn);border-color:var(--warn)}
+.dscore{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.bandcard{border-radius:12px;padding:16px 18px;border:1px solid var(--border)}
+.bandcard.bA{background:var(--good-soft);border-color:var(--good)}
+.bandcard.bB{background:var(--accent-soft);border-color:var(--accent)}
+.bandcard.bC{background:var(--warn-soft);border-color:var(--warn)}
+.bandcard.bD{background:var(--crit-soft);border-color:var(--crit)}
+.bandhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.bandletter{font-family:'Noto Serif SC',serif;font-size:34px;font-weight:700;line-height:1}
+.bA .bandletter{color:var(--good)}.bB .bandletter{color:var(--accent-ink)}.bC .bandletter{color:var(--warn)}.bD .bandletter{color:var(--crit)}
+.bandname{font-size:15px;font-weight:700}
+.bandrange{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted)}
+.band4{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.band4 li{padding-left:1.4em;position:relative}
+.band4 li::before{content:attr(data-k);position:absolute;left:0;font-weight:700;color:var(--muted);font-size:11px;top:2px}
+.simItem{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);align-items:baseline}
+.simItem:last-child{border-bottom:0}
+.simItem .yr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);white-space:nowrap}
+.simItem .tt{font-size:13px;flex:1;min-width:0}
+.tag{font-size:11px;padding:1px 8px;border-radius:99px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);white-space:nowrap}
+.heat{font-size:12px;padding:8px 12px;border-radius:8px;margin-top:10px}
+.heat.h{background:var(--warn-soft);color:var(--warn)}
+.heat.l{background:var(--good-soft);color:var(--good)}
+.acts{margin:0;padding:0;list-style:none;counter-reset:a;display:flex;flex-direction:column;gap:10px}
+.acts li{counter-increment:a;position:relative;padding:10px 12px 10px 40px;background:var(--surface2);border-radius:8px;font-size:13px}
+.acts li::before{content:counter(a);position:absolute;left:12px;top:10px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent-ink);font-size:13px}
+.acts li b{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.warnbox{border-left:3px solid var(--crit);background:var(--crit-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px}
+.warnbox b{color:var(--crit)}
+.res-light{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;font-size:14px;font-weight:500}
+.res-light .bulb{width:14px;height:14px;border-radius:50%;flex:none}
+.rg{background:var(--good-soft)}.rg .bulb{background:var(--good)}
+.ry{background:var(--warn-soft)}.ry .bulb{background:var(--warn)}
+.rr{background:var(--crit-soft)}.rr .bulb{background:var(--crit)}
+.hook{background:var(--accent-soft);border:1px dashed var(--accent);border-radius:12px;padding:16px 18px;font-size:13px}
+.hook b{font-family:'Noto Serif SC',serif;font-size:15px;display:block;margin-bottom:6px;color:var(--accent-ink)}
+.footnote{font-size:11px;color:var(--faint);text-align:center;padding:4px 0 28px}
+.hidden-view{display:none!important}
+.empty{color:var(--faint);text-align:center;padding:40px 0;font-size:13px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><svg class="logo" viewBox="266 334 627 331" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CMC 师说留学标识"><g fill="#F97E1C"><path fill-rule="nonzero" d="M 746.097656 383.203125 L 684.0625 419.734375 L 591.492188 336.40625 L 506.164062 446.910156 L 430.867188 523.28125 L 430.867188 544.761719 L 537.496094 544.761719 C 542.171875 544.761719 546.820312 543.949219 551.1875 542.289062 C 551.253906 542.265625 551.300781 542.246094 551.320312 542.238281 C 562.164062 537.429688 567.414062 525.523438 572.089844 515.46875 C 572.523438 514.558594 572.9375 513.648438 573.351562 512.71875 C 577.34375 503.925781 579.351562 499.542969 580.796875 494.617188 C 580.796875 494.617188 582.804688 487.441406 582.164062 470.023438 C 582.019531 466.15625 579.121094 466.445312 575.441406 467.085938 C 575.253906 467.125 575.046875 467.148438 574.863281 467.1875 C 571.695312 467.769531 568.613281 469.070312 565.757812 470.539062 L 556.304688 474.699219 C 551.425781 476.847656 546.460938 477.179688 541.679688 476.164062 C 538.183594 475.464844 534.792969 474.015625 531.585938 472.050781 C 529.558594 470.808594 527.675781 469.214844 526.640625 467.085938 C 523.828125 461.375 529.871094 456.492188 533.242188 452.667969 C 538.414062 446.8125 543.851562 441.207031 549.085938 435.414062 C 557.035156 426.597656 564.898438 417.679688 572.222656 408.324219 C 572.253906 408.265625 572.285156 408.207031 572.316406 408.152344 L 580.28125 384.15625 L 580.300781 384.113281 C 581.003906 382.519531 583.238281 382.5 584.003906 384.050781 L 586.546875 389.203125 C 591.160156 398.574219 598.671875 404.324219 607.441406 409.558594 C 616.066406 414.730469 624.652344 421.101562 631.5625 428.609375 C 632.863281 429.996094 634.085938 431.402344 635.242188 432.871094 C 640.457031 439.46875 643.992188 447.164062 648.730469 454.09375 C 651.441406 458.023438 654.441406 461.769531 657.605469 465.347656 C 670.554688 479.910156 684.042969 488.578125 692.667969 491.144531 C 696.101562 492.15625 698.769531 492.839844 700.777344 493.230469 C 715.527344 496.128906 696.082031 483.757812 693.847656 476.457031 C 693.621094 475.730469 693.558594 475.070312 693.722656 474.46875 C 694.21875 472.691406 696.410156 471.738281 708.554688 468.96875 C 718.605469 466.671875 723.632812 465.511719 727.089844 465.058594 C 744.320312 462.804688 763.25 460.527344 782.132812 469.070312 C 795.640625 475.175781 806.089844 485.949219 815.582031 497.058594 C 823.609375 506.449219 831.554688 515.902344 839.597656 525.253906 C 841.746094 527.738281 846.597656 532.777344 850.828125 537.109375 C 855.609375 542.007812 862.164062 544.761719 869.007812 544.761719 L 890.34375 544.761719 L 890.34375 530.695312 Z M 746.097656 383.203125 "/><path fill-rule="nonzero" d="M 638.746094 473.160156 L 565.714844 516.164062 L 456.738281 418.066406 L 356.289062 548.152344 L 267.644531 638.0625 L 267.644531 663.347656 L 393.175781 663.347656 C 398.675781 663.347656 404.144531 662.390625 409.289062 660.4375 C 409.371094 660.40625 409.421875 660.386719 409.449219 660.375 C 422.210938 654.71875 428.394531 640.699219 433.894531 628.863281 C 434.40625 627.792969 434.894531 626.722656 435.382812 625.625 C 440.082031 615.277344 442.445312 610.113281 444.148438 604.316406 C 444.148438 604.316406 446.511719 595.867188 445.753906 575.363281 C 445.585938 570.808594 442.175781 571.152344 437.839844 571.90625 C 437.621094 571.953125 437.378906 571.980469 437.160156 572.027344 C 433.433594 572.710938 429.804688 574.242188 426.445312 575.972656 L 415.316406 580.867188 C 409.570312 583.398438 403.722656 583.789062 398.097656 582.597656 C 393.984375 581.769531 389.992188 580.0625 386.214844 577.75 C 383.828125 576.289062 381.613281 574.414062 380.394531 571.90625 C 377.082031 565.183594 384.195312 559.4375 388.164062 554.933594 C 394.25 548.042969 400.65625 541.441406 406.816406 534.625 C 416.171875 524.242188 425.429688 513.742188 434.054688 502.730469 C 434.09375 502.660156 434.128906 502.59375 434.164062 502.527344 L 443.539062 474.277344 L 443.5625 474.230469 C 444.390625 472.355469 447.023438 472.332031 447.921875 474.15625 L 450.917969 480.222656 C 456.347656 491.253906 465.1875 498.023438 475.511719 504.183594 C 485.667969 510.269531 495.773438 517.769531 503.910156 526.609375 C 505.441406 528.242188 506.878906 529.898438 508.242188 531.628906 C 514.378906 539.394531 518.542969 548.457031 524.121094 556.613281 C 527.308594 561.238281 530.839844 565.648438 534.566406 569.859375 C 549.8125 587.003906 565.6875 597.207031 575.84375 600.226562 C 579.886719 601.421875 583.027344 602.222656 585.390625 602.6875 C 602.753906 606.097656 579.859375 591.53125 577.230469 582.9375 C 576.964844 582.085938 576.890625 581.304688 577.085938 580.597656 C 577.667969 578.503906 580.25 577.386719 594.546875 574.121094 C 606.378906 571.417969 612.296875 570.054688 616.367188 569.519531 C 636.648438 566.863281 658.933594 564.1875 681.164062 574.242188 C 697.066406 581.425781 709.363281 594.113281 720.542969 607.191406 C 729.992188 618.246094 739.34375 629.375 748.8125 640.382812 C 751.339844 643.308594 757.050781 649.238281 762.035156 654.339844 C 767.664062 660.105469 775.378906 663.347656 783.433594 663.347656 L 808.550781 663.347656 L 808.550781 646.789062 Z M 638.746094 473.160156 "/></g></svg><div class="brandtxt"><h1>丘奖课题定位引擎</h1><span class="sub">CMC 师说留学 <span class="en">QCompass</span></span></div></div>
+  <span class="chip">语料 v2026.09.2 · 2024–25 全文 133 篇 + 2019–23 题目层 42 条</span>
+  <span class="chip demo">DEMO · 演示规则，非真实引擎精度</span>
+  <div class="spacer"></div>
+  <div class="viewtoggle" role="tablist">
+    <button id="vInternal" class="on" role="tab" aria-selected="true">内部完整版</button>
+    <button id="vExternal" role="tab" aria-selected="false">对外简化版</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel" aria-label="输入">
+    <div class="panel-h"><h2>学生课题输入</h2><span class="chip">示例数据已填入</span></div>
+    <div class="panel-b">
+      <form id="f" onsubmit="run();return false">
+        <label for="topic">课题想法（一两句话）</label>
+        <textarea id="topic">想用低成本的肌电传感器加机器学习，做一个给独居老人用的跌倒风险预警手环，提前几秒发出提示。</textarea>
+
+        <label for="grade">年级</label>
+        <select id="grade"><option>G9</option><option selected>G10</option><option>G11</option><option>G12</option></select>
+
+        <label for="origin">这个问题从哪来</label>
+        <select id="origin">
+          <option value="self" selected>学生自己的观察/经历</option>
+          <option value="mentor">老师或家长建议的</option>
+          <option value="news">新闻热点/看别人做过</option>
+        </select>
+
+        <label>已经或计划用到的方法（多选）</label>
+        <div class="checks" id="methods">
+          <label><input type="checkbox" value="theory">理论建模</label>
+          <label><input type="checkbox" value="exp" checked>实验/采集数据</label>
+          <label><input type="checkbox" value="sim">仿真/算法</label>
+        </div>
+
+        <label>够得着的真实资源（多选）</label>
+        <div class="checks" id="resources">
+          <label><input type="checkbox" value="lab">大学实验室</label>
+          <label><input type="checkbox" value="mentor">对口方向导师</label>
+          <label><input type="checkbox" value="data" checked>公开数据/自采数据</label>
+          <label><input type="checkbox" value="compute" checked>算力/编程能力</label>
+        </div>
+
+        <label for="lit">读过这个方向的论文吗</label>
+        <select id="lit"><option value="0">还没有</option><option value="1" selected>读过两三篇</option><option value="2">系统读过并做了笔记</option></select>
+
+        <label for="eng">用英文讲清这个课题</label>
+        <select id="eng"><option value="0">很吃力</option><option value="1" selected>能讲但不流利</option><option value="2">没问题</option></select>
+
+        <label for="time">每周可投入</label>
+        <select id="time"><option value="0">&lt;4 小时</option><option value="1" selected>4–8 小时</option><option value="2">8 小时以上</option></select>
+
+        <button class="runbtn" type="submit">生成定位报告</button>
+        <p class="formnote">Demo 在浏览器本地运行，不上传任何输入。</p>
+      </form>
+    </div>
+  </section>
+
+  <section id="report" aria-live="polite"></section>
+</main>
+<p class="footnote">CMC 师说留学 · 丘奖课题定位引擎（内部产品原型） · 档位为「与历届获奖论文标准的差距测量」，非对获奖结果的预测或承诺 · 赛制与历届获奖数据以组委会当年官方公示为准（2019–2023 题目层整理自公开公示，逐条待复核）</p>
+
+<script>
+/* ================= Demo 语料（真实获奖课题的题目层信息，用于相似对照展示） ================= */
+const CORPUS=[
+ {y:2025,s:"物理",t:"力学系统的“相变”：旋转诱导的对称性自发破缺与迟滞回线",c:"日常现象深挖",r:0},
+ {y:2025,s:"物理",t:"鸡蛋究竟是横向还是纵向最容易碎裂",c:"日常现象深挖",r:0},
+ {y:2024,s:"物理",t:"拉不开的“纸钳子”——书籍交叠体系中的摩擦放大现象",c:"日常现象深挖",r:0},
+ {y:2024,s:"物理",t:"蜘蛛网动力学的研究",c:"日常现象深挖",r:0},
+ {y:2025,s:"物理",t:"基于物理约束神经网络的密度流高效模拟",c:"AI×物理",r:1},
+ {y:2025,s:"化学",t:"海水光催化制氢自支撑膜的构筑",c:"双碳/新能源材料",r:2},
+ {y:2024,s:"化学",t:"磁性纳米材料在超声波振动下去除水中微塑料",c:"环境治理",r:2},
+ {y:2025,s:"化学",t:"废弃污染物再生复合物用于提升锂硫电池性能",c:"双碳/新能源材料",r:2},
+ {y:2024,s:"生物",t:"帕金森患者防抖餐具技术",c:"医工交叉/辅具",r:1},
+ {y:2025,s:"生物",t:"基于下肢表面肌电信号深度学习的跌倒风险评估与外部助力系统",c:"医工交叉/辅具",r:1},
+ {y:2025,s:"生物",t:"基于 3D 打印的罕见病手部康复外骨骼辅具",c:"医工交叉/辅具",r:1},
+ {y:2024,s:"生物",t:"AI 辅助设计抗结核亚单位疫苗",c:"AI×分子生物",r:2},
+ {y:2025,s:"生物",t:"细胞内液液相分离与生物分子凝聚体设计",c:"分子生物前沿",r:2},
+ {y:2024,s:"数学",t:"关于陈氏定理、哥德巴赫猜想与筛法应用",c:"数论",r:0},
+ {y:2025,s:"数学",t:"随机亚纯函数的拟共形正规化",c:"分析",r:0},
+ {y:2024,s:"数学",t:"基于马尔可夫决策过程的老年照护模型",c:"应用数学",r:0},
+ {y:2025,s:"经济",t:"AI 对劳动力市场的企业层面影响：来自在线招聘数据的证据",c:"AI 冲击/实证",r:1},
+ {y:2025,s:"经济",t:"环境政策与心理健康：来自清洁空气行动计划的证据",c:"政策评估/因果推断",r:1},
+ {y:2025,s:"经济",t:"养老金、劳动供给与道德风险：来自新农保的证据",c:"政策评估/因果推断",r:1},
+ {y:2025,s:"计算机",t:"低密度脑电+AI 为认知障碍患者提供主动照护",c:"AI for good",r:1},
+ {y:2024,s:"计算机",t:"面向视障人士的多灯干扰人行横道信号灯识别算法",c:"AI for good",r:1},
+ {y:2025,s:"计算机",t:"基于骨骼分析与机器学习的飞镖训练辅助系统",c:"AI×运动/健康",r:1},
+ {y:2024,s:"计算机",t:"大模型数学推理的形式化验证",c:"LLM 基础研究",r:1},
+ {y:2024,s:"计算机",t:"甲骨文识别：视觉模型解决疑难字问题",c:"AI×人文",r:1}
+];
+
+/* ===== 历届题目层 HIST（2019–2023，来源：组委会公示与公开获奖名单整理；n="入围"表示仅见于总决赛入围公示） ===== */
+const HIST=[
+ {y:2023,s:"数学",t:"Desargues' Involution at Action",c:"几何",r:0},
+ {y:2023,s:"数学",t:"Modular relations for Hurwitz zeta functions and Dirichlet L-series",c:"数论",r:0},
+ {y:2023,s:"数学",t:"The distribution of the cokernel of a random integral symmetric matrix modulo a prime power",c:"数论/随机代数",r:0},
+ {y:2023,s:"数学",t:"基于抛物线方程和微分方程的游泳出发起跳问题的数学模型与分析",c:"应用数学",r:0},
+ {y:2023,s:"数学",t:"Linear sections of determinantal varieties",c:"代数几何",r:0},
+ {y:2023,s:"数学",t:"Learning Guarantee of SDP Relaxation on Directed Stochastic Block Models",c:"概率/优化",r:0},
+ {y:2023,s:"物理",t:"欧拉磁摆的动力学与反常进动摇曳",c:"日常现象/非线性动力学",r:0},
+ {y:2023,s:"物理",t:"微醺的液滴——酒精墨水混合溶液在丙烯基底上的扩散与分形",c:"日常现象/流体",r:0},
+ {y:2023,s:"物理",t:"针对波波船发动机中相变与传热问题的建模与实验研究",c:"日常现象/热学",r:0},
+ {y:2023,s:"化学",t:"CRISPR-enabled signal amplification for visual antigen detection",c:"化学生物交叉",r:2},
+ {y:2023,s:"化学",t:"大气浓度二氧化碳的高效电催化转化",c:"电催化/双碳",r:2},
+ {y:2023,s:"化学",t:"Smart Probe Imaging Dementia——AD 早期诊断荧光探针",c:"健康应用",r:2},
+ {y:2023,s:"化学",t:"Light-driven adaptive camouflage structures based on photoprogrammable printing ink",c:"功能材料",r:2},
+ {y:2023,s:"生物",t:"爬山虎攀爬形态建成的机制研究及植物茎尖向地性的发现",c:"生活化选题/植物机理",r:1},
+ {y:2023,s:"生物",t:"Optimizing human SIRT6 protein with deep learning of 3D structures",c:"AI×分子生物",r:2},
+ {y:2023,s:"生物",t:"利用土壤本源镰刀菌低成本绿色高效去除溶液中六价铬",c:"微生物/环境",r:1},
+ {y:2023,s:"生物",t:"Bioinformatics modeling and transcriptome analysis of cockroach appendage regeneration",c:"生信/再生",r:1},
+ {y:2023,s:"计算机",t:"词中词——英文语言中单词与子词重要性分析",c:"NLP",r:1},
+ {y:2023,s:"计算机",t:"AI-based Glaucoma Diagnoses Based on Phone-taken Fundus Retinal Images",c:"AI×医疗",r:1},
+ {y:2023,s:"计算机",t:"MNIST Handwritten Digit Classification with Quantum Neural Network",c:"量子机器学习",r:1},
+ {y:2023,s:"计算机",t:"Action-Aware Vision Language Navigation (AAVLN)",c:"多模态",r:1},
+ {y:2023,s:"经济",t:"基于博弈模型对不同视角下搭便车问题的分析",c:"博弈论",r:0},
+ {y:2023,s:"经济",t:"区块链技术对食品供应链安全与可追溯性的价值研究",c:"供应链/机制",r:0},
+ {y:2023,s:"经济",t:"碳交易对企业绿色创新的影响",c:"双碳/实证",r:0},
+ {y:2023,s:"经济",t:"祖父母养育与儿童学业表现研究",c:"家庭经济学/实证",r:0},
+ {y:2021,s:"数学",t:"On the sharp upper estimates of lattice points: Yau Geometric Conjecture",c:"数论/几何",r:0},
+ {y:2021,s:"数学",t:"Padé approximations in Diophantine Approximations",c:"数论",r:0},
+ {y:2021,s:"物理",t:"Grape Plasma——Burning or Discharging",c:"日常现象/等离子体",r:0},
+ {y:2021,s:"化学",t:"Planted Bean Sprouts-Derived Transition Metal-Doped Carbon Nanosheets for Electrocatalysis",c:"电催化/生物质",r:2},
+ {y:2021,s:"化学",t:"Closed-loop Recycle of Waste Polyester Textile",c:"绿色化学",r:2},
+ {y:2021,s:"生物",t:"A molecular phylogeny of cavernicolous Oniscidea",c:"演化/分类",r:1},
+ {y:2021,s:"生物",t:"中风患者康复评估系统研究",c:"医工交叉/辅具",r:1},
+ {y:2021,s:"计算机",t:"Efficient Algorithm for Parallel Bi-core Decomposition",c:"并行算法",r:1},
+ {y:2021,s:"经济",t:"Tax Policy or Carbon Emission Quota",c:"双碳/政策建模",r:0},
+ {y:2022,s:"数学",t:"A Turán-Type Problem in Mixed Graphs",c:"组合数学",r:0,n:"入围"},
+ {y:2022,s:"物理",t:"Delaying Tip Stall By Self-adaptive Morphing Wing System",c:"流体/工程物理",r:1,n:"入围"},
+ {y:2022,s:"化学",t:"Natural Products-Stabilized Nanoparticles in Wound Dressings and Renal Disease Diagnosis",c:"纳米医用",r:2,n:"入围"},
+ {y:2022,s:"生物",t:"Proximity-Initiated CRISPR Cas12A Detection Scheme for Sensitive Protein Detection",c:"分子检测",r:2,n:"入围"},
+ {y:2022,s:"生物",t:"Neural Granger Causality on DAGs Reconstructs Gene Regulatory Networks",c:"AI×生信",r:1,n:"入围"},
+ {y:2022,s:"计算机",t:"Theoretically Efficient Parallel Density-Peaks Clustering",c:"并行算法",r:1,n:"入围"},
+ {y:2022,s:"经济",t:"Reexamining the Impact of ESG Activities on Corporate Financial Performance",c:"ESG/实证",r:0,n:"入围"},
+ {y:2022,s:"经济",t:"Invasion Strategy into Markets with Dominant Platforms",c:"平台经济/博弈",r:0,n:"入围"}
+];
+const ALL=CORPUS.concat(HIST);
+/* 五年趋势快照（2019–2025 语料整理，演示口径） */
+const TREND={
+ "数学":"2021–2025 金奖连续为纯数学课题且多为国际选手（新加坡/美国），应用题材仅零星获奖——纯数功底是这条赛道的硬门槛。",
+ "物理":"日常现象类课题连续五届出现在最高奖层（2021 葡萄等离子体 → 2023 欧拉磁摆 → 2025 鸡蛋碎裂）；注意：磁摆类 2023 已获奖、2025 再现，热门现象必须做出明显差异化。",
+ "化学":"电催化与碳转化连续五届高频（2021 生物质碳 → 2023 CO₂ 电催化 → 2025 海水制氢），生化交叉已冲到金奖层（2023 CRISPR 检测）。",
+ "生物":"金奖题材从机理观察（2021 洞穴生物、2023 爬山虎）转向 2024–2025 的分子前沿与医工交叉；AI×生物自 2022 起逐年上升。",
+ "计算机":"2021 并行算法夺金 → 2023 NLP/量子/CV → 2024–2025 LLM 与 AI for good 全面接管；算法理论始终有一席之地。",
+ "经济":"博弈建模与实证因果推断双主线并行（2023 金奖为博弈建模），2024–2025 实证与 AI 冲击题材明显上升。"
+};
+
+/* 学科词典与元信息（演示用，简化自两届语料的偏好图谱） */
+const SUBJECTS=[
+ {k:"数学",dep:0,depTxt:"资源依赖低 · 智力门槛最高",kw:["证明","定理","数论","猜想","方程","几何","拓扑","组合","素数","矩阵","概率论","分析"]},
+ {k:"物理",dep:0,depTxt:"资源依赖低–中 · 欢迎日常现象",kw:["现象","力学","声","光","摩擦","振动","流体","碎裂","悬浮","波","磁","实验装置","相变"]},
+ {k:"化学",dep:2,depTxt:"资源依赖高 · 几乎必须实验室",kw:["催化","材料","电池","制氢","合成","纳米","降解","聚合","晶体","电极","碳"]},
+ {k:"生物",dep:1,depTxt:"分子路线高 / 交叉路线中",kw:["老人","康复","医","患者","健康","疾病","细胞","基因","蛋白","植物","仿生","肌电","跌倒","传感器","外骨骼","疫苗"]},
+ {k:"经济",dep:1,depTxt:"资源依赖低 · 要数据与计量",kw:["政策","市场","价格","博弈","养老金","劳动","消费","碳交易","金融","供应链","因果"]},
+ {k:"计算机",dep:1,depTxt:"资源依赖中 · 要方法层贡献",kw:["机器学习","深度学习","算法","模型","识别","大模型","预警","检测","神经网络","AI","传感器","系统","数据"]}
+];
+const DIMS=[
+ {k:"问题真实性",q:"问题是不是学生自己的"},
+ {k:"方法完整度",q:"理论/实验/仿真三条腿占几条"},
+ {k:"学术规范",q:"文献意识与论文写作"},
+ {k:"独立性可辩护度",q:"五关追问下守不守得住"},
+ {k:"资源可行性",q:"12–18 个月撑不撑得住"},
+ {k:"表达与答辩",q:"总决赛为英文答辩"}
+];
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+let view="internal";
+$("vInternal").onclick=()=>setView("internal");
+$("vExternal").onclick=()=>setView("external");
+function setView(v){view=v;
+  $("vInternal").classList.toggle("on",v==="internal");
+  $("vExternal").classList.toggle("on",v==="external");
+  $("vInternal").setAttribute("aria-selected",v==="internal");
+  $("vExternal").setAttribute("aria-selected",v==="external");
+  run();}
+document.querySelectorAll(".checks label").forEach(l=>{
+  const i=l.querySelector("input");
+  const sync=()=>l.classList.toggle("on",i.checked);
+  i.addEventListener("change",sync);sync();
+});
+function checked(id){return [...document.querySelectorAll("#"+id+" input:checked")].map(i=>i.value)}
+
+function analyze(){
+  const topic=$("topic").value.trim();
+  const methods=checked("methods"), res=checked("resources");
+  const lit=+$("lit").value, eng=+$("eng").value, time=+$("time").value;
+  const origin=$("origin").value;
+  const resLevel=res.includes("lab")?2:(res.includes("data")||res.includes("compute")||res.includes("mentor"))?1:0;
+  /* 方向匹配：词典命中 + 资源修正 */
+  const scores=SUBJECTS.map(s=>{
+    let hit=s.kw.reduce((a,w)=>a+(topic.includes(w)?1:0),0);
+    let base=Math.min(1,hit/3)*0.7+0.15;
+    if(s.dep>resLevel)base*=0.55;           // 资源撑不起该赛道
+    return {sub:s,score:Math.min(.97,base)};
+  }).sort((a,b)=>b.score-a.score);
+  const top=scores[0];
+  /* 相似课题 & 撞题热度 */
+  const sims=ALL.map(p=>{
+    let sc=(p.s===top.sub.k?2:0)+(scores[1]&&p.s===scores[1].sub.k?1:0);
+    sc+=top.sub.kw.filter(w=>p.t.includes(w)&&topic.includes(w)).length*1.5;
+    ["老人","跌倒","肌电","传感器","康复","预警"].forEach(w=>{if(topic.includes(w)&&p.t.includes(w))sc+=2});
+    return {p,sc};
+  }).sort((a,b)=>b.sc-a.sc).slice(0,5).filter(x=>x.sc>0);
+  const cluster=sims[0]?sims[0].p.c:null;
+  const heat=cluster?ALL.filter(p=>p.c===cluster).length:0;
+  /* 六维（演示规则） */
+  const d=[];
+  d.push({v:origin==="self"?4:origin==="mentor"?2:1, why:origin==="self"?"问题来自学生自己的观察，能讲出来龙去脉":origin==="mentor"?"问题来自他人建议，需要学生把它变成“自己的”":"热点跟随型选题，独立性与差异化都会被追问"});
+  d.push({v:[1,3,5][Math.min(methods.length,2)]||1, why:`当前占了 ${methods.length||0}/3 条腿（理论/实验/仿真），获奖论文普遍两条以上且互相验证`});
+  d.push({v:lit*2, why:lit===0?"尚无文献意识，函评关很难过":lit===1?"有初步文献基础，需建立与已有工作的对话":"文献工作扎实"});
+  d.push({v:Math.min(5,1+time+(origin==="self"?2:0)), why:"由投入时间与问题来源推断；最终以模拟答辩实测为准"});
+  d.push({v:top.sub.dep>resLevel?1:resLevel>=top.sub.dep+1?5:3, why:top.sub.dep>resLevel?`该赛道资源依赖（${top.sub.depTxt}）超出当前条件，存在根本性错配`:"资源与赛道匹配，有余量"});
+  d.push({v:eng*2+1, why:"总决赛为 30 分钟英文答辩，此维需长期专项训练"});
+  const avg=d.reduce((a,x)=>a+x.v,0)/6;
+  const min=Math.min(...d.map(x=>x.v));
+  let band = min<=1 ? "D" : avg>=4.2 ? "A" : avg>=3.2 ? "B" : "C";
+  if(band==="D"&&avg>=3)band="C";
+  return {topic,scores,top,sims,cluster,heat,d,avg,band,resLevel};
+}
+
+const BANDS={
+ A:{name:"金银竞争力参考档",range:"历史基准率约 5–7% 获奖 · 该档为其上部区间",note:"六维均衡到位。值得冲，但金银每年都取决于同年竞品与答辩临场。"},
+ B:{name:"铜/优胜竞争区间",range:"位于基准率区间内，短板补齐后档位可能上移",note:"整体扎实，把最弱的一两维补上再投。"},
+ C:{name:"需补强后再投",range:"当前状态大概率止步函评/桌评",note:"有可以做的问题，但按获奖论文标准还缺关键的腿。建议延后一届。"},
+ D:{name:"方向或资源根本性错配",range:"不建议在此赛道消耗 12–18 个月",note:"不是孩子不行，是这条赛道和现有条件不匹配。换赛道重新定位。"}
+};
+
+function run(){
+  const r=analyze();
+  const el=$("report");
+  if(!r.topic){el.innerHTML='<div class="panel"><div class="panel-b empty">输入课题想法后生成报告</div></div>';return}
+  const bars=r.scores.map((x,i)=>`
+    <div class="barrow${i===0?" top":""}">
+      <div class="lab">${x.sub.k}<small>${x.sub.depTxt}</small></div>
+      <div class="track"><div class="fill" style="width:${Math.round(x.score*100)}%"></div></div>
+      <div class="val">${Math.round(x.score*100)}</div>
+    </div>`).join("");
+  const simHtml=r.sims.length?r.sims.map(x=>`
+    <div class="simItem"><span class="yr">${x.p.y}·${x.p.s}${x.p.n?"·"+x.p.n:""}</span><span class="tt">${esc(x.p.t)}</span><span class="tag">${x.p.c}</span></div>`).join("")
+    :'<p class="sec-sub">语料中未检索到强相似课题——这可能是差异化机会，也可能是赛道错配信号，需顾问判断。</p>';
+  const heatHtml=r.cluster?`<div class="heat ${r.heat>=4?"h":"l"}">「${r.cluster}」簇 2019–2025 语料中出现 ${r.heat} 次 · ${r.heat>=4?"热门赛道，必须有明显差异化才有辨识度":"竞争密度可接受"}</div>`:"";
+
+  if(view==="external"){
+    const resCls=r.top.sub.dep>r.resLevel?"rr":r.resLevel>=r.top.sub.dep+1?"rg":"ry";
+    const resTxt=resCls==="rr"?"当前资源撑不起首选赛道，建议先看对设备依赖低的方向（数学/经济/计算机）":resCls==="rg"?"现有资源和这个方向基本匹配":"方向可行，但资源余量不大，需要提前落实";
+    const weakest=r.d.map((x,i)=>({...x,i})).sort((a,b)=>a.v-b.v)[0];
+    const tips={0:"让孩子把这个问题讲给一个外行听 15 分钟，录下来，数一数有几处卡壳——那就是问题还不属于他的地方。",1:"本月先只做一件事：把想法变成一页纸的研究计划，写清打算用什么方法验证什么。",2:"先精读 3 篇同方向论文并各写 200 字笔记，再决定投入。",3:"安排一次 20 分钟脱稿讲述并追问三个“为什么”，检验课题是不是他自己的。",4:"先把资源落实（实验室/导师/数据），资源没落实前不启动。",5:"从现在起每周用英文向家人讲一次课题进展，5 分钟即可。"};
+    el.innerHTML=`
+      <div class="panel"><div class="panel-b">
+        <h3 class="sec-title">方向匹配</h3>
+        <p class="sec-sub">基于 2024–2025 两届 133 篇获奖论文全文 + 2019–2023 历届获奖课题题目层（方向参考，非获奖预测）</p>
+        <div style="margin-top:10px">${bars}</div>
+      </div></div>
+      <div class="panel"><div class="panel-b">
+        <h3 class="sec-title">资源匹配度</h3>
+        <div class="res-light ${resCls}" style="margin-top:10px"><span class="bulb"></span>${resTxt}</div>
+      </div></div>
+      <div class="panel"><div class="panel-b">
+        <h3 class="sec-title">这周可以先做的一件事</h3>
+        <p style="margin:8px 0 0">${tips[weakest.i]}</p>
+      </div></div>
+      <div class="hook"><b>完整的六维评估要结合孩子的真实材料做</b>
+        公众号后台回复「丘奖」：预约 30 分钟课题定位沟通（顾问一对一），并领取《两届 133 篇获奖课题全景清单》。
+      </div>
+      <p class="sec-sub" style="text-align:center">对外版不输出档位与概率 · 结果为方向参考，非获奖预测</p>`;
+    return;
+  }
+  /* 内部完整版 */
+  const B=BANDS[r.band];
+  const dims=r.d.map((x,i)=>`
+    <div class="dimrow">
+      <div><div class="dname">${DIMS[i].k}</div><div class="sec-sub">${DIMS[i].q}</div>
+        <div class="dots">${[1,2,3,4,5].map(n=>`<span class="dot${n<=x.v?" f":""}${x.v<=2&&n<=x.v?" weak":""}"></span>`).join("")}</div></div>
+      <div class="dwhy">${x.why}</div>
+      <div class="dscore">${x.v}<span style="color:var(--faint)">/5</span></div>
+    </div>`).join("");
+  const weak=r.d.map((x,i)=>({...x,i})).filter(x=>x.v<=3).sort((a,b)=>a.v-b.v).slice(0,3);
+  const ACT={0:["问题所有权测试","让学生脱稿向非本方向的人讲 15 分钟课题并录像，标出所有卡壳点，两周后复测。"],
+    1:["补齐第二条腿","当前方法单一。8 周内为课题加上理论建模或数值仿真中的一条，与已有数据互相验证。"],
+    2:["文献对话训练","精读 5 篇同簇获奖论文+3 篇期刊论文，各写 200 字“它做了什么、我与它的差别”。"],
+    3:["模拟函评+追问","顾问按五关流程做一次 30 分钟模拟追问，记录所有守不住的技术选择，逐条补课。"],
+    4:["资源落地里程碑","4 周内落实实验条件/导师/数据三者中缺失项，落实前暂停投入，避免沉没成本。"],
+    5:["英文答辩节奏训练","每周一次 5 分钟英文课题陈述，第 8 周做一次 30 分钟全流程模拟答辩。"]};
+  const acts=weak.length?weak.map(x=>`<li><b>${DIMS[x.i].k} · 当前 ${x.v}/5</b>${ACT[x.i][1]}</li>`).join(""):'<li><b>无 ≤3 分维度</b>进入赛前冲刺流程：模拟答辩 ×3 + 论文格式终审。</li>';
+  el.innerHTML=`
+    <div class="panel"><div class="panel-h"><h2>Module A · 方向匹配</h2><span class="chip">双通道：词典 + 语料检索（演示）</span></div>
+      <div class="panel-b">${bars}${heatHtml}<div class="heat l" style="margin-top:8px">五年趋势 · ${r.top.sub.k}：${TREND[r.top.sub.k]}</div></div></div>
+    <div class="panel"><div class="panel-h"><h2>Module B · 六维评估</h2><span class="chip">锚定式 Rubric · 每分必附依据</span></div>
+      <div class="panel-b">${dims}</div></div>
+    <div class="panel"><div class="panel-h"><h2>Module C · 档位参考（内部口径）</h2></div>
+      <div class="panel-b">
+        <div class="bandcard b${r.band}">
+          <div class="bandhead"><span class="bandletter">${r.band}</span>
+            <div><div class="bandname">${B.name}</div><div class="bandrange">${B.range}</div></div></div>
+          <ul class="band4">
+            <li data-k="依据">六维均值 ${r.avg.toFixed(1)}/5；${B.note}</li>
+            <li data-k="基线">2023 届：1235 篇有效论文 → 89 队入围总决赛（≈7.2%）→ 61 个奖项（≈4.9%）。档位是与获奖论文标准的差距测量。</li>
+            <li data-k="不可控">同年撞题、评委构成、答辩临场属不可约不确定性，任何档位都不能消除。</li>
+            <li data-k="声明">本档位非获奖预测或承诺；对家庭的表述必须使用话术模板并经顾问审定。</li>
+          </ul>
+        </div></div></div>
+    <div class="panel"><div class="panel-h"><h2>同类获奖课题对照</h2><span class="chip">2019–2025 语料 Top5</span></div>
+      <div class="panel-b">${simHtml}</div></div>
+    <div class="panel"><div class="panel-h"><h2>Module D · 未来 8–12 周提升路径</h2></div>
+      <div class="panel-b"><ol class="acts">${acts}</ol></div></div>
+    <div class="warnbox"><b>合规硬提醒</b>　丘奖规定指导老师须来自中学/大学/科研院所，<b>不得由商业培训机构人员担任</b>，经机构参赛有取消资格风险。CMC 角色＝赛道选择与研究能力教练，不进入任何参赛署名环节。本报告为内部工作稿，导出给家庭前必须经顾问审定并走脱敏与合规复检。</div>`;
+}
+run();
+</script>
+
+<div id="cmc-reg-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;justify-content:center;align-items:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
+  <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;position:relative;">
+    <div style="font-size:48px;margin-bottom:16px;">🎓</div>
+    <h2 style="margin:0 0 12px;font-size:22px;color:#1a1a2e;font-weight:700;">欢迎使用「丘奖课题定位引擎」</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">为了给您提供更精准的服务，请先完成信息登记。<br>填写后即可免费使用本工具。</p>
+    <a id="cmc-reg-btn" href="https://doc.weixin.qq.com/forms/AIsAjgczAAYAW4AiwYtAIECNd3FyEQFff" target="_blank" rel="noopener" style="display:inline-block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-decoration:none;padding:14px 40px;border-radius:30px;font-size:16px;font-weight:600;box-shadow:0 4px 15px rgba(102,126,234,0.4);transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(102,126,234,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 15px rgba(102,126,234,0.4)'">📝 点击填写信息</a>
+    <div id="cmc-reg-done" style="display:none;margin-top:20px;">
+      <p style="margin:0 0 12px;font-size:14px;color:#28a745;font-weight:600;">✅ 已打开登记表</p>
+      <button onclick="cmcCloseReg()" style="background:#28a745;color:#fff;border:none;padding:10px 32px;border-radius:20px;font-size:15px;cursor:pointer;font-weight:600;">填好了，开始使用</button>
+    </div>
+    <p style="margin:16px 0 0;font-size:12px;color:#999;">信息仅用于服务沟通，我们严格保密</p>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY='cmc_reg_competition';
+  var overlay=document.getElementById('cmc-reg-overlay');
+  var btn=document.getElementById('cmc-reg-btn');
+  var doneDiv=document.getElementById('cmc-reg-done');
+  if(localStorage.getItem(KEY)){overlay.style.display='none';return;}
+  overlay.style.display='flex';
+  btn.addEventListener('click',function(){
+    setTimeout(function(){btn.style.display='none';doneDiv.style.display='block';},800);
+  });
+  window.cmcCloseReg=function(){
+    localStorage.setItem(KEY,'1');
+    overlay.style.display='none';
+  };
+})();
+</script>
+
+</body>
+</html>
