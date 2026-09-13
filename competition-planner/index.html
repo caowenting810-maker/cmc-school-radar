@@ -40,6 +40,11 @@ h3{font-size:1rem;color:var(--navy)}
 .formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:14px}
 .field label{display:block;font-weight:600;font-size:.88rem;margin-bottom:6px;color:var(--navy)}
 .field select,.field input{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:.92rem;background:#fff;color:var(--ink)}
+.acad{margin-top:16px;border:1px dashed var(--orange);border-radius:12px;padding:14px 16px;background:var(--orange-soft)}
+.acad-h b{display:block;font-size:.92rem;color:var(--navy);margin-bottom:4px}
+.reqbox{margin-top:6px;font-size:.76rem;line-height:1.5;border-radius:8px;padding:6px 10px;background:var(--bg)}
+.reqbox .ok{color:#2f7a4f}.reqbox .warn{color:#b3600f}.reqbox .no{color:#a32035;font-weight:700}.reqbox .nt{color:var(--muted)}
+.gated .pcard{opacity:.92;border-style:dashed}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{padding:7px 13px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:.85rem;user-select:none}
 .chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
@@ -231,6 +236,17 @@ footer img.flogo{height:44px;margin-bottom:12px;opacity:.95}
       <div class="field">
         <label id="l-sat">SAT（可选）</label>
         <input id="in-sat" type="number" min="400" max="1600" placeholder="如 1450">
+      </div>
+    </div>
+    <div class="acad">
+      <div class="acad-h"><b id="l-acad">学术背景（可选 · 用于资格核对与加分）</b><span class="note" id="acad-note">填得越准，推荐越准：系统会逐项核对每个项目的硬门槛（如 MOP 需 USAMO 资格、UCSB RMP 需 GPA 3.8、名校夏校需托福 100）与软性偏好（如 SUMaC/PROMYS 偏好 AIME 级别、RSI 参考 SAT 1480+），达标加分、未达提示。</span></div>
+      <div class="formgrid" style="margin-top:10px">
+        <div class="field"><label>GPA（4.0 制 · 未加权）</label><input id="in-gpa" type="number" step="0.01" min="0" max="4.3" placeholder="如 3.85"></div>
+        <div class="field"><label>数学竞赛最高水平</label><select id="in-math"><option value="0">无</option><option value="1">AMC8 / AMC10 / AMC12 参赛</option><option value="2">AIME 资格（AMC 达线）</option><option value="3">AIME 8 题以上</option><option value="4">USAMO / USAJMO 资格（或国家集训队级）</option><option value="5">MOP / IMO 国家队</option></select></div>
+        <div class="field"><label>理科竞赛最高奖（物理/化学/生物）</label><select id="in-sci"><option value="0">无</option><option value="1">参赛 / 铜银奖（BPhO、UKChO、BBO、Physics Bowl 等）</option><option value="2">国家级金奖（BPhO Top Gold、UKChO Gold、F=ma 通过等）</option><option value="3">国家队 / USAPhO·USNCO·USABO 决赛级</option></select></div>
+        <div class="field"><label>编程水平（USACO 等级）</label><select id="in-code"><option value="0">无 / 未参赛</option><option value="1">Bronze 铜</option><option value="2">Silver 银</option><option value="3">Gold 金</option><option value="4">Platinum 铂金</option></select></div>
+        <div class="field"><label>科研经历</label><select id="in-res"><option value="0">无</option><option value="1">校内课题 / 夏校项目</option><option value="2">导师制科研（有完整报告）</option><option value="3">已发表 / 省级以上科研奖</option></select></div>
+        <div class="field"><label>写作 / 艺术作品经历</label><select id="in-write"><option value="0">无</option><option value="1">校级奖 / 校刊发表</option><option value="2">地区级奖 / 公开发表</option><option value="3">国家级奖（Scholastic 全国奖等）</option></select></div>
       </div>
     </div>
     <div class="field" style="margin-top:16px">
@@ -573,6 +589,188 @@ function renderBrowse(){
 }
 
 /* ---------------- recommendation engine ---------------- */
+/* ---------------- 学术背景资格核对 (Prerequisite / Fit check) ----------------
+   Student profile levels:
+   math : 0 无 | 1 AMC8/10/12 参赛 | 2 AIME qualifier | 3 AIME 8+ | 4 USA(J)MO/国家集训队级 | 5 MOP/IMO
+   sci  : 0 无 | 1 参赛/铜银 | 2 国家级金奖(BPhO Top Gold/UKChO Gold/USNCO 地方赛高分) | 3 国家队/USAxO 决赛级
+   code : 0 无 | 1 USACO Bronze | 2 Silver | 3 Gold | 4 Platinum
+   res  : 0 无 | 1 校内课题/夏校项目 | 2 导师制科研(有完整报告) | 3 已发表/省级以上科研奖
+   write: 0 无 | 1 校级/校刊 | 2 地区级奖/发表 | 3 国家级奖(Scholastic 全国奖等)
+   gpa  : 4.0 scale unweighted (optional) ; sat ; toefl(old scale) / ielts
+   Each REQ entry: {hard:{...}, soft:{...}, note}. hard = 未达则不推荐(列入“先补条件”); soft = 达标加分/未达减分并提示。
+   ---------------------------------------------------------------------------- */
+const REQ = {
+ // 数学竞赛链
+ "AMC8":{soft:{},note:"无门槛；满分/DHR 是 G8 申请美初/美高的硬通货"},
+ "AMC10":{soft:{},note:"无门槛；AIME 分数线约 Top 2.5%"},
+ "AMC12":{soft:{},note:"无门槛；AIME 分数线约 Top 5%"},
+ "AIME":{hard:{math:1},note:"须先通过 AMC10/12 达到 AIME 分数线"},
+ "USAJMO":{hard:{math:2},soft:{math:3},note:"由 AMC10 + AIME 综合指数入围（约 230+）"},
+ "USAMO":{hard:{math:2},soft:{math:3},note:"由 AMC12 + AIME 综合指数入围（约 210+）"},
+ "MOP":{hard:{math:4},note:"USAMO/USAJMO 前列自动入营（前 12 名保送，其余按分数邀请）"},
+ "IMO/IPhO/IChO/IBO/IOI":{hard:{},soft:{math:4,sci:3,code:4},note:"须经国家队选拔（美国：MOP/USAPhO Camp/USNCO Camp/USABO 决赛/USACO Camp；中国：CMO/CPhO 等）"},
+ "MP4G":{hard:{math:1},soft:{math:2},note:"凭 AMC10/12 分数受邀（约需 AMC 前列）；AIME 级别更有竞争力"},
+ "ARML":{soft:{math:2},note:"由所在地区队选拔组队，通常需 AIME 水平"},
+ "HiMCM":{soft:{},note:"团队赛，无门槛；建议有 Python/Excel 建模基础"},
+ "IMMC":{soft:{},note:"团队赛，无门槛"},
+ "BMO":{soft:{math:1},note:"英国体系 SMC 前列或直接报名 R1；证明题为主"},
+ "Euclid":{soft:{math:1},note:"无门槛，G11–G12 为主"},
+ "DMM":{soft:{math:1},note:"团队赛，AMC 级别即可参赛"},
+ // 数学夏校
+ "SUMaC":{soft:{math:2,gpa:3.7},note:"不要求 SAT/托福；录取核心是证明型入学试卷 + 数学教师推荐 + 文书。AIME 级别是实际申请池的常态，但试卷完整度比竞赛头衔更关键"},
+ "PROMYS":{soft:{math:2},note:"不要求标化；靠数论 Problem Set 解答 + 教师推荐 + 动机文书；AIME 级别的学生占多数"},
+ "ROSS":{soft:{math:2},note:"不要求标化；靠证明题解答质量；AIME/USAMO 级别学生比例高"},
+ "Mathcamp":{soft:{math:2},note:"不要求标化；Qualifying Quiz 是唯一硬门槛，题目偏创造性证明"},
+ "HCSSiM":{soft:{math:1},note:"Interesting Test + 推荐信；无标化要求"},
+ "MathILy":{soft:{math:2},note:"专属问题集（手写解题过程）；无标化要求"},
+ "HSMC":{soft:{math:1},note:"数学教师推荐；无标化要求"},
+ "PZMC":{soft:{math:1},note:"数学挑战题 + 个人陈述"},
+ "AwesomeMath":{soft:{math:1},note:"入学测试分班；AMC 参赛即可"},
+ "PACT":{soft:{math:1,code:1},note:"算法/组合思维，建议有编程基础"},
+ "SPARC":{soft:{math:3},note:"不看成绩单/标化/推荐信；主办方称「大多数录取者是 USAMO qualifier」，也录顶尖棋手等非竞赛型学生"},
+ "ESPR/PAIR":{soft:{math:2},note:"SPARC 欧洲版，同样不看标化"},
+ // 顶级科研
+ "RSI":{hard:{res:1},soft:{res:2,sat:1480,gpa:3.9,math:2},note:"官方要求提交 PSAT/SAT/ACT（国际生可用 SAT/ACT）：PSAT 数学≥740、阅读写作≥700 为参考线；需有科研或奥赛背景，2–3 封 STEM 推荐信"},
+ "SSP":{hard:{},soft:{sat:1450,gpa:3.9,res:1},note:"rising senior；官方参考：年级前 5%、SAT 1450+/ACT 33+、修完微积分与物理（天体物理方向）或化学（生化方向）"},
+ "SSRP":{hard:{res:1},soft:{res:2,gpa:3.9},note:"需学校提名（每校限 2 人）+ 2 封理科推荐信；以 STS 为目标的科研型学生"},
+ "CSP":{soft:{sat:1500,gpa:3.9,res:2},note:"录取者 SAT 平均 99 百分位；院长偏好「一两件事做到极致」+ 有实质志愿服务"},
+ "HSHSP":{soft:{gpa:3.8,sat:1400},note:"仅 rising senior；看理科成绩与 PSAT/SAT；注意 2025/2026 停办"},
+ "JAX SSP":{hard:{res:1},soft:{res:2},note:"需有实验室/科研经历；高中生名额极少"},
+ "SIMR":{soft:{res:1,gpa:3.8},note:"仅美籍/绿卡；偏好湾区学生"},
+ "LLP":{soft:{res:1},note:"需 3 篇 250 词短文精准匹配教授课题；不提供住宿"},
+ "PRIMES":{hard:{math:2},soft:{math:3,res:1},note:"PRIMES-USA 录取率约 7–8%；需在 10 年级前修完微积分并有证明基础，入学题集为主要筛选"},
+ "RISE":{soft:{gpa:3.8,res:1,toefl:100},note:"rising senior；国际生需 F-1；官方建议托福 100+"},
+ "UCSB-RMP":{hard:{gpa:3.8},soft:{gpa:4.0,sat:1450},note:"官方最低加权 GPA 3.80；2021 届平均 4.34；国际生无需托福"},
+ "UCSB SRA":{soft:{gpa:3.6},note:"官方最低 GPA 3.6（以官网为准）"},
+ "YSPA":{soft:{gpa:3.8,res:1},note:"rising senior；须修完并优秀完成所有可选高阶数理课程"},
+ "GARCIA":{hard:{gpa:3.8},soft:{sat:1400,res:1},note:"官方 GPA 约 3.8/4.0 + 3 封推荐信 + 标化"},
+ "ASSIP":{soft:{res:1},note:"个人陈述 + 简历；国际生可申"},
+ "SIP":{soft:{gpa:3.5,res:1},note:"UCSC 导师制，10 周；国际生可申"},
+ "UCD YSP":{soft:{gpa:3.7},note:"仅美籍/绿卡"},
+ "Iowa SSTP":{soft:{gpa:3.7,res:1},note:"2 封推荐信 + 文书"},
+ "UF SSTP":{soft:{gpa:3.7},note:"2 封教师推荐信 + 研究兴趣陈述"},
+ "Hofstra SSRP":{soft:{res:1},note:"科学教师推荐信"},
+ "ISEF":{hard:{res:1},soft:{res:2},note:"须先在附属赛区（大陆：CASTIC/各地科创大赛/英才计划通道）晋级"},
+ "STS":{hard:{res:2},soft:{res:3},note:"美高 G12；需完整独立研究报告 + 导师推荐"},
+ "Yau Science Award (S.-T. Yau High School Science Award)":{hard:{res:1},soft:{res:2},note:"团队论文制，需导师指导的完整研究论文"},
+ "CTB":{soft:{res:1},note:"团队课题制，无门槛；建议 G9–G10 立项"},
+ "JSHS":{hard:{res:1},note:"需科研论文并口头报告"},
+ "Davidson Fellows Scholarship":{hard:{res:3},note:"需达到研究生水平的原创成果（论文/作品/软件）"},
+ // 物理化学生物
+ "USAPhO":{hard:{sci:1},soft:{sci:2},note:"须先通过 F=ma（约前 500 名）"},
+ "USNCO":{soft:{sci:1},note:"地方赛由 ACS 分会选拔，每校限 2 人进国家赛"},
+ "USABO":{soft:{sci:1},note:"公开赛前 10% 进半决赛；建议自学 Campbell 生物"},
+ "BPhO":{soft:{sci:1},note:"R1 无门槛；Top Gold 约前 3%"},
+ "UKChO":{soft:{sci:1},note:"无门槛；Gold 约前 8%"},
+ "BBO":{soft:{sci:1},note:"无门槛"},
+ "Physics Bowl":{soft:{},note:"无门槛，Division 1/2 按年级"},
+ "PUPC":{soft:{sci:1},note:"线上赛，无门槛"},
+ "IYPT":{hard:{sci:2},note:"国家队制，需经国内选拔"},
+ "ISSYP":{soft:{sci:1,gpa:3.8},note:"须已修完 11 年级物理；2024 年停办，报名前核对是否恢复"},
+ "PAN":{soft:{sci:1},note:"美高在读"},
+ // 计算机 / AI
+ "USACO":{soft:{code:1},note:"无门槛；Bronze→Silver→Gold→Platinum 逐级升"},
+ "Meta Hacker Cup (Final Round)":{soft:{code:3},note:"进 Round 2 约等于 USACO 铂金水平"},
+ "Kaggle":{soft:{code:2},note:"无年龄门槛；需 Python + 机器学习基础"},
+ "IOAI":{hard:{code:1},soft:{code:2},note:"需经 NOAI 国内选拔；Python + 机器学习基础"},
+ "USAAIO":{soft:{code:1},note:"美高在读；线上赛"},
+ "Apple Swift Student Challenge":{soft:{code:1},note:"需能独立用 Swift 做一个 App Playground"},
+ "CSSI":{soft:{code:1},note:"需通过在线编程/逻辑测试"},
+ "CCC-CS":{soft:{code:1},note:"无门槛"},
+ "ACSL":{soft:{},note:"无门槛，按 Elementary→Senior 分组"},
+ "BWSI":{hard:{code:1},soft:{code:2},note:"须先完成线上先修课程；美高在读"},
+ "AI4ALL":{soft:{gpa:3.5},note:"面向女性/多元背景学生；理科推荐信"},
+ // 商科/经济
+ "NEC":{soft:{},note:"团队赛，无门槛；建议有 AP 微观/宏观基础"},
+ "IEO":{soft:{},note:"无门槛；初选为线上考试"},
+ "WGHS":{soft:{},note:"团队赛，无门槛"},
+ "HUEA/HER":{soft:{write:1},note:"论文赛，限 600 份提交"},
+ "IEA":{soft:{write:1},note:"论文赛，G11–G12"},
+ "Marshall Society Essay Competition":{soft:{write:1},note:"论文赛"},
+ "Diamond Challenge":{soft:{},note:"创业方案 + Pitch"},
+ "MEC":{soft:{},note:"无门槛"},
+ "Conrad Challenge (Finalists)":{soft:{res:1},note:"创新方案团队赛"},
+ "M&TSI":{soft:{gpa:3.8,sat:1450,toefl:100},note:"rising senior；官方不强制 SAT，但典型学员已修最高阶物理/微积分；国际生需语言成绩"},
+ "LBW":{soft:{gpa:3.7,toefl:100},note:"Wharton 官方：国际生托福建议 100+（或同等）"},
+ "B-BAY":{soft:{gpa:3.5,toefl:100},note:"2 封推荐信 + 文书"},
+ "GUBA":{soft:{toefl:95},note:"Georgetown 国际生托福参考 95+"},
+ // 人文写作
+ "Scholastic Art & Writing Awards":{soft:{write:1},note:"美高/加拿大在读；按赛区提交"},
+ "NSPP":{hard:{write:3},note:"须先获 Scholastic 诗歌类全国奖"},
+ "The Adroit Prizes for Poetry & Prose":{soft:{write:2},note:"每类仅 1 名获奖者；有发表经历更有竞争力"},
+ "Kenyon Review Patricia Grodd Poetry Prize for Young Writers":{soft:{write:1},note:"G10–G11"},
+ "Foyle Young Poets of the Year Award":{soft:{write:1},note:"11–17 岁；国际生友好"},
+ "John Locke Institute Essay Competition":{soft:{write:1},note:"2000 词论文；无门槛"},
+ "HAWC":{soft:{write:1},note:"学术写作，分季"},
+ "NHD":{soft:{write:1,res:1},note:"历史研究项目赛"},
+ "IYWS":{soft:{write:2},note:"录取几乎完全取决于写作样本质量"},
+ "KRYW":{soft:{write:1},note:"300 字个人陈述"},
+ "SYWC":{soft:{write:1},note:"写作样本 + 推荐信"},
+ "KWS":{soft:{write:1},note:"美高在读"},
+ "TCR":{soft:{write:2,res:1},note:"史学论文营，为投稿 The Concord Review（8500 词+）做准备"},
+ "TASS":{soft:{write:2,gpa:3.7},note:"4 篇论文 + 面试；不看标化；录取率约 3–5%"},
+ "NDLS":{soft:{gpa:3.8,sat:1400},note:"官方参考：年级前 10%、SAT 1300–1500+/ACT 31+；重实质领导力"},
+ "YoungArts":{hard:{write:1},soft:{write:2},note:"作品集/作品评审；美籍或美高"},
+ "NSDA":{soft:{},note:"须经地区赛出线；美高在读"},
+ // 名校通识型夏校（语言硬门槛）
+ "Harvard Secondary School Program":{hard:{toefl:100},soft:{gpa:3.5},note:"官方：非英语母语者托福 100+ / 雅思 7.0+"},
+ "Stanford Summer Session":{hard:{toefl:100},soft:{gpa:3.5},note:"官方：托福 100+ / 雅思 7.0+"},
+ "Yale Summer Session":{hard:{toefl:100},soft:{gpa:3.5},note:"官方：托福 100+ / 雅思 7.0+"},
+ "Penn Pre-College Programs":{hard:{toefl:100},soft:{gpa:3.5},note:"官方：托福 100+ / 雅思 7.0+ / 多邻国 120+"},
+ "Duke Summer College for High School Students":{hard:{toefl:100},soft:{gpa:3.5},note:"官方：托福 100+"},
+ "JHU Pre-College Programs (Summer at Hopkins)":{hard:{toefl:100},note:"官方：托福 100+ / 雅思 7.0+"},
+ "Northwestern College Preparation Program":{soft:{toefl:100},note:"可能需语言成绩"},
+ "Georgetown Foreign Policy Academy & Economics Policy Academy":{soft:{toefl:95},note:"国际生托福参考 95+"},
+ "UChicago Pre-College Program":{soft:{toefl:104},note:"官方：托福 104+ / 雅思 7.0+"},
+ "WUSTL High School Summer Scholars Program":{soft:{toefl:100},note:"国际生托福参考 100+"},
+ "Cornell Engineering Catalyst Academy":{soft:{toefl:100},note:"美高在读"},
+ "Introduction to Architecture, Cornell Summer Program":{hard:{toefl:100},note:"Cornell 官方：托福 100+ / 雅思 7.0+"},
+ "YYGS":{soft:{toefl:100},note:"官方不强制语言成绩，但需英文流利；文书为核心"},
+ "CTY":{hard:{},soft:{sat:1300},note:"需 SCAT/SAT 等资格考试成绩达到 CTY 分数线"},
+ "Wharton Essentials of Finance":{soft:{toefl:100},note:"国际生需语言成绩"},
+ "Wharton Sports Business Academy":{soft:{toefl:100},note:"国际生需语言成绩"},
+ "Wharton Data Science Academy":{soft:{toefl:100,code:1},note:"国际生需语言成绩；建议有 Python 基础"},
+ "Wharton Moneyball Academy":{soft:{toefl:100},note:"国际生需语言成绩"},
+ "ESAP":{soft:{gpa:3.0,toefl:100},note:"官方 GPA 3.0+；国际生需语言成绩"},
+ "SAS":{soft:{toefl:100},note:"国际生需语言成绩"},
+ "PMSP":{soft:{gpa:3.5,toefl:100},note:"300–350 字个人陈述"},
+ "JHU EEI":{soft:{toefl:100},note:"国际生需语言成绩"},
+ "Pioneer":{soft:{gpa:3.5,toefl:90},note:"托福（如有）+ 学校老师线上评估"},
+ "CCIR":{soft:{gpa:3.5},note:"500 字个人陈述"},
+ "RIBS":{soft:{gpa:3.5,toefl:104},note:"UChicago 体系，托福参考 104+"},
+ "SAMS":{soft:{gpa:3.5},note:"仅美籍/绿卡；含标化"},
+ "COSMOS":{soft:{gpa:3.5},note:"美高（加州为主）"},
+ "MITES":{soft:{gpa:3.8},note:"仅美籍/绿卡，面向弱势背景"},
+ "WTP":{soft:{gpa:3.8},note:"美高在读 G11 女生，几乎无工程背景者优先"},
+ "Coca-Cola Scholars Program":{soft:{gpa:3.0},note:"官方最低 GPA 3.0；核心看领导力与社会影响"},
+ "National Merit Scholarship Program":{hard:{},soft:{sat:1450},note:"由 G11 PSAT/NMSQT 分数决定（各州线不同）"},
+ "AP Scholar Awards":{soft:{},note:"由 AP 成绩自动授予"}
+};
+const REQ_LABEL={math:["无","AMC 参赛","AIME 资格","AIME 8+","USA(J)MO 资格","MOP/IMO"],sci:["无","参赛/铜银","国家级金奖","国家队级"],code:["无","USACO 铜","银","金","铂金"],res:["无","校内课题","导师制科研","已发表/省级+"],write:["无","校级","地区级","国家级"]};
+function reqFor(e){ return REQ[e.abbr]||REQ[e.nameEn]||null; }
+/* returns {hardFail:[...], softMiss:[...], softHit:[...], note} in current language */
+function checkReq(e,P){
+  const r=reqFor(e); if(!r) return null;
+  const zh=LANG==='zh'; const out={hardFail:[],softMiss:[],softHit:[],note:r.note||''};
+  const eval_=(cond,arr,strict)=>{
+    for(const [k,v] of Object.entries(cond||{})){
+      let cur=P[k]; let ok, txt;
+      if(k==='toefl'){ // language: toefl(old) OR ielts equivalent
+        const tf=P.toeflOld, ie=P.ielts; const ieNeed=v>=104?7.5:v>=100?7:v>=90?6.5:6;
+        if(tf==null&&ie==null){ ok=null; txt=zh?`托福 ${v}+/雅思 ${ieNeed}+（未填写）`:`TOEFL ${v}+ / IELTS ${ieNeed}+ (not provided)`; }
+        else { ok=(tf!=null&&tf>=v)||(ie!=null&&ie>=ieNeed); const curTxt=[tf!=null?(zh?`托福 ${tf}`:`TOEFL ${tf}`):null, ie!=null?(zh?`雅思 ${ie}`:`IELTS ${ie}`):null].filter(Boolean).join(' / '); txt=zh?`托福 ${v}+/雅思 ${ieNeed}+（当前 ${curTxt}）`:`TOEFL ${v}+ / IELTS ${ieNeed}+ (yours ${curTxt})`; }
+      } else if(k==='sat'){ if(cur==null){ok=null;txt=zh?`SAT ${v}+（未填写）`:`SAT ${v}+ (not provided)`;} else {ok=cur>=v; txt=zh?`SAT ${v}+（当前 ${cur}）`:`SAT ${v}+ (yours ${cur})`;} }
+      else if(k==='gpa'){ if(cur==null){ok=null;txt=zh?`GPA ${v}+（未填写）`:`GPA ${v}+ (not provided)`;} else {ok=cur>=v; txt=zh?`GPA ${v}+（当前 ${cur}）`:`GPA ${v}+ (yours ${cur})`;} }
+      else { cur=cur||0; ok=cur>=v; const lab=REQ_LABEL[k]; const nm={math:'数学竞赛',sci:'理科竞赛',code:'编程',res:'科研',write:'写作/艺术'}[k]; txt=zh?`${nm}≥「${lab[v]}」（当前「${lab[cur]}」）`:`${nm} ≥ ${lab[v]} (yours ${lab[cur]})`; }
+      if(ok===true) out.softHit.push(txt);
+      else if(ok===false) (strict?out.hardFail:out.softMiss).push(txt);
+      else if(strict) out.softMiss.push(txt); // unknown on hard req -> warn, not exclude
+    }
+  };
+  eval_(r.hard,out.hardFail,true); eval_(r.soft,out.softMiss,false);
+  return out;
+}
+
 function englishLevel(toefl,ielts,sat,toeflScale){
   let lv = null;
   const cand=[];
@@ -605,6 +803,9 @@ function generate(){
   const ielts=+document.getElementById('in-ielts').value||null;
   const sat=+document.getElementById('in-sat').value||null;
   const eng=englishLevel(toefl,ielts,sat,toeflScale);
+  const toeflOld = toefl==null?null:(toeflScale==='new'?({6:116,5.5:108,5:96,4.5:86,4:75,3.5:65,3:55}[toefl]||Math.round(toefl*19)):toefl);
+  const P={gpa:+document.getElementById('in-gpa').value||null, math:+document.getElementById('in-math').value, sci:+document.getElementById('in-sci').value, code:+document.getElementById('in-code').value, res:+document.getElementById('in-res').value, write:+document.getElementById('in-write').value, sat, toeflOld, ielts};
+  const gated=[];
   const tags=new Set(); pickedMajors.forEach(k=>MAJOR_OPTS.find(m=>m.k===k).tags.forEach(t=>tags.add(t)));
   const hasSTEM = pickedMajors.some(k=>STEM_KEYS.includes(k));
   const tierRank={S:0,A:1,B:2,C:3,D:4};
@@ -636,14 +837,21 @@ function generate(){
       // G12=申请季：秋季截止的竞赛才有意义，春季截止的出结果已晚于ED/RD
       if(grade>=12 && e.months && e.months.length && e.months[0]>=1 && e.months[0]<=5) s -= 30;
       if(grade<=9 && e.tier==='S' && e.diff===5) s -= 8; // too early for most
-      return {e, s, mFit};
+      const rq=checkReq(e,P);
+      if(rq){ s += Math.min(18, rq.softHit.length*7); s -= Math.min(16, rq.softMiss.length*6); if(rq.hardFail.length) s -= 100; }
+      return {e, s, mFit, rq};
    })
    // 严格专业相关：零匹配的项目一律不进推荐池（修复经济学出现理工科研项目的问题）
    .filter(x=>x.mFit>0)
    .sort((a,b)=>b.s-a.s);
+  // 硬门槛未达：移出推荐池，单独列出「先补条件」
+  const hardGated = scored.filter(x=>x.rq&&x.rq.hardFail.length);
+  hardGated.sort((a,b)=>({S:0,A:1,B:2,C:3,D:4}[a.e.tier]-{S:0,A:1,B:2,C:3,D:4}[b.e.tier])||(b.mFit-a.mFit));
+  gated.push(...hardGated.slice(0,6));
+  const scoredOK = scored.filter(x=>!(x.rq&&x.rq.hardFail.length));
 
-  const comps = scored.filter(x=>['competition','award'].includes(x.e.kind));
-  const progs = scored.filter(x=>['summer_program','research_program','internship'].includes(x.e.kind));
+  const comps = scoredOK.filter(x=>['competition','award'].includes(x.e.kind));
+  const progs = scoredOK.filter(x=>['summer_program','research_program','internship'].includes(x.e.kind));
   const pickGroups = list => {
     const reach = list.filter(x=>x.e.diff>=4 && tierRank[x.e.tier]<=1).slice(0,3);
     const used = new Set(reach.map(x=>x.e.id));
@@ -652,7 +860,7 @@ function generate(){
     const base = list.filter(x=>!used.has(x.e.id) && x.e.diff<=2).slice(0,3);
     return {reach, core, base};
   };
-  lastResult = {grade,target,school,citizen,toefl,toeflScale,ielts,sat,eng,
+  lastResult = {grade,target,school,citizen,toefl,toeflScale,ielts,sat,eng,P,gated,
     comps:pickGroups(comps), progs:pickGroups(progs),
     majors:[...pickedMajors]};
   renderResults(lastResult);
@@ -673,10 +881,19 @@ function reasonFor(x){
   return bits.slice(0,3).join(' · ');
 }
 
+function reqHTML(x){
+  const r=x.rq; if(!r) return '';
+  const zh=LANG==='zh'; const rows=[];
+  r.hardFail.forEach(t=>rows.push(`<div class="no">✗ ${zh?'硬门槛未达':'Requirement not met'}：${t}</div>`));
+  r.softHit.forEach(t=>rows.push(`<div class="ok">✓ ${zh?'已达标':'Met'}：${t}</div>`));
+  r.softMiss.forEach(t=>rows.push(`<div class="warn">⚠ ${zh?'建议':'Suggested'}：${t}</div>`));
+  if(r.note) rows.push(`<div class="nt">ℹ ${r.note}</div>`);
+  return `</div><div class="reqbox">${rows.join('')}`;
+}
 function groupBlock(title, cls, items){
   if(!items.length) return '';
   return `<div class="grouphead"><div class="bar"></div><h3>${title}</h3></div>
-  <div class="cardgrid">${items.map(x=>cardHTML(x.e, reasonFor(x))).join('')}</div>`;
+  <div class="cardgrid">${items.map(x=>cardHTML(x.e, reasonFor(x)+reqHTML(x))).join('')}</div>`;
 }
 
 function renderResults(R){
@@ -696,7 +913,8 @@ function renderResults(R){
     <div style="font-size:.9rem;margin-top:6px">
       ${LANG==='zh'?'当前年级':'Grade'}: <b>${gradeLbl}</b> ｜ ${LANG==='zh'?'目标':'Target'}: <b>${targetLbl}</b> ｜ ${LANG==='zh'?'意向方向':'Directions'}: <b>${mNames}</b><br>
       ${LANG==='zh'?'就读学校':'School'}: <b>${document.getElementById('in-school').selectedOptions[0].textContent}</b> ｜ ${LANG==='zh'?'国籍身份':'Citizenship'}: <b>${document.getElementById('in-citizen').selectedOptions[0].textContent}</b>${R.citizen!=='uspr'?(LANG==='zh'?'（仅限美籍/绿卡的项目已自动排除）':' (citizen/PR-only programs excluded)'):''}<br>
-      ${LANG==='zh'?'语言评估':'English readiness'}: ${engTxt}
+      ${LANG==='zh'?'语言评估':'English readiness'}: ${engTxt}<br>
+      ${LANG==='zh'?'学术背景':'Academic profile'}: <b>${R.P.gpa?('GPA '+R.P.gpa+' ｜ '):''}${LANG==='zh'?'数学':'Math'} ${REQ_LABEL.math[R.P.math]} ｜ ${LANG==='zh'?'理科':'Science'} ${REQ_LABEL.sci[R.P.sci]} ｜ ${LANG==='zh'?'编程':'Coding'} ${REQ_LABEL.code[R.P.code]} ｜ ${LANG==='zh'?'科研':'Research'} ${REQ_LABEL.res[R.P.res]} ｜ ${LANG==='zh'?'写作':'Writing'} ${REQ_LABEL.write[R.P.write]}</b>
     </div>
   </div>
   <div class="card">
@@ -711,6 +929,11 @@ function renderResults(R){
     ${groupBlock('⭐ '+t.gCore,'core',R.progs.core)}
     ${groupBlock('✅ '+t.gBase,'base',R.progs.base)}
   </div>
+  ${R.gated&&R.gated.length?`<div class="card gated" style="margin-top:16px">
+    <h2>${LANG==='zh'?'🔒 先补条件，再去冲':'🔒 Unlock these first'}</h2>
+    <div class="note" style="margin-bottom:10px">${LANG==='zh'?'以下高价值项目与你的方向匹配，但当前学术背景未达其硬门槛。按提示补齐后即可进入推荐池。':'High-value programs matching your directions, but a hard prerequisite is not yet met.'}</div>
+    <div class="cardgrid">${R.gated.map(x=>cardHTML(x.e, reasonFor(x)+reqHTML(x))).join('')}</div>
+  </div>`:''}
   <div class="card" style="margin-top:16px">
     <h2>${t.gPlan}</h2>
     ${planHTML(R)}
