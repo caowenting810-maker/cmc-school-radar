@@ -990,10 +990,12 @@ renderBrand();renderNav();nav('home');
 </script>
 <script>
 (function(){
-  var KEY='cmc_reg_bio_drill';
+  var UKEY='cmc_registered';
+  var TKEY='cmc_reg_bio_drill';
   var URL='https://doc.weixin.qq.com/forms/AIsAjgczAAYAW4AiwYtAIECNd3FyEQFff';
-  if(document.referrer && document.referrer.indexOf('doc.weixin.qq.com')!==-1){try{localStorage.setItem(KEY,'1');}catch(e){}}
-  if(!localStorage.getItem(KEY)){window.location.href=URL;}
+  if(localStorage.getItem(UKEY))return;
+  if(document.referrer&&document.referrer.indexOf('doc.weixin.qq.com')!==-1){try{localStorage.setItem(UKEY,'1');localStorage.setItem(TKEY,'1');}catch(e){}return;}
+  if(!localStorage.getItem(TKEY)){window.location.href=URL;}
 })();
 </script>
 </body>
