@@ -989,5 +989,169 @@ renderBrand();renderNav();nav('home');
 
 </script>
 
+
+<!-- ====== CMC Registration Modal (Inline Form) ====== -->
+<style>
+/* Registration Modal Styles */
+.cmc-reg-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity 0.4s ease}
+.cmc-reg-overlay.cmc-fade-out{opacity:0;pointer-events:none}
+.cmc-reg-card{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);padding:40px 36px 32px;width:420px;max-width:90%;max-height:90vh;overflow-y:auto;transform:scale(1);transition:transform 0.3s ease}
+.cmc-reg-overlay.cmc-fade-out .cmc-reg-card{transform:scale(0.95)}
+.cmc-reg-title{font-size:22px;font-weight:700;color:#1a1a2e;text-align:center;margin:0 0 8px 0;letter-spacing:0.5px}
+.cmc-reg-subtitle{font-size:13px;color:#888;text-align:center;margin:0 0 28px 0}
+.cmc-reg-field{margin-bottom:18px}
+.cmc-reg-label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:6px}
+.cmc-reg-label .cmc-required{color:#e74c3c;margin-left:2px}
+.cmc-reg-input,.cmc-reg-select{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;color:#333;outline:none;transition:border-color 0.2s,box-shadow 0.2s;background:#fafafa;box-sizing:border-box}
+.cmc-reg-input:focus,.cmc-reg-select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.12);background:#fff}
+.cmc-reg-input::placeholder{color:#bbb}
+.cmc-reg-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+.cmc-reg-btn{width:100%;padding:12px 0;margin-top:8px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:15px;font-weight:600;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px}
+.cmc-reg-btn:hover{background:linear-gradient(135deg,#2563eb,#1d4ed8);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.cmc-reg-btn:active{transform:translateY(0)}
+.cmc-reg-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.cmc-reg-error{color:#e74c3c;font-size:12px;margin-top:4px;display:none}
+@media(max-width:480px){
+  .cmc-reg-card{padding:28px 20px 24px;border-radius:12px}
+  .cmc-reg-title{font-size:19px}
+}
+</style>
+<div class="cmc-reg-overlay" id="cmcRegOverlay" style="display:none">
+  <div class="cmc-reg-card">
+    <h2 class="cmc-reg-title">欢迎使用生竞刷题台</h2>
+    <p class="cmc-reg-subtitle">请填写以下信息后开始使用（仅首次需要）</p>
+    <form id="cmcRegForm" autocomplete="off">
+      <div class="cmc-reg-field">
+        <label class="cmc-reg-label">姓名<span class="cmc-required">*</span></label>
+        <input class="cmc-reg-input" type="text" id="cmcRegName" placeholder="请输入学生姓名" required>
+      </div>
+      <div class="cmc-reg-field">
+        <label class="cmc-reg-label">年级<span class="cmc-required">*</span></label>
+        <select class="cmc-reg-select" id="cmcRegGrade" required>
+          <option value="" disabled selected>请选择年级</option>
+          <option value="初三">初三</option>
+          <option value="高一">高一</option>
+          <option value="高二">高二</option>
+          <option value="高三">高三</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="cmc-reg-field">
+        <label class="cmc-reg-label">学校<span class="cmc-required">*</span></label>
+        <input class="cmc-reg-input" type="text" id="cmcRegSchool" placeholder="请输入就读学校" required>
+      </div>
+      <div class="cmc-reg-field">
+        <label class="cmc-reg-label">城市<span class="cmc-required">*</span></label>
+        <input class="cmc-reg-input" type="text" id="cmcRegCity" placeholder="请输入所在城市" required>
+      </div>
+      <div class="cmc-reg-field">
+        <label class="cmc-reg-label">电话<span class="cmc-required">*</span></label>
+        <input class="cmc-reg-input" type="tel" id="cmcRegPhone" placeholder="请输入手机号" required>
+      </div>
+      <button class="cmc-reg-btn" type="submit" id="cmcRegSubmit">开始使用</button>
+    </form>
+  </div>
+</div>
+<script>
+(function(){
+  /* ---- CMC Registration Modal Logic ---- */
+  var overlay = document.getElementById('cmcRegOverlay');
+  var form = document.getElementById('cmcRegForm');
+  var REG_KEY = 'cmc_registered';
+  var TOOL_KEY = 'cmc_bio_drill_registered';
+  var DATA_KEY = 'cmc_bio_drill_data';
+
+  function isRegistered(){
+    try {
+      return localStorage.getItem(REG_KEY) === '1' && localStorage.getItem(TOOL_KEY) === '1';
+    } catch(e){ return false; }
+  }
+
+  function shouldShow(){
+    // Force show if ?reg=1 in URL
+    if(/[?&]reg=1(&|$)/.test(location.search)) return true;
+    return !isRegistered();
+  }
+
+  function showModal(){
+    overlay.style.display = 'flex';
+    // Trigger reflow then animate in
+    requestAnimationFrame(function(){ overlay.style.opacity = '1'; });
+  }
+
+  function hideModal(){
+    overlay.classList.add('cmc-fade-out');
+    setTimeout(function(){ overlay.style.display = 'none'; }, 400);
+  }
+
+  function validatePhone(phone){
+    return /^1[3-9]\d{9}$/.test(phone) || /^\d{11}$/.test(phone);
+  }
+
+  // Show modal on load if needed
+  if(shouldShow()){
+    showModal();
+  }
+
+  // Form submission
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = document.getElementById('cmcRegName').value.trim();
+    var grade = document.getElementById('cmcRegGrade').value;
+    var school = document.getElementById('cmcRegSchool').value.trim();
+    var city = document.getElementById('cmcRegCity').value.trim();
+    var phone = document.getElementById('cmcRegPhone').value.trim();
+
+    // Validation
+    if(!name || !grade || !school || !city || !phone){
+      alert('请填写所有必填项');
+      return;
+    }
+    if(!validatePhone(phone)){
+      alert('请输入正确的11位手机号');
+      return;
+    }
+
+    // Save to localStorage
+    try {
+      localStorage.setItem(REG_KEY, '1');
+      localStorage.setItem(TOOL_KEY, '1');
+      localStorage.setItem(DATA_KEY, JSON.stringify({
+        name: name, grade: grade, school: school, city: city, phone: phone, time: new Date().toISOString()
+      }));
+    } catch(e){}
+
+    // Attempt to send data to WeCom (best-effort, won't block UX)
+    var now = new Date();
+    var timeStr = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate()+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    var msgContent = '【生竞刷题台-新用户登记】\n姓名：'+name+'\n年级：'+grade+'\n学校：'+school+'\n城市：'+city+'\n电话：'+phone+'\n时间：'+timeStr;
+
+    // Try sending via WeCom API (will likely fail due to CORS, that's OK)
+    try {
+      fetch('https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=ww4ea464a29e9cb62a&corpsecret=p80gFohM_UG81XdPjBYivPEE6_AM26M1HCQQXNr7gI8')
+        .then(function(r){ return r.json(); })
+        .then(function(td){
+          if(td.access_token){
+            return fetch('https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token='+td.access_token, {
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({
+                touser:'@all',
+                msgtype:'text',
+                agentid:1000019,
+                text:{content: msgContent}
+              })
+            });
+          }
+        })
+        .catch(function(){});
+    } catch(e){}
+
+    // Close modal and let user use the tool
+    hideModal();
+  });
+})();
+</script>
+
 </body>
 </html>
