@@ -992,7 +992,7 @@ renderBrand();renderNav();nav('home');
 (function(){
   var UKEY='cmc_registered';
   var TKEY='cmc_reg_bio_drill';
-  var URL='https://doc.weixin.qq.com/forms/AIsAjgczAAYAW4AiwYtAIECNd3FyEQFff';
+  var URL='https://doc.weixin.qq.com/forms/AIsAjgczAAYAW4AiwYtAIECNd2LfYYupf';
   if(localStorage.getItem(UKEY))return;
   try{var p=new URLSearchParams(location.search);if(p.get('reg')==='1'){localStorage.setItem(UKEY,'1');localStorage.setItem(TKEY,'1');history.replaceState(null,'',location.pathname);return;}}catch(e){}
   if(document.referrer&&document.referrer.indexOf('doc.weixin.qq.com')!==-1){try{localStorage.setItem(UKEY,'1');localStorage.setItem(TKEY,'1');}catch(e){}return;}
