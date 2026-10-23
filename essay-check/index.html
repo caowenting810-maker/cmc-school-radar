@@ -372,6 +372,15 @@ footer.foot{border-top:1px solid var(--line);margin-top:40px;padding-top:14px;fo
 body[data-role="staff"] .helpc,body[data-role="staff"] .help-foot{display:none!important}
 #qr-modal img{width:240px;height:240px;display:block;margin:8px auto;background:#fff;border-radius:8px}
 @media print{.helpc,.help-foot{display:none!important}}
+.p-prog{margin-top:14px}.p-prog ol{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.p-prog li{display:flex;gap:10px;align-items:baseline;color:var(--muted);font-size:14px;transition:color .2s}
+.p-prog li .ic{width:16px;flex:none;text-align:center}.p-prog li.on{color:var(--fg)}.p-prog li.done{color:var(--fg)}.p-prog li.done .ic{color:var(--green,#2e7d32)}
+.p-prog li.on .ic::before{content:"";display:inline-block;width:10px;height:10px;border:2px solid var(--brand);border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fit .fitrow{display:grid;grid-template-columns:150px 70px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--line);align-items:start;font-size:14px}
+.fit .fitrow:first-of-type{border-top:0}.fit .tr{display:inline-block;font-size:12px;padding:1px 7px;border-radius:999px;margin:2px 4px 2px 0;border:1px solid var(--line)}
+.fit .tr.y{border-color:transparent;background:var(--green-bg,#e8f5e9);color:var(--green-ink,#1b5e20)}.fit .tr.n{border-style:dashed;color:var(--muted)}
+@media (max-width:640px){.fit .fitrow{grid-template-columns:1fr 60px}.fit .fitrow>div:last-child{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -443,6 +452,7 @@ body[data-role="staff"] .helpc,body[data-role="staff"] .help-foot{display:none!i
     </div>
     </details>
     <div class="row runbar" id="p-runbar" style="margin-top:12px"><button class="btn primary" id="p-run" type="button">统一评估</button><button class="btn" id="p-sample" type="button" hidden>载入示例材料</button><button class="btn ghost danger" id="p-clear" type="button" style="margin-left:auto">清空材料…</button></div>
+    <div class="panel p-prog" id="p-prog" hidden></div>
     <div id="p-report" hidden></div>
   </div>
   <div id="bench-wrap" hidden>
@@ -166539,7 +166549,36 @@ function listScore(adv,M,kind){
     const warn=adv.S.filter(x=>/pill amber/.test(x)).length;s-=Math.min(40,red*6+amb*2.5)+warn*4+adv.contests.length*3;return {s:clampN(Math.round(s),35,97),red,amb:amb+warn}}
   if(!M.P.hons.length)return null;let s=94,amb=0,inf=0;adv.hon5.forEach(x=>honInfo(x.h,M,M.P.acts).forEach(z=>{if(z[0]==="amber")amb++;else inf++}));
   if(adv.hon5[0]&&!adv.hon5[0].onMain){s-=6;amb++}s-=amb*4+inf;return {s:clampN(Math.round(s),35,97),red:0,amb}}
-function pRun(){
+/* 主文书 × 各目标校看重的特质：主文书所有学校看到的是同一篇，质量分不变；这里看它和每所学校看重的特质对得上几项 */
+const TRAITS=[
+ ["cur","求知与好奇",/好奇|求知|追问|钻研|为学习本身|执念|想法|提问|求知的热度/,W.curiosity],
+ ["depth","深度与学术",/深|学术|研究|阅读|读得|经典|理论|严谨|科研|教别人/,[/\bresearch/i,/\bread(?:ing)?\b/i,/\btheor/i,/\bdata\b/i,/\bexperiment/i,/\bhypothes/i,/\banaly[sz]/i,/\bproof\b/i,/\bmodel(?:ed|ing|led)?\b/i,/\bequation/i]],
+ ["make","动手做成",/动手|做出|原型|交付|做成|搭|工程|真东西|作品|手脑/,[/\bbuil[td]\b/i,/\bprototype/i,/\bdesigned\b/i,/\bcoded\b/i,/\bsolder/i,/\bassembled\b/i,/\bfixed\b/i,/\btested\b/i,/\bmade (?:a|my|the)\b/i,/\bwired\b/i]],
+ ["collab","合作与求助",/合作|一起|团队|协作|伙伴|找人帮忙|同住|干活/,[/\btogether\b/i,/\bteam(?:mates?)?\b/i,/\bpartner/i,/\bcollaborat/i,/\basked (?:for help|my \w+ for)\b/i,/\bwe (?:built|tried|decided|spent|stayed|worked)\b/i]],
+ ["care","关心他人与社群",/关心|他人|社区|社群|服务|共情|支持身边|社会|别人|关怀/,[/\bcommunity\b/i,/\bneighbou?r/i,/\bfor (?:others|them|her|him)\b/i,/\bvolunteer/i,/\bcared?\b/i,/\blisten(?:ed)? to\b/i,/\btutor/i,/\bmy (?:sister|brother|grand\w+|mother|father|students)\b/i]],
+ ["joy","性格与生活趣味",/有趣|幽默|快乐|玩|性格|生活|古怪|爱好|活人/,[/\blaugh/i,/\bjoke/i,/\bfunny\b/i,/\bsilly\b/i,/\bweird\b/i,/\bridiculous\b/i,/\bfor fun\b/i,/\bmy favou?rite\b/i]],
+ ["growth","自省与成长",/成长|不完美|自我修正|不足|失败|坦诚|冒险|不怕|修正/,[/\bI was wrong\b/i,/\bmistake/i,/\bfail(?:ed|ure)?\b/i,/\bchanged my mind\b/i,/\badmit/i,/\bstruggl/i,/\bI (?:had )?assumed\b/i,/\bI thought\b[^.]{0,60}\bbut\b/i]],
+ ["cross","跨领域联结",/跨|联结|连到|交叉|多面|第二个领域/,[/\bconnect/i,/\bintersection\b/i,/\banother (?:field|discipline)\b/i,/\bacross\b/i,/\bboth\b[^.]{0,40}\band\b/i,/\binterdisciplin/i]],
+ ["init","主动与发起",/主动|发起|带着|自己设计|自导|领导|创|动手试/,[/\bI (?:started|founded|launched|organi[sz]ed|proposed|decided to|set up)\b/i,/\bon my own\b/i,/\bmyself\b/i]],
+ ["voice","表达与声音",/讲给|讲清|表达|写得|声音|沟通|外行/,W.communication]
+];
+function schoolTraits(c){const sc={};const add=(t,w)=>{if(!t)return;TRAITS.forEach(([k,,zh])=>{if(zh.test(t))sc[k]=(sc[k]||0)+w})};(c.wants||[]).forEach(t=>add(t,2));add(c.persona,1);add(c.top3,1);
+  return Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,4)}
+function essayTraits(R){const o={};TRAITS.forEach(([k,,,en])=>{o[k]=R.sents.filter(s=>en.some(re=>re.test(s.t))).length});return o}
+function fitHTML(rows){const main=rows.find(r=>r.k==="essay");const ids=TARGETS.filter(id=>CARDS[id]);if(!main||main.R.N<150||!ids.length)return"";
+  const ev=essayTraits(main.R),nm=k=>TRAITS.find(t=>t[0]===k)[1];
+  const res=ids.map(id=>{const c=CARDS[id],tr=schoolTraits(c);if(!tr.length)return null;const tw=tr.reduce((a,x)=>a+x[1],0);const got=tr.reduce((a,[k,w])=>a+w*Math.min(1,ev[k]/2),0);const p=tw?got/tw:0;
+    return {c,tr,p,lv:p>=0.7?["高","green"]:p>=0.4?["中","amber"]:["低","red"],miss:tr.filter(([k])=>ev[k]===0).map(x=>nm(x[0]))}}).filter(Boolean).sort((a,b)=>b.p-a.p);
+  if(!res.length)return"";
+  return `<div class="panel fit" style="margin-top:12px"><div class="eyebrow">主文书放到各目标校面前</div><h3 style="margin:2px 0 4px">同一篇主文书，各校读出来的契合度不同</h3>
+   <p class="meta-line" style="margin:0 0 8px">主文书所有学校看到的是同一篇，所以它的分数不随学校变。变的是它和每所学校看重的特质对得上几项：下面按院校卡里各校看重的特质，逐项找主文书里的证据句。没对上的特质，放到这所学校的补充文书或活动描述里补，不需要为某一所学校改主文书。</p>
+   ${res.map(r=>`<div class="fitrow"><div><b>${esc(r.c.zh)}</b><br><span class="meta-line">${esc(r.c.en)}</span></div><div><span class="pill ${r.lv[1]}">契合 ${r.lv[0]}</span></div><div>${r.tr.map(([k])=>`<span class="tr ${ev[k]?"y":"n"}">${ev[k]?"✓":"○"} ${esc(nm(k))}${ev[k]?" · "+ev[k]+" 句":""}</span>`).join("")}${r.miss.length?`<div class="meta-line" style="margin-top:3px">主文书里还看不到「${esc(r.miss.join("、"))}」，在${esc(r.c.zh.replace(/大学$|学院$/,""))}的补充文书里补上。</div>`:""}</div></div>`).join("")}
+   <p class="meta-line" style="margin:8px 0 0">按关键词找证据句，是参考，不是招生官的判断；契合度不代表录取可能。</p></div>`}
+function pProgress(steps,done){const box=$('#p-prog');if(window.__fast||!steps.length){box.hidden=true;done();return}
+  box.innerHTML=`<div class="eyebrow">正在逐项评估</div><ol>${steps.map(t=>`<li><span class="ic"></span><span>${t}</span></li>`).join("")}</ol>`;box.hidden=false;box.scrollIntoView({behavior:"smooth",block:"center"});
+  const li=[...box.querySelectorAll('li')];let i=0;const tick=()=>{if(i>0){li[i-1].classList.remove("on");li[i-1].classList.add("done");li[i-1].querySelector('.ic').textContent="✓"}
+    if(i<li.length){li[i].classList.add("on");i++;setTimeout(tick,i===li.length?520:380)}else setTimeout(()=>{box.hidden=true;done()},350)};tick()}
+function pRun(anim){
   const essay=$('#p-essay').value.trim(),supps=pSupps(),acts=$('#p-acts').value.trim(),hons=$('#p-hons').value.trim();
   if(!essay&&!supps.some(x=>x.text)&&!acts){toast("先贴入主文书、小文书或活动列表");return}
   pSave();
@@ -166609,6 +166648,7 @@ function pRun(){
    ${actS?`<tr><td><b>活动列表</b><br><span class="meta-line">${M.P.acts.length} 项 · ${(k=>k?"建议把 "+k+" 项调进前三":"前三项顺序基本合理")(M.listAdv.main10.slice(0,3).filter(r=>r.a.i>2).length)}</span></td><td>${cell(actS.s)}</td><td>${actS.red} / ${actS.amb}</td><td>—</td><td>—</td><td><button class="btn up-btn" type="button" data-open-lists>看排序和逐条建议</button></td></tr>`:""}
    ${honS?`<tr><td><b>荣誉奖项</b><br><span class="meta-line">${M.P.hons.length} 项</span></td><td>${cell(honS.s)}</td><td>${honS.red} / ${honS.amb}</td><td>—</td><td>—</td><td><button class="btn up-btn" type="button" data-open-lists>看荣誉排序</button></td></tr>`:""}
    </tbody></table></div>
+   ${fitHTML(rows)}
    ${nutHTML(rows,acts,hons)}
    ${valHTML(rows,acts,hons)}
    ${planHTML(buildPlan(rows,M,X))}
@@ -166623,7 +166663,22 @@ function pRun(){
    ${GLOSS}${helpCard("pkg",tot)}`;
   pSteps(2);
   P.querySelector('#p-copy').addEventListener("click",()=>copyText(pText(),"整套评估"));
-  (!$('#bulk-res').hidden?$('#bulk-res'):P).scrollIntoView({behavior:"smooth",block:"start"});
+  const reveal=()=>{P.hidden=false;(!$('#bulk-res').hidden?$('#bulk-res'):P).scrollIntoView({behavior:"smooth",block:"start"})};
+  const ess=rows.filter(r=>r.R),nS=ess.reduce((a,r)=>a+r.R.sents.length,0),nW=ess.reduce((a,r)=>a+r.R.N,0),nF=ess.reduce((a,r)=>a+r.R.F.filter(f=>f.sev!=="good").length,0),nG=ess.reduce((a,r)=>a+(r.R.stat.gram||0),0);
+  const ids=TARGETS.filter(id=>CARDS[id]),nq=ids.reduce((a,id)=>a+(CARDS[id].prompts||[]).length,0),nA=M&&M.P?M.P.acts.length:0,nH=M&&M.P?M.P.hons.length:0;
+  {const ps=P.querySelector('.pkg-sum');if(ps)ps.insertAdjacentHTML("afterend",`<p class="meta-line" style="margin:8px 0 0">这次评估：逐句检查 ${ess.length} 篇文书 ${nS} 句，比对 ${MOTIFS.length} 个常见母题族${ids.length?`，对照 ${ids.length} 所学校 ${nq} 道题`:""}${nA?`，逐条看活动 ${nA} 项`:""}${nH?`、奖项 ${nH} 项`:""}，共 ${nF} 条发现。每条发现都能点回原文。</p>`)}
+  if(anim===true){
+    const st=[`读取材料：${ess.length} 篇文书，共 ${nW} 词${nA?`，活动 ${nA} 项`:""}${nH?`，奖项 ${nH} 项`:""}`,
+      `语言体检：逐句检查 ${nS} 句，标出 ${nG} 处语言问题`,
+      `叙事与结构：开头、结尾、张力、细节密度、声音，逐篇检查`,
+      `撞车比对：和 ${MOTIFS.length} 个常见母题族逐一比对`,
+      `AI 风险：按八项文本特征逐篇估算`];
+    if(ids.length)st.push(`院校要点：对照 ${ids.length} 所学校、${nq} 道题的题眼和各校看重的特质`);
+    if(nA||nH)st.push(`活动与奖项：逐条检查头衔、动词、数字和分母`);
+    if(ess.length+(nA?1:0)>1)st.push(`跨材料核对：数字是否一致、内容是否重复、口吻是否像同一个人`);
+    st.push(`汇总评分：共 ${nF} 条发现，排出修改顺序`);
+    P.hidden=true;pProgress(st,reveal)}
+  else reveal();
 }
 function pText(){const L=window.PLAST;if(!L)return"";const o=["CMC师说文书检测系统 · 整套材料评估"];
   o.push("总评："+(L.tot==null?"—":GR(L.tot)+" · "+L.tot+" / 100"));
@@ -166984,7 +167039,7 @@ async function bulkRun(files,text){
   const items=files?await bulkTexts(files,say):[{src:"粘贴的文字",text}];say("");
   if(!items.some(i=>(i.text&&i.text.trim())||(i.segs&&i.segs.length))){toast(items[0]&&items[0].err?items[0].err:"没有读到文字");return}
   const snap=pSnap();const ok=bulkApply(items);$('#pkg-note').hidden=true;
-  if(ok){toast("已分拣好，正在评估…");$('#p-form').open=false;setTimeout(()=>{pRun();if(snap.e.trim()||snap.s.some(x=>x[3].trim())||snap.a.trim())toast("已分拣并填入","撤销这次上传",()=>{pRestore(snap);$('#bulk-res').hidden=true;$('#p-report').hidden=true})},50)}else toast("没有识别出英文文书或活动列表，请检查文件内容")}
+  if(ok){toast("已分拣好，正在评估…");$('#p-form').open=false;setTimeout(()=>{pRun(true);if(snap.e.trim()||snap.s.some(x=>x[3].trim())||snap.a.trim())toast("已分拣并填入","撤销这次上传",()=>{pRestore(snap);$('#bulk-res').hidden=true;$('#p-report').hidden=true})},50)}else toast("没有识别出英文文书或活动列表，请检查文件内容")}
 function bulkInit(){const inp=$('#bulk-in'),box=$('#bulk');
   box.addEventListener("click",()=>inp.click());box.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();inp.click()}});
   inp.addEventListener("change",()=>{if(inp.files.length)bulkRun(inp.files);inp.value=""});
@@ -167004,11 +167059,11 @@ bulkInit();
 function pInit(){
   attachUpload($('#p-essay'));attachUpload($('#p-acts'),"act");attachUpload($('#p-hons'),"hon");
   $('#p-addsupp').addEventListener("click",()=>pSuppItem("why","","",""));
-  $('#p-run').addEventListener("click",pRun);
+  $('#p-run').addEventListener("click",()=>pRun(true));
   $('#p-sample').addEventListener("click",async()=>{const s=M_SAMPLE;const snap=pSnap();
     if(pHas()){const r=await ask("载入示例材料？","示例会替换你现在填的内容。载入后 8 秒内可以撤销，换回你的材料。",[["载入示例","primary"],["取消"]]);if(r.i!==0)return}mLoadSample();showView("check");
     pLoad({p:"3",e:SAMPLE_B,a:s.acts,h:s.hons,s:[["why","cmu",300,s.list[0][2]],["community","northwestern",300,"My community is the eleven kids in Room 2 and the six teachers who now run eye checks without me. I started it by accident, after Xiaomei could not read the word umbrella. I made paper charts, then an app, then a training sheet the teachers could follow. What I bring to a community is not the big idea; it is the second visit, the boring follow-up, the spreadsheet of who got glasses and who still needs them."]]});
-    $('#pkg-note').hidden=false;pRun();if((snap.e.trim()||snap.s.some(x=>x[3].trim())||snap.a.trim()))toast("已载入示例材料","换回我的材料",()=>{pRestore(snap);$('#pkg-note').hidden=true;$('#p-report').hidden=true})});
+    $('#pkg-note').hidden=false;pRun(true);if((snap.e.trim()||snap.s.some(x=>x[3].trim())||snap.a.trim()))toast("已载入示例材料","换回我的材料",()=>{pRestore(snap);$('#pkg-note').hidden=true;$('#p-report').hidden=true})});
   $('#p-clear').addEventListener("click",async()=>{if(!pHas()){toast("现在没有需要清空的内容");return}
     const o=pSnap(),nS=o.s.filter(x=>x[3].trim()).length,nA=o.a.trim()?o.a.trim().split("\n").length:0,nH=o.h.trim()?o.h.trim().split("\n").length:0;
     const ck=(v,l,on,dis)=>`<label class="ck"><input type="checkbox" value="${v}" ${on?"checked":""} ${dis?"disabled":""}>${l}</label>`;
