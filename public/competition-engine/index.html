@@ -129,13 +129,28 @@ textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;bor
 .footnote{font-size:11px;color:var(--faint);text-align:center;padding:4px 0 28px}
 .hidden-view{display:none!important}
 .empty{color:var(--faint);text-align:center;padding:40px 0;font-size:13px}
+.simItem{flex-wrap:wrap}
+.simItem .tt{flex:1 1 240px}
+.simItem .meta{display:block;font-size:11px;color:var(--faint);margin-top:2px}
+.simItem a.pdf{font-size:11px;color:var(--accent-ink);text-decoration:none;border-bottom:1px solid currentColor;white-space:nowrap}
+.simItem a.pdf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.subhead{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:2px 0 2px}
+.barrow.wide{grid-template-columns:150px 1fr 32px}
+.barrow.mine .fill{background:var(--accent)}
+.barrow.mine .lab{font-weight:700;color:var(--accent-ink)}
+.statgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+@media(max-width:560px){.statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.barrow.wide{grid-template-columns:118px 1fr 28px}}
+.stat{background:var(--surface2);border-radius:8px;padding:8px 10px;min-width:0}
+.stat b{display:block;font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.3}
+.stat span{font-size:11px;color:var(--muted)}
+.panelnote{font-size:11px;color:var(--faint);margin:10px 0 0;line-height:1.55}
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="brand"><svg class="logo" viewBox="266 334 627 331" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CMC 师说留学标识"><g fill="#F97E1C"><path fill-rule="nonzero" d="M 746.097656 383.203125 L 684.0625 419.734375 L 591.492188 336.40625 L 506.164062 446.910156 L 430.867188 523.28125 L 430.867188 544.761719 L 537.496094 544.761719 C 542.171875 544.761719 546.820312 543.949219 551.1875 542.289062 C 551.253906 542.265625 551.300781 542.246094 551.320312 542.238281 C 562.164062 537.429688 567.414062 525.523438 572.089844 515.46875 C 572.523438 514.558594 572.9375 513.648438 573.351562 512.71875 C 577.34375 503.925781 579.351562 499.542969 580.796875 494.617188 C 580.796875 494.617188 582.804688 487.441406 582.164062 470.023438 C 582.019531 466.15625 579.121094 466.445312 575.441406 467.085938 C 575.253906 467.125 575.046875 467.148438 574.863281 467.1875 C 571.695312 467.769531 568.613281 469.070312 565.757812 470.539062 L 556.304688 474.699219 C 551.425781 476.847656 546.460938 477.179688 541.679688 476.164062 C 538.183594 475.464844 534.792969 474.015625 531.585938 472.050781 C 529.558594 470.808594 527.675781 469.214844 526.640625 467.085938 C 523.828125 461.375 529.871094 456.492188 533.242188 452.667969 C 538.414062 446.8125 543.851562 441.207031 549.085938 435.414062 C 557.035156 426.597656 564.898438 417.679688 572.222656 408.324219 C 572.253906 408.265625 572.285156 408.207031 572.316406 408.152344 L 580.28125 384.15625 L 580.300781 384.113281 C 581.003906 382.519531 583.238281 382.5 584.003906 384.050781 L 586.546875 389.203125 C 591.160156 398.574219 598.671875 404.324219 607.441406 409.558594 C 616.066406 414.730469 624.652344 421.101562 631.5625 428.609375 C 632.863281 429.996094 634.085938 431.402344 635.242188 432.871094 C 640.457031 439.46875 643.992188 447.164062 648.730469 454.09375 C 651.441406 458.023438 654.441406 461.769531 657.605469 465.347656 C 670.554688 479.910156 684.042969 488.578125 692.667969 491.144531 C 696.101562 492.15625 698.769531 492.839844 700.777344 493.230469 C 715.527344 496.128906 696.082031 483.757812 693.847656 476.457031 C 693.621094 475.730469 693.558594 475.070312 693.722656 474.46875 C 694.21875 472.691406 696.410156 471.738281 708.554688 468.96875 C 718.605469 466.671875 723.632812 465.511719 727.089844 465.058594 C 744.320312 462.804688 763.25 460.527344 782.132812 469.070312 C 795.640625 475.175781 806.089844 485.949219 815.582031 497.058594 C 823.609375 506.449219 831.554688 515.902344 839.597656 525.253906 C 841.746094 527.738281 846.597656 532.777344 850.828125 537.109375 C 855.609375 542.007812 862.164062 544.761719 869.007812 544.761719 L 890.34375 544.761719 L 890.34375 530.695312 Z M 746.097656 383.203125 "/><path fill-rule="nonzero" d="M 638.746094 473.160156 L 565.714844 516.164062 L 456.738281 418.066406 L 356.289062 548.152344 L 267.644531 638.0625 L 267.644531 663.347656 L 393.175781 663.347656 C 398.675781 663.347656 404.144531 662.390625 409.289062 660.4375 C 409.371094 660.40625 409.421875 660.386719 409.449219 660.375 C 422.210938 654.71875 428.394531 640.699219 433.894531 628.863281 C 434.40625 627.792969 434.894531 626.722656 435.382812 625.625 C 440.082031 615.277344 442.445312 610.113281 444.148438 604.316406 C 444.148438 604.316406 446.511719 595.867188 445.753906 575.363281 C 445.585938 570.808594 442.175781 571.152344 437.839844 571.90625 C 437.621094 571.953125 437.378906 571.980469 437.160156 572.027344 C 433.433594 572.710938 429.804688 574.242188 426.445312 575.972656 L 415.316406 580.867188 C 409.570312 583.398438 403.722656 583.789062 398.097656 582.597656 C 393.984375 581.769531 389.992188 580.0625 386.214844 577.75 C 383.828125 576.289062 381.613281 574.414062 380.394531 571.90625 C 377.082031 565.183594 384.195312 559.4375 388.164062 554.933594 C 394.25 548.042969 400.65625 541.441406 406.816406 534.625 C 416.171875 524.242188 425.429688 513.742188 434.054688 502.730469 C 434.09375 502.660156 434.128906 502.59375 434.164062 502.527344 L 443.539062 474.277344 L 443.5625 474.230469 C 444.390625 472.355469 447.023438 472.332031 447.921875 474.15625 L 450.917969 480.222656 C 456.347656 491.253906 465.1875 498.023438 475.511719 504.183594 C 485.667969 510.269531 495.773438 517.769531 503.910156 526.609375 C 505.441406 528.242188 506.878906 529.898438 508.242188 531.628906 C 514.378906 539.394531 518.542969 548.457031 524.121094 556.613281 C 527.308594 561.238281 530.839844 565.648438 534.566406 569.859375 C 549.8125 587.003906 565.6875 597.207031 575.84375 600.226562 C 579.886719 601.421875 583.027344 602.222656 585.390625 602.6875 C 602.753906 606.097656 579.859375 591.53125 577.230469 582.9375 C 576.964844 582.085938 576.890625 581.304688 577.085938 580.597656 C 577.667969 578.503906 580.25 577.386719 594.546875 574.121094 C 606.378906 571.417969 612.296875 570.054688 616.367188 569.519531 C 636.648438 566.863281 658.933594 564.1875 681.164062 574.242188 C 697.066406 581.425781 709.363281 594.113281 720.542969 607.191406 C 729.992188 618.246094 739.34375 629.375 748.8125 640.382812 C 751.339844 643.308594 757.050781 649.238281 762.035156 654.339844 C 767.664062 660.105469 775.378906 663.347656 783.433594 663.347656 L 808.550781 663.347656 L 808.550781 646.789062 Z M 638.746094 473.160156 "/></g></svg><div class="brandtxt"><h1>丘奖课题定位引擎</h1><span class="sub">CMC 师说留学 <span class="en">QCompass</span></span></div></div>
-  <span class="chip">语料 v2026.09.2 · 2024–25 全文 133 篇 + 2019–23 题目层 42 条</span>
+  <span class="chip">语料 v2026.10.1 · 2024–25 获奖全文 133 篇 + 2026 半决赛入围全文 186 篇 + 2019–23 题目层 42 条</span>
   <span class="chip demo">DEMO · 演示规则，非真实引擎精度</span>
   <div class="spacer"></div>
   <div class="viewtoggle" role="tablist">
@@ -194,7 +209,7 @@ textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;bor
 
   <section id="report" aria-live="polite"></section>
 </main>
-<p class="footnote">CMC 师说留学 · 丘奖课题定位引擎（内部产品原型） · 档位为「与历届获奖论文标准的差距测量」，非对获奖结果的预测或承诺 · 赛制与历届获奖数据以组委会当年官方公示为准（2019–2023 题目层整理自公开公示，逐条待复核）</p>
+<p class="footnote">CMC 师说留学 · 丘奖课题定位引擎（内部产品原型） · 档位为「与历届获奖论文标准的差距测量」，非对获奖结果的预测或承诺 · 赛制与历届获奖数据以组委会当年官方公示为准（2019–2023 题目层整理自公开公示，逐条待复核；2026 半决赛名单与论文取自组委会 10 月 28 日公示，公示期至 11 月 3 日，结果以公示期满无异议为准）</p>
 
 <script>
 /* ================= Demo 语料（真实获奖课题的题目层信息，用于相似对照展示） ================= */
@@ -270,25 +285,237 @@ const HIST=[
  {y:2022,s:"经济",t:"Reexamining the Impact of ESG Activities on Corporate Financial Performance",c:"ESG/实证",r:0,n:"入围"},
  {y:2022,s:"经济",t:"Invasion Strategy into Markets with Dominant Platforms",c:"平台经济/博弈",r:0,n:"入围"}
 ];
-const ALL=CORPUS.concat(HIST);
-/* 五年趋势快照（2019–2025 语料整理，演示口径） */
+/* ===== 2026 半决赛入围 S26（组委会 2026-10-28 公示：show-86-62 生物/计算机/经济，show-86-63 数学/物理/化学；公示期至 11-03，结果以公示期满无异议为准）
+   字段：[编号,学科,赛区,1入围/0候补,队员数,学校(已归一),题目,全文PDF,簇,资源档r,检索标签(中文),页数,论文语言,方法腿位掩码(1理论/2实验/4仿真算法),外部学术资源信号,参考文献数(0=未检出),全文可解析]
+   全文指标为前 12 页关键词自动统计口径，簇与标签为人工标注，均需顾问抽样复核 ===== */
+const PDF_BASE="https://www.yau-awards.com/uploads/file/20261028/20261028";
+const R26=[
+ [34, "生物", "北", 1, 1, "江苏省天一中学", "L-多巴降解菌株 Burkholderia sp. Z-3 的分离鉴定及降解机制研究", "134257_11066", "微生物/环境", 2, "微生物 降解 菌株 废水 环境修复 帕金森药物", 56, "zh", 4, 1, 0, 1],
+ [257, "生物", "北", 1, 1, "北京师范大学附属实验中学", "Development of a Genetically Encoded Fluorescence Lifetime-based PKA Biosensor", "134313_99449", "分子检测", 2, "荧光 传感器 生物传感 蛋白 细胞信号", 31, "en", 2, 1, 0, 1],
+ [266, "生物", "北", 1, 3, "山东省实验中学", "藜麦与燕麦膳食干预对db/db小鼠糖脂代谢及肠道菌群的调控效应比较研究", "134327_30013", "营养/代谢", 2, "小鼠 肠道菌群 糖尿病 代谢 饮食 杂粮", 34, "zh", 2, 0, 37, 1],
+ [465, "生物", "北", 1, 1, "Tsinghua International School", "From Hippocampal Epigenomic Signatures to Behavioral Phenotypes: A Cross-Model Investigation of Caffeine Effects on Neurodevelopment", "134343_61322", "神经/行为", 2, "咖啡因 神经发育 表观遗传 海马 行为 青少年", 27, "en", 6, 1, 0, 1],
+ [531, "生物", "北", 1, 2, "北京市第五中学", "基于双荧光传感系统的 PFAS 检测及降解性能研究", "134359_53623", "分子检测", 2, "PFAS 荧光 检测 降解 污染 传感", 31, "zh", 0, 0, 0, 0],
+ [576, "生物", "北", 1, 2, "北京市第一〇一中学", "抑制疼痛，专注任务：小鼠SPFm-PDYN+神经元调控防御行为的研究", "134423_31303", "神经/行为", 2, "小鼠 神经元 疼痛 防御行为 神经环路", 38, "zh", 2, 1, 17, 1],
+ [641, "生物", "北", 1, 1, "中国人民大学附属中学", "百年气候变化背景下北京清华园毛白杨树轮宽度与稳定碳同位素的生理适应机制", "134438_70578", "生活化选题/植物机理", 1, "树轮 气候变化 植物 碳同位素 校园 树木", 30, "zh", 0, 1, 0, 1],
+ [698, "生物", "北", 1, 1, "北京市第二中学", "北京城市生境下珠颈斑鸠繁殖冗余补偿机制量化研究", "134503_64452", "生态/动物行为", 0, "鸟类 斑鸠 繁殖 城市生态 野外观察", 167, "zh", 4, 0, 0, 1],
+ [702, "生物", "北", 1, 1, "北京市第八中学", "A Study on the In Vitro Combination Strategy of Phage and Kanamycin Against Drug-Resistant Escherichia coli", "134519_40936", "微生物/抗感染", 2, "噬菌体 耐药 细菌 抗生素 大肠杆菌", 25, "en", 2, 1, 26, 1],
+ [803, "生物", "北", 1, 1, "北京市第八中学", "The preliminary construction of a novel DSRCT model in Drosophila by integrating the EWSR1::WT1 fusion gene and yki3SA into one strain", "134536_73697", "分子生物前沿", 2, "果蝇 肿瘤 基因 疾病模型 罕见病", 23, "en", 2, 1, 18, 1],
+ [918, "生物", "北", 1, 1, "北京师范大学附属实验中学", "面向帕金森冻结步态的 EEG 与 IMU 融合可穿戴闭环提示系统", "134552_55449", "医工交叉/辅具", 1, "帕金森 可穿戴 脑电 步态 传感器 预警 患者 康复 闭环提示 老人", 71, "zh", 6, 0, 0, 1],
+ [922, "生物", "北", 1, 1, "Beijing Royale School", "Multiple Behaviours of Advanced Intelligence: Exploring Social Division of Labour, Tool Use, and Play-like Behaviour in Ants", "134608_71053", "生态/动物行为", 1, "蚂蚁 动物行为 分工 工具使用", 22, "en", 2, 1, 0, 1],
+ [964, "生物", "北", 1, 1, "中国人民大学附属中学", "跨物种p53蛋白筛选及其在非小细胞肺癌中的抑癌功能研究", "134623_47851", "分子生物前沿", 2, "p53 肿瘤 蛋白 肺癌 癌症 细胞", 28, "zh", 2, 1, 0, 1],
+ [1083, "生物", "北", 1, 2, "北京市第一〇一中学", "CRISPR-Cas-Based Detection of Bacterial Nucleic Acids in Environmental Water Samples", "134639_78566", "分子检测", 2, "CRISPR 检测 细菌 水样 环境 核酸", 36, "en", 2, 1, 16, 1],
+ [140, "生物", "北", 0, 1, "北京师范大学附属实验中学", "人类脑室下区神经干细胞维持大脑皮层抑制性神经元的产生", "134657_78660", "分子生物前沿", 2, "神经干细胞 大脑发育 神经元", 37, "zh", 2, 1, 25, 1],
+ [927, "生物", "北", 0, 1, "北京市陈经纶中学", "京津地区摇蚊系统发育与种群遗传结构、毒性响应机制及纳米传感检测的整合研究", "134715_68088", "演化/分类", 2, "摇蚊 系统发育 种群遗传 毒性 传感", 106, "zh", 0, 0, 0, 0],
+ [137, "生物", "南", 1, 1, "上海星河湾双语学校", "Electroencephalography Responses Evoked by AI-Generated Personalized Autobiographical Memory Cues Across the Alzheimer‘s Disease Spectrum", "134742_70255", "神经/行为", 1, "脑电 阿尔茨海默 认知障碍 记忆 AI 老人 照护", 32, "en", 2, 1, 0, 1],
+ [204, "生物", "南", 1, 1, "上海星河湾双语学校", "Mycendin-1: AI-Assisted Discovery and Experimental Characterization of a Novel Antifungal Peptide", "134755_14580", "AI×分子生物", 2, "AI 抗菌肽 真菌 药物发现 多肽", 36, "en", 6, 1, 0, 1],
+ [220, "生物", "南", 1, 2, "重庆市育才中学校", "When Spheroids Touch the Bottom: Revealing a Hidden Variable in 3D Tumor Invasion Assays", "134813_97492", "分子生物前沿", 2, "肿瘤 细胞 三维培养 实验方法 侵袭", 38, "en", 2, 0, 0, 1],
+ [231, "生物", "南", 1, 1, "上海市民办平和学校", "半枝莲克拉维醇焦磷酸合酶（KPS） 活性中心关键氨基酸的定点突变及其对克罗烷二萜合成的影响", "134825_30688", "合成生物/酶工程", 2, "酶 定点突变 植物 天然产物 合成生物 中药", 29, "zh", 7, 1, 22, 1],
+ [270, "生物", "南", 1, 1, "四川省成都市第七中学国际部", "Doxorubicin-Loaded T-Cell-Derived Engineered Membrane Nanovesicles for Enhanced In Vitro Antitumor Activity", "134842_46830", "纳米医用", 2, "纳米 肿瘤 药物递送 细胞膜 T细胞", 38, "en", 3, 0, 28, 1],
+ [339, "生物", "南", 1, 2, "上海中学国际部", "咀嚼减缓焦虑行为的环路机制研究——基于PVH-Peri5催产素能环路的功能探究", "134859_44596", "神经/行为", 2, "焦虑 神经环路 小鼠 催产素 咀嚼 行为", 16, "zh", 2, 1, 0, 1],
+ [466, "生物", "南", 1, 1, "杭州学军中学", "宿主与病毒的代谢-免疫博弈：ODR4响应蛋氨酸代谢重塑调控 抗病毒固有免疫应答", "134917_22464", "分子生物前沿", 2, "病毒 免疫 代谢 蛋白", 31, "zh", 2, 1, 27, 1],
+ [491, "生物", "南", 1, 3, "广州市第六中学", "NH937水解酶降解PET塑料的性能及抗逆机制研究", "134933_44012", "合成生物/酶工程", 2, "酶 塑料降解 PET 微塑料 环境", 20, "zh", 2, 1, 0, 1],
+ [524, "生物", "南", 1, 1, "湖南师范大学附属中学", "Exploration of biocompatibility and antibacterial properties of silicon nitride ceramic oral restoration materials based on a simple in vitro model", "134953_64704", "生物医用材料", 2, "口腔 陶瓷 抗菌 生物相容性 材料 修复", 27, "en", 6, 1, 0, 1],
+ [646, "生物", "南", 1, 2, "深圳市高级中学", "让工程菌“画出”水中铅：基于靛蓝合成的铅离子可视化 生物传感器构建及环境验证", "135010_30799", "分子检测", 2, "工程菌 合成生物 铅 重金属 传感器 检测 水污染 可视化", 19, "zh", 2, 1, 12, 1],
+ [808, "生物", "南", 1, 3, "西南大学附属中学校", "胭脂萝卜花青素/纳米硒复合物的体外抗氧化能力及消化特性研究", "135027_25877", "营养/代谢", 2, "花青素 抗氧化 食品 营养 硒 萝卜", 16, "zh", 6, 1, 13, 1],
+ [865, "生物", "南", 1, 1, "华东师范大学第二附属中学闵行紫竹分校", "跨域血细胞异常检测与淋巴细胞误报率下限研究", "135042_54591", "AI×医疗", 1, "血细胞 图像识别 深度学习 医学影像 检测 误报", 24, "zh", 6, 1, 29, 1],
+ [867, "生物", "南", 1, 1, "复旦大学附属中学国际部", "Decoding Parkinson's Disease associated protein trafficking genes", "135057_53090", "AI×生信", 1, "帕金森 基因 生物信息 蛋白运输 数据分析", 17, "en", 2, 1, 6, 1],
+ [924, "生物", "南", 1, 1, "华南师范大学附属中学", "Discrete Topological Structure and Dispersal Capability of Spathodea campanulata Seeds", "135112_28853", "生活化选题/植物机理", 1, "种子 植物 扩散 形态 拓扑 校园", 51, "en", 0, 1, 0, 1],
+ [168, "计算机", "北", 1, 1, "北京市第一〇一中学", "A Multimodal Audio Large Language Model Based Personalized Intelligent Hearing Assistance System", "135142_39183", "AI for good", 1, "大模型 助听 听障 多模态 音频 个性化 老人", 38, "en", 2, 1, 0, 1],
+ [182, "计算机", "北", 1, 1, "陕西省西安中学", "AM-SEV: A Metric Theory of Verifiable Cryptographic Design, Its AI Engine, and the Tempest Instance", "135220_52733", "安全/密码", 1, "密码学 安全 形式化 理论 可验证", 26, "en", 7, 1, 47, 1],
+ [344, "计算机", "北", 1, 1, "Western Academy of Beijing", "Align Before Acting: Task-Agnostic Post-Training for Vision-Language-Action Models", "135239_97930", "具身智能/机器人", 1, "具身智能 机器人 视觉语言 大模型 后训练", 30, "en", 6, 0, 29, 1],
+ [345, "计算机", "北", 1, 1, "北京市第八十中学国际部", "Sonara: An Agent-Based Digital Audio Workstation for Editable Music Production", "135257_95935", "AI×艺术/音乐", 1, "智能体 音乐 生成 AI 编辑", 47, "en", 0, 0, 0, 1],
+ [536, "计算机", "北", 1, 1, "北京师范大学附属实验中学", "MCL-Net: 基于多导联心电图特征工程与跨导联注意力机制的室性早搏消融靶点定位研究", "135315_81226", "AI×医疗", 1, "心电图 医疗 深度学习 注意力机制 患者 心律", 46, "zh", 0, 0, 0, 0],
+ [711, "计算机", "北", 1, 1, "北京市第一〇一中学", "LOOM: Weaving Multilayer Representations through Prototypes for General Continual Learning", "135329_38322", "机器学习基础", 1, "持续学习 表征学习 深度学习 原型", 22, "en", 6, 1, 0, 1],
+ [714, "计算机", "北", 1, 1, "北京师范大学附属实验中学", "Gewu: Building, Enhancing, and Evaluating a Tool-Augmented 9B Physics Tutoring System", "135345_23139", "LLM 应用/智能体", 1, "大模型 教育 工具调用 物理 辅导", 41, "en", 7, 1, 42, 1],
+ [939, "计算机", "北", 1, 1, "中国人民大学附属中学", "GFPC: Reliability-Aware Gated Fusion of Artifact and Semantic Evidence for Trustworthy AI-Generated Image Detection", "135407_34339", "AI安全/内容鉴伪", 1, "AI生成图像 检测 鉴伪 深度学习 可信", 23, "en", 6, 1, 25, 1],
+ [1001, "计算机", "北", 1, 1, "南京外国语学校", "ProMORNA: An End-to-End Generative Framework for Full-Length mRNA Design", "135443_61869", "AI×分子生物", 1, "mRNA 生成模型 生物 AI 序列设计", 24, "en", 4, 1, 0, 1],
+ [1009, "计算机", "北", 1, 3, "北京市第二中学", "CASC: Rethinking Residual Connections in Deep Language Model", "135458_82405", "LLM 基础研究", 1, "大模型 残差连接 架构 语言模型", 17, "en", 4, 0, 32, 1],
+ [1049, "计算机", "北", 1, 1, "清华大学附属中学", "Cross-Scale Structural Pattern Recognition in Composite Hypergraphs", "135512_85188", "图算法/图学习", 1, "超图 图 模式识别 算法 结构", 12, "en", 6, 1, 32, 1],
+ [1079, "计算机", "北", 1, 1, "中国人民大学附属中学", "从潜在角色到行为分工：RoboCup 2D足球智能体中的动态角色学习与验证", "135528_15284", "强化学习/多智能体", 1, "多智能体 足球 强化学习 机器人 角色", 25, "zh", 7, 1, 0, 1],
+ [1138, "计算机", "北", 1, 3, "北京市第一〇一中学", "A Compilation Framework for Block Encoding Classical Lie Algebra Matrices", "135545_76819", "量子计算", 1, "量子计算 编译 矩阵 李代数 算法", 41, "en", 7, 1, 15, 1],
+ [1153, "计算机", "北", 1, 1, "北京师范大学附属实验中学", "One Concept, Two Facets: Rethinking the Readout-vs-Control Verdict in Large Language Models", "135601_91632", "LLM 基础研究", 1, "大模型 可解释性 表征 概念", 23, "en", 0, 1, 5, 1],
+ [311, "计算机", "北", 0, 1, "南京外国语学校", "An Analysis of Visual Explanation for Segmentation Tasks: Faithfully Presenting Semantic Quality in Vision Transformers", "135621_68664", "机器学习基础", 1, "可解释性 视觉 分割 Transformer", 30, "en", 6, 1, 25, 1],
+ [350, "计算机", "北", 0, 1, "大连市第二十四中学", "基于多级视觉复核和深度尺度约束的屏幕拍摄风险检测与显示干预系统", "135634_64176", "AI安全/内容鉴伪", 1, "视觉 检测 隐私 信息安全 屏幕拍摄", 60, "zh", 2, 0, 0, 1],
+ [70, "计算机", "南", 1, 2, "华南师范大学附属中学", "NavFlow-VL: Memory-Augmented Dual-System UAV Planner with Vision-Language Guided Flow-Matching Trajectory Generation (NavFlow-VL：基于记忆增强的快-慢双系统视觉语言引导的 Flow Matching无人机轨迹规划算法)", "141647_63165", "具身智能/机器人", 1, "无人机 视觉语言 轨迹规划 机器人 导航", 51, "en", 6, 1, 0, 1],
+ [133, "计算机", "南", 1, 1, "深圳国际交流书院", "SRA-AF: Symmetric Reliability-Aware Adaptive Fusion for 3D Human Pose Estimation with mmWave Radar and Sparse IMUs", "135852_73952", "AI×运动/健康", 1, "姿态估计 雷达 传感器 融合 可穿戴 惯性", 27, "en", 6, 0, 30, 1],
+ [186, "计算机", "南", 1, 2, "上海星河湾双语学校", "Geometry-Derived Fruit-Relevance Weighting for Next-Best-View Planning: Active Reconstruction of Occluded Strawberries for Robotic Harvesting", "141828_51881", "具身智能/机器人", 1, "机器人 三维重建 农业 视觉 采摘", 26, "en", 0, 1, 0, 1],
+ [248, "计算机", "南", 1, 1, "华东政法大学附属松江高级中学", "记忆写入可能破坏未来证据：可变智能体记忆的递归验证契约", "135954_63608", "LLM 应用/智能体", 1, "智能体 记忆 大模型 验证", 37, "zh", 0, 0, 0, 0],
+ [612, "计算机", "南", 1, 1, "华东师范大学第二附属中学松江分校", "DeepAchilles：基于智能手机视频的篮球高风险动作识别与跟腱断裂风险预警系统", "140011_24394", "AI×运动/健康", 1, "运动 视频 姿态 预警 损伤 篮球 跟腱 手机", 70, "zh", 4, 1, 0, 1],
+ [627, "计算机", "南", 1, 2, "成都市锦江区嘉祥外国语高级中学", "星空图像非均匀光污染背景估计中的物理启发建模与天文信号保真研究", "140027_67433", "AI×科学/工程", 1, "天文 图像处理 光污染 物理建模 星空", 38, "zh", 5, 1, 33, 1],
+ [656, "计算机", "南", 1, 1, "上海外国语大学附属外国语学校", "Expert-Informed Dueling Deep Q-Learning for mBVD Equivalent-Circuit Optimization of BAW Filters", "140042_96249", "AI×科学/工程", 1, "强化学习 电路 滤波器 优化", 23, "en", 6, 0, 0, 1],
+ [692, "计算机", "南", 1, 1, "Concordia International School Shanghai", "A Synergistic Framework Integrating Dynamic Graph Attention Networks and Multiscale Entropy for EEG-Based Alzheimer's Disease Classification", "140056_28908", "AI×医疗", 1, "脑电 阿尔茨海默 图神经网络 认知障碍 老人 分类", 28, "en", 6, 1, 24, 1],
+ [704, "计算机", "南", 1, 3, "西南大学附属中学校", "一种基于判别器同步优化的偏好模仿学习方法——基于雅达利2600游戏", "140113_53565", "强化学习/多智能体", 1, "强化学习 模仿学习 游戏", 31, "zh", 1, 0, 6, 1],
+ [806, "计算机", "南", 1, 1, "上海市民办平和学校", "CaRF: 在指代性3D 高斯泼溅分割中增强多视图一致性", "140127_59200", "三维视觉", 1, "三维视觉 高斯泼溅 分割 多视图", 37, "zh", 0, 0, 0, 1],
+ [909, "计算机", "南", 1, 1, "上海赫贤学校", "通用大语言模型与人类来源回复的心理支持策略差异 ——基于中文问答数据的比较研究", "140145_47491", "AI×人文", 1, "大模型 心理支持 心理健康 文本分析", 33, "zh", 0, 0, 0, 0],
+ [929, "计算机", "南", 1, 1, "上海外国语大学附属外国语学校", "声控柔爪：面向危险化学实验的软体机械臂远程操作平台设计", "140202_79826", "具身智能/机器人", 1, "机械臂 软体机器人 语音 实验安全 远程操作", 59, "zh", 2, 1, 10, 1],
+ [981, "计算机", "南", 1, 1, "武汉康礼高级中学", "Semantic-Guided Density Control for Compact Semantic 3D Gaussian Splatting", "140217_32090", "三维视觉", 1, "三维视觉 高斯泼溅 语义", 43, "zh", 6, 0, 0, 1],
+ [1129, "计算机", "南", 1, 2, "上海星河湾双语学校", "基于动态异构图神经网络的多模态生理信号实时音乐参数调控方法研究", "140229_37860", "AI×艺术/音乐", 1, "生理信号 音乐 图神经网络 多模态 实时", 68, "zh", 0, 0, 0, 0],
+ [827, "计算机", "南", 0, 1, "中山市小榄中学", "Lightweight Cross-Generator AI Image Detection via Complementary Forensic Evidence", "140257_15971", "AI安全/内容鉴伪", 1, "AI生成图像 检测 鉴伪 轻量", 36, "en", 6, 1, 0, 1],
+ [1144, "计算机", "南", 0, 1, "复旦大学附属复兴中学", "分离流对隐式神经表示流场预测精度影响的研究", "140311_40736", "AI×物理", 1, "流体 神经网络 隐式表示 流场 预测", 37, "zh", 5, 1, 0, 1],
+ [38, "经济", "北", 1, 1, "北京市十一学校", "Cooperation Mechanisms in the Iterated Prisoner's Dilemma under a Finite-Memory Satisfaction-Switching Rule", "140352_66635", "博弈论", 0, "博弈 囚徒困境 合作 演化 有限记忆", 58, "en", 5, 0, 30, 1],
+ [214, "经济", "北", 1, 1, "南京外国语学校", "“内卷式”竞争与战略性新兴产业关键核心技术突破 ——以新能源汽车产业为例", "140408_39533", "产业政策/实证", 1, "内卷 产业政策 新能源汽车 创新 核心技术", 52, "zh", 0, 1, 0, 1],
+ [287, "经济", "北", 1, 1, "北京市十一学校", "Peer Influence, Present Bias, and Digital Self-Control: A Dynamic Network Model of Problematic Smartphone Use", "140424_47708", "行为经济/网络模型", 0, "行为经济 手机 同伴 网络 自控 成瘾", 37, "en", 0, 0, 0, 1],
+ [291, "经济", "北", 1, 1, "中国人民大学附属中学", "The Wisdom of Crowds in Investment by Learning from Others on Social Investment Platforms", "140435_73394", "金融/行为金融", 1, "投资 社交平台 群体智慧 金融 学习", 28, "en", 1, 1, 0, 1],
+ [382, "经济", "北", 1, 1, "北京市十一学校", "Bargaining in the Shadow of the Scraper: Precedent as a Public Good in AI Training Data Licensing", "140448_93236", "博弈论/机制设计", 0, "AI 数据 谈判 版权 博弈 先例", 54, "en", 4, 0, 11, 1],
+ [492, "经济", "北", 1, 1, "北京师范大学附属中学", "关税冲击、内卷式竞争与企业劳动力市场势力—— 来自中美贸易战的证据", "140459_50510", "贸易/实证", 1, "关税 贸易战 劳动力 内卷 企业 因果", 29, "zh", 4, 0, 0, 1],
+ [751, "经济", "北", 1, 1, "北京市第一〇一中学", "算力补贴是否让企业“脱虚向实”？ ——贸易战暴露下企业金融化与研发投入的资源配置效应研究", "140512_21909", "产业政策/实证", 1, "补贴 算力 企业 研发 金融化 政策 贸易战", 45, "zh", 5, 1, 0, 1],
+ [805, "经济", "北", 1, 1, "UWC常熟", "Capital Misallocation and Shock Amplification: A Quantitative Model of Ownership-Based Financing Disparities in China", "140526_73077", "宏观/定量模型", 0, "资本错配 融资 宏观 模型 所有制", 48, "en", 1, 0, 0, 1],
+ [818, "经济", "北", 1, 1, "北京市十一学校", "《红楼梦》贾府经济衰败原因与替代策略研究", "140543_14939", "经济史/人文交叉", 0, "红楼梦 经济史 家族 人文 文学", 39, "zh", 0, 0, 0, 0],
+ [863, "经济", "北", 1, 1, "中国人民大学附属中学", "高铁开通对县域经济增长的动态效应研究——来自卫星夜间灯光数据的证据", "140558_12914", "政策评估/因果推断", 1, "高铁 县域 夜间灯光 卫星 因果 政策 交通", 24, "zh", 5, 0, 20, 1],
+ [928, "经济", "北", 1, 1, "北京市十一学校", "Battery ID and the Reuse–Recycling Allocation of Retired EV Batteries", "140612_67492", "双碳/政策建模", 0, "电池 回收 新能源汽车 循环经济 政策 梯次利用", 31, "en", 5, 0, 6, 1],
+ [965, "经济", "北", 1, 1, "北京市第一〇一中学", "On Insitutional Intermediation under Dual Dependence", "140625_84330", "博弈论/机制设计", 0, "制度 中介 理论模型 依赖", 40, "en", 1, 0, 11, 1],
+ [1012, "经济", "北", 1, 1, "北京师范大学附属实验中学", "Weak Protection, Cheap Grain: A Macroeconomic Explanation of the Dual Predicament of Chinese Smallholder Farmers under Extreme Climate Conditions", "140640_87735", "宏观/定量模型", 0, "农业 气候 农民 宏观 粮价 极端天气", 42, "en", 3, 1, 18, 1],
+ [1156, "经济", "北", 1, 1, "北京市亦庄实验中学", "Less Is More? Effort Allocation, Specialization, and Fixed Participation Costs in Multi-dimensional Score Contests for College Admissions", "140655_47007", "博弈论/机制设计", 0, "竞赛 升学 招生 努力分配 博弈 综合评价", 37, "zh", 1, 1, 0, 1],
+ [380, "经济", "北", 0, 1, "北京中学", "生成式AI场景下抖音个性化广告的生产力效能与用户消费心理及点击行为的互动机制探究", "140710_37766", "AI 冲击/实证", 1, "AI 广告 消费 短视频 点击", 71, "zh", 1, 0, 0, 1],
+ [695, "经济", "北", 0, 1, "BHSFIC", "Revisiting Stock Price Bubbles: Behavioral Evidence from Pop Mart", "140724_20202", "金融/行为金融", 1, "股票 泡沫 行为金融 消费 潮玩", 33, "en", 0, 0, 0, 1],
+ [101, "经济", "南", 1, 1, "深圳中学", "Algorithmic Tacit Collusion in Differentiated Digital Markets: A Three-Layer Game-Theoretic Model with Q-Learning Evidence and Welfare-Optimal Regulatory Mechanism Design", "140744_61697", "平台经济/博弈", 1, "算法 合谋 平台 博弈 监管 强化学习", 43, "en", 5, 1, 21, 1],
+ [188, "经济", "南", 1, 1, "广东碧桂园学校", "Dynamic Trust Network-Based Consensus Mechanism in Carbon Emission Trading: Integrating Compliance-Calibrated Trust and Evolutionary Game Analysis for Multi-Stakeholder Quota Allocation", "140757_60428", "双碳/政策建模", 0, "碳交易 博弈 演化博弈 配额 信任网络", 42, "en", 7, 0, 35, 1],
+ [325, "经济", "南", 1, 1, "杭州英特外国语学校", "出口管制如何重塑跨国知识网络？来自中美专利合作的证据", "140809_83142", "贸易/实证", 1, "出口管制 专利 中美 知识网络 创新 因果", 30, "zh", 0, 1, 0, 1],
+ [347, "经济", "南", 1, 2, "上海交通大学附属中学", "稳定币脱锚危机中的 AMM 费用–延迟菜单筛选机制：套利损失控制与清算连续性", "140828_50112", "金融科技/机制设计", 0, "稳定币 区块链 金融 机制设计 套利", 50, "zh", 1, 0, 0, 1],
+ [411, "经济", "南", 1, 1, "Guanghua Acedemy", "Local Fitness Accessibility and Mental Health: Evidence from China", "140839_19722", "健康经济/实证", 1, "健身 心理健康 健康 因果 运动", 49, "en", 2, 1, 0, 1],
+ [490, "经济", "南", 1, 1, "上海星河湾双语学校", "演唱会经济是“增量”还是“转移”？ ——基于 386 城日度人口流动的发现", "140850_80268", "政策评估/因果推断", 1, "演唱会 消费 人口流动 城市 文旅", 24, "zh", 6, 0, 0, 1],
+ [619, "经济", "南", 1, 1, "深圳中学", "Access Is Not Use: Device Subsidies and Rehabilitation Capacity in Hearing-Aid Provision", "140904_10167", "健康经济/实证", 1, "助听器 补贴 康复 听障 政策 老人", 43, "en", 1, 0, 23, 1],
+ [736, "经济", "南", 1, 3, "上海外国语大学附属外国语学校", "电力先于算力：电力约束与数据中心相关产业发展的阶段性关系-Power Before Compute: Stage-Dependent Relationships Between Electricity Constraints and Data-Center-Related Industry Development", "140919_36879", "产业政策/实证", 1, "电力 算力 数据中心 能源 产业", 36, "en", 2, 0, 70, 1],
+ [749, "经济", "南", 1, 1, "BASIS INTERNATIONAL SCHOOL GUANGZHOU", "Information, Action, and Incidence: The Heterogeneous Economic Value of Forecasts across Virtual Power Plants", "140939_84698", "能源经济/机制", 1, "电力 预测 虚拟电厂 能源", 20, "en", 3, 1, 26, 1],
+ [760, "经济", "南", 1, 3, "重庆市巴蜀中学校", "From Sampling the Forest to Sampling the Error: Cutting the Verification Cost of Forest Carbon Assets with Optimized Spatial Sampling ——A Case Study at Saihanba", "140952_64761", "双碳/政策建模", 1, "碳汇 森林 抽样 双碳 核证", 37, "en", 7, 0, 18, 1],
+ [866, "经济", "南", 1, 1, "上海中学国际部", "Turning Sixty, Seeking Care? Evidence from Hospital Outpatient Records in Shanghai", "141005_85057", "健康经济/实证", 1, "老人 医疗 断点回归 养老 就医 门诊", 48, "en", 4, 1, 0, 1],
+ [889, "经济", "南", 1, 2, "上海诺美高级中学", "公益教学中志愿教师分配的公平优化模型与系统应用——最低开课保障的效率代价与师资补充", "141020_68862", "运筹优化/公平", 0, "优化 公平 教育 志愿者 支教", 29, "zh", 0, 0, 0, 0],
+ [1084, "经济", "南", 1, 3, "复旦大学附属中学国际部", "Innovation as a Shield? R&D Investment of Chinese Semiconductor Firms under the US CHIPS Act", "141037_56816", "贸易/实证", 1, "芯片 半导体 研发 出口管制 中美", 41, "en", 6, 0, 0, 1],
+ [1098, "经济", "南", 1, 1, "上海市世外中学", "Conversion or Discovery? Consumer Search and Ranking Design in Online Food Delivery", "141153_41003", "平台经济/博弈", 1, "外卖 平台 搜索 排序 消费者", 40, "en", 7, 0, 0, 1],
+ [1105, "经济", "南", 0, 2, "上海中学国际部", "高薪与慢增长：职业AI 暴露与中国中年收入风险——来自CFPS 2020–2022 的证据", "141209_32396", "AI 冲击/实证", 1, "AI 就业 收入 劳动 中年 职业暴露", 26, "en", 6, 1, 26, 1],
+ [1027, "经济", "南", 0, 2, "广州市第六中学", "Economic Value and Investment Thresholds of Energy Efficiency in Campus Public Buildings Based on Design Simulation Data: A Case Study at Guangzhou No. 6 Middle School (Conghua Campus)", "141301_38353", "双碳/实证", 1, "节能 建筑 校园 投资 能源 双碳", 42, "en", 6, 0, 0, 1],
+ [82, "数学", "北", 1, 1, "Tsinghua International School", "Movement Stability of D-Optimal Sensor Placement Under Projector Perturbations", "143248_18920", "概率/优化", 0, "优化 传感器 矩阵 扰动 稳定性", 30, "en", 3, 1, 0, 1],
+ [423, "数学", "北", 1, 1, "北京市第一〇一中学", "职业足球球员状态与相对溢价的定义、计算与应用——基于能力、比赛表现与球员身价关系的样本外研究", "143303_51134", "应用数学", 0, "足球 统计 身价 体育 建模", 14, "zh", 4, 1, 15, 1],
+ [445, "数学", "北", 1, 1, "北京市十一学校", "高木贞治函数的基本性态与图像几何特征探析", "143316_60980", "分析", 0, "函数 分形 分析 图像", 24, "zh", 0, 0, 0, 0],
+ [553, "数学", "北", 1, 1, "武汉爱莎文华高级中学", "Nonlinear filtering for stochastic dynamical systems with memory: A new framework", "143329_56159", "概率/随机过程", 0, "随机 滤波 动力系统 记忆", 17, "en", 1, 1, 9, 1],
+ [558, "数学", "北", 1, 1, "中国人民大学附属中学", "Spatial Decay and Heterogeneity of School District Housing Premiums in Xicheng and Haidian, Beijing", "143356_37552", "应用数学", 0, "学区房 房价 空间 统计 建模", 39, "en", 4, 0, 0, 1],
+ [592, "数学", "北", 1, 1, "中国人民大学附属中学", "基于多层图模型与公平性约束的应急医疗资源优化配置研究——突发公共卫生事件中的网络调度模型分析", "143410_82700", "应用数学", 0, "优化 应急 医疗资源 公平 图 调度", 20, "zh", 5, 1, 0, 1],
+ [763, "数学", "北", 1, 1, "北京市鼎石学校", "Fixed points in random cycle factors of d-regular directed graphs", "143424_20182", "组合数学", 0, "图论 随机 组合 不动点", 23, "en", 1, 0, 16, 1],
+ [1100, "数学", "北", 1, 1, "北京市第一〇一中学", "Campus Fire Outdoor Evacuation Plan Design: Taking Beijing 101 High School as an Example", "143437_91324", "应用数学", 0, "疏散 火灾 校园 优化 建模", 14, "en", 6, 0, 8, 1],
+ [1115, "数学", "北", 1, 1, "山西省忻州市高级中学校", "有理距离正方形问题：由海伦三角形派生出的丢番图方程及其可解性与应用", "143451_75926", "数论", 0, "丢番图 方程 海伦三角形 数论 有理距离", 12, "zh", 0, 0, 0, 0],
+ [1167, "数学", "北", 1, 1, "西安高新第一中学", "基于贝叶斯模型比较的 Gaia 天体测量行星候选体验证", "143503_85447", "应用数学", 1, "贝叶斯 天文 行星 统计 公开数据", 52, "zh", 0, 0, 0, 0],
+ [615, "数学", "北", 0, 1, "中国人民大学附属中学", "基于群论与多目标优化的运动音乐生成模型", "143521_66098", "应用数学", 0, "群论 音乐 优化 生成", 34, "zh", 1, 0, 6, 1],
+ [725, "数学", "北", 0, 3, "北京市十一学校", "Inertia Indices of Entanglement Witnesses in C2 ⊗ Cn", "143534_43079", "代数/表示论", 0, "矩阵 量子纠缠 代数", 25, "en", 1, 0, 10, 1],
+ [228, "数学", "东", 1, 3, "宁波效实中学国际课程与交流中心", "Quantitative Local Convergence of Random Regular Graphs - A Configuration-Model Collision Bound", "143701_41828", "组合数学", 0, "随机图 组合 收敛 图论", 19, "en", 1, 0, 5, 1],
+ [315, "数学", "东", 1, 1, "南京外国语学校", "An Accelerated Inexact Newton-Type Projection Method for Quasar-Monotone Nonlinear Equations", "143745_31095", "概率/优化", 0, "优化 数值方法 非线性方程 牛顿法", 22, "en", 5, 1, 37, 1],
+ [373, "数学", "东", 1, 1, "上海中学国际部", "Non-principal Ideal Classes and Selmer Vanishing over Quadratic Fields", "143804_16338", "数论", 0, "数论 理想类 二次域 代数数论", 33, "en", 1, 0, 7, 1],
+ [376, "数学", "东", 1, 1, "上海市世外中学", "Asymptotic Enumeration of Pants Decomposition Types with a Fixed Number of Separating Curves", "143829_24507", "几何/拓扑", 0, "拓扑 曲面 计数 几何", 26, "en", 1, 0, 20, 1],
+ [574, "数学", "东", 1, 1, "世界外国语中学", "Additive energy and color forcing in directed L-grid Ramsey problems", "144005_36312", "组合数学", 0, "Ramsey 组合 加性 着色", 47, "en", 1, 0, 14, 1],
+ [629, "数学", "东", 1, 3, "同济大学第二附属中学", "图约束耦合的有限极值归约与若干锐界", "144016_46421", "组合数学", 0, "图 极值 组合 锐界 耦合", 24, "zh", 1, 1, 18, 1],
+ [649, "数学", "东", 1, 1, "上海市民办平和学校", "Sharper Bounds for Quantitative Exact Approximation and Rational Exponential Scale", "144034_17974", "数论", 0, "逼近 数论 丢番图 有理数", 34, "en", 1, 0, 4, 1],
+ [724, "数学", "东", 1, 1, "上海民办包玉刚实验学校", "On the simultaneous divisibility of multiplicative orders", "144049_73335", "数论", 0, "数论 整除 乘法阶 素数", 15, "en", 1, 1, 10, 1],
+ [829, "数学", "东", 1, 1, "上海市民办平和学校", "A Tropical Yamabe-Type Prescription Problem on Rank-Three Matroid Fans", "144103_69424", "代数几何", 0, "热带几何 拟阵 代数几何", 19, "en", 1, 0, 11, 1],
+ [1141, "数学", "东", 1, 1, "上海民办包玉刚实验学校", "A complete solution of a Lebesgue--Nagell family: From x^2-y^n=4 to x^2-y^n=2^{2m}", "144115_92810", "数论", 0, "丢番图 方程 数论 完全解", 14, "en", 1, 0, 13, 1],
+ [1165, "数学", "东", 1, 1, "上海中学国际部", "Hilbert–Samuel Functions of Plane Curves and Local Intersections", "144130_30804", "代数几何", 0, "代数几何 平面曲线 交点", 12, "en", 1, 1, 3, 1],
+ [33, "数学", "东", 0, 1, "常熟市伦华高级中学", "Cardinal Stratification of Filter Categories and Adjoints of Embedding Functors", "144144_15715", "代数/表示论", 0, "范畴论 函子 代数", 33, "en", 1, 1, 12, 1],
+ [129, "数学", "南", 1, 2, "华南师范大学附属中学", "动态环境下多旅行商问题的启发式预测性重规划： 高层建筑火灾救援的数学决策模型", "144208_79566", "应用数学", 0, "旅行商 优化 火灾 救援 启发式", 94, "zh", 4, 0, 0, 1],
+ [198, "数学", "南", 1, 3, "广州市第六中学", "树映射多项式熵的上界估计", "144227_85497", "分析", 0, "动力系统 熵 树映射 分析", 30, "zh", 0, 0, 0, 0],
+ [240, "数学", "南", 1, 3, "四川省成都市盐道街中学", "基于KDE与改进Lotka-Volterra的城市猫鸟种群动态及ARIMA风险管控优化模型", "144244_12784", "应用数学", 0, "种群 生态 流浪猫 鸟类 时间序列 建模", 29, "zh", 0, 0, 0, 1],
+ [306, "数学", "南", 1, 1, "福建省南平第一中学", "一类增广梅森数的若干初步结论和猜想", "144258_24236", "数论", 0, "梅森数 素数 猜想 数论", 19, "zh", 1, 0, 0, 1],
+ [335, "数学", "南", 1, 3, "楚雄实验中学", "利用混合整数非线性规划进行多无人机集群区域协同搜索的覆盖收益建模与最优规模渐近分析", "144313_65057", "应用数学", 0, "无人机 优化 规划 搜索 渐近", 21, "zh", 0, 0, 0, 0],
+ [385, "数学", "南", 1, 1, "深圳国际交流书院", "A class of non-weight modules of the Takiff N=1 Heisenberg-Virasoro superalgebra", "144326_80109", "代数/表示论", 0, "李代数 表示论 代数 模", 21, "en", 1, 0, 10, 1],
+ [747, "数学", "南", 1, 2, "深圳中学", "有限跨组比较数下总体排名估计的最优设计", "144347_31184", "应用数学", 0, "排名 统计 最优设计 比较", 23, "zh", 0, 0, 0, 0],
+ [776, "数学", "南", 1, 3, "合肥安生学校", "On a problem of Erdős–Graham about covering systems", "144404_51638", "数论", 0, "覆盖系统 数论 组合 埃尔德什", 14, "en", 3, 1, 0, 1],
+ [923, "数学", "南", 1, 2, "华南师范大学附属中学", "The Maximum Sachs Subgraph: Computational Algorithm and its Connection with Fractional Matching and Perrank", "144416_39472", "组合数学", 0, "图论 匹配 算法 组合", 26, "en", 1, 0, 11, 1],
+ [1101, "数学", "南", 1, 1, "华南师范大学附属中学", "The Local Average Order of Dominating Sets in Paths", "144429_84941", "组合数学", 0, "图论 支配集 组合", 13, "en", 0, 0, 0, 0],
+ [63, "数学", "南", 0, 3, "广州暨大港澳子弟学校", "Multiplicative trichotomous noise induced stochastic resonance in the fractional harmonic oscillator with time delay", "144445_88410", "概率/随机过程", 0, "随机共振 噪声 振子 时滞", 20, "en", 7, 0, 47, 1],
+ [1109, "数学", "南", 0, 1, "东莞翰林实验学校国际部", "Representation dimensions and the order of fnite kernels", "144512_95411", "代数/表示论", 0, "表示论 代数 维数", 17, "en", 1, 0, 5, 1],
+ [269, "物理", "北", 1, 2, "北京师范大学附属实验中学", "基于高增益螺旋天线+SDR双模式微波土壤湿度遥感", "145843_28586", "工程物理/仪器装置", 1, "天线 微波 遥感 土壤 传感器 无线电 低成本", 69, "zh", 2, 0, 0, 1],
+ [285, "物理", "北", 1, 1, "山东青岛第二中学", "传统木构建筑动态响应控制：从新型准静态时温等效阻尼表征到偏心调制协调阻尼器设计", "145930_24041", "工程物理/结构振动", 1, "建筑 阻尼 振动 结构 古建筑 抗震", 61, "zh", 0, 0, 0, 1],
+ [314, "物理", "北", 1, 3, "江苏省海安高级中学", "引力势阱中的莱顿弗罗斯特水滴动力学研究", "150009_40192", "日常现象/流体", 0, "液滴 莱顿弗罗斯特 流体 热", 44, "zh", 3, 1, 16, 1],
+ [395, "物理", "北", 1, 1, "北京师范大学附属实验中学", "热表面扩散液膜厚度的空间分布及时间演化的光学测量", "150030_41986", "日常现象/流体", 1, "液膜 光学测量 流体 热", 31, "zh", 0, 0, 0, 0],
+ [420, "物理", "北", 1, 1, "清华大学附属中学国际部", "Theoretical Analysis and Design of a Magnetically Levitated Vertical Seismometer", "150047_17741", "工程物理/仪器装置", 1, "磁悬浮 地震仪 传感器 仪器 磁", 48, "zh", 7, 1, 13, 1],
+ [528, "物理", "北", 1, 2, "清华大学附属中学", "基于仿生学设计的环翼螺旋桨降噪技术研究", "150059_70258", "流体/工程物理", 1, "仿生 螺旋桨 降噪 声 流体 无人机", 49, "zh", 4, 1, 0, 1],
+ [715, "物理", "北", 1, 1, "北京师范大学附属实验中学", "冷热交响：单端开口水平管热声自激振荡的建模与实验分析", "150110_28420", "日常现象/热学", 0, "热声 振荡 声 热", 37, "zh", 3, 0, 0, 1],
+ [952, "物理", "北", 1, 1, "青海湟川中学", "基于低成本简易天线的中性氢21cm谱线观测对银河系成像", "150122_53028", "工程物理/仪器装置", 1, "天文 射电 天线 银河系 低成本", 37, "zh", 0, 1, 0, 1],
+ [1016, "物理", "北", 1, 3, "南京外国语学校", "磁力牛顿摆的非线性模态耦合与能量局域化研究", "150133_92613", "日常现象/磁相互作用", 0, "磁 牛顿摆 非线性 振动 模态 能量局域", 83, "zh", 7, 0, 0, 1],
+ [1021, "物理", "北", 1, 2, "中国人民大学附属中学", "远发而先至：力学“姆潘巴”现象及其在耗散环境中的衰弱与消失", "150147_57847", "日常现象/力学", 0, "姆潘巴 力学 耗散 振动", 51, "zh", 0, 0, 0, 0],
+ [1069, "物理", "北", 1, 2, "北京市十一学校", "Theoretical modeling and CFD-based refinement of first-stage thrust characteristics in a two-stage water rocket, supported by experimental measurements", "150202_79320", "流体/工程物理", 0, "水火箭 推力 CFD 流体 实验", 38, "en", 6, 0, 0, 1],
+ [1149, "物理", "北", 1, 3, "南京外国语学校", "论如何科学地摇骰子", "150334_54210", "日常现象/力学", 0, "骰子 随机 刚体 碰撞", 71, "zh", 3, 1, 0, 1],
+ [205, "物理", "北", 0, 1, "北京市第一〇一中学", "Frictional Self-Locking Mechanics of Proposed Steel-Wire Configurations: A Finite-Element Analysis", "150347_91310", "日常现象/力学", 0, "摩擦 自锁 有限元 力学 钢丝", 38, "en", 7, 1, 15, 1],
+ [1055, "物理", "北", 0, 1, "清华大学附属中学国际部", "Acoustic Characterization of the Huqin and Experimental Validation in a Fully Anechoic Chamber", "150410_95885", "日常现象/声学", 1, "胡琴 乐器 声学 振动 消声室", 63, "en", 7, 1, 20, 1],
+ [108, "物理", "南", 1, 1, "上海外国语大学附属外国语学校", "Machine Learning-Driven Development of Semiconductor Photothermal Materials by Tuning Bandgap for Enhancing Solar Water Evaporation", "150430_54111", "AI×物理", 2, "机器学习 光热 材料 太阳能 蒸发 海水淡化", 73, "en", 6, 1, 0, 1],
+ [156, "物理", "南", 1, 1, "复旦大学附属复兴中学", "一种新型多功能电磁感应实验装置", "150440_20607", "工程物理/仪器装置", 0, "电磁感应 实验装置 教学 磁", 21, "zh", 2, 0, 7, 1],
+ [273, "物理", "南", 1, 3, "上海市民办平和学校", "磁性牛顿摆的动力学、模态选择与能量传递", "150454_65935", "日常现象/磁相互作用", 0, "磁 牛顿摆 模态 能量传递 碰撞", 77, "zh", 6, 0, 4, 1],
+ [485, "物理", "南", 1, 1, "华东师范大学第二附属中学", "探究一种基于磁力排斥的牛顿摆运动状态特征及影响因素", "150506_57571", "日常现象/磁相互作用", 0, "磁 牛顿摆 碰撞 振动", 20, "zh", 2, 0, 6, 1],
+ [603, "物理", "南", 1, 1, "重庆市育才中学校", "胶囊弹跳中的平动和转动能量分配： 对能均分的趋近与系统偏离", "150518_55278", "日常现象/力学", 0, "弹跳 刚体 能量均分 碰撞 胶囊", 33, "zh", 5, 0, 0, 1],
+ [658, "物理", "南", 1, 1, "深圳中学", "尺子之歌", "150530_68167", "日常现象/声学", 0, "尺子 振动 声 共振", 37, "zh", 3, 1, 0, 1],
+ [678, "物理", "南", 1, 1, "上海市控江中学", "M 型自启动虹吸中的两阶段启动行为与峰后动力学", "150540_88231", "日常现象/流体", 0, "虹吸 流体 启动", 27, "zh", 2, 0, 0, 1],
+ [794, "物理", "南", 1, 1, "深圳国际交流书院", "Dynamics and Trajectory Control of Charged Evaporating Droplets Under Electric Fields", "150552_34815", "日常现象/流体", 1, "液滴 电场 蒸发 流体", 52, "en", 1, 0, 0, 1],
+ [824, "物理", "南", 1, 1, "重庆南开中学", "高效压电催化材料的构建及其电荷输运与界面反应动力学研究", "150604_53399", "材料物理/催化", 2, "压电 催化 材料 电荷输运", 70, "zh", 2, 1, 3, 1],
+ [877, "物理", "南", 1, 1, "上海外国语大学附属外国语学校", "Freely rotating triangular elements for passive control of circular-cylinder vortex-induced vibration", "150615_81967", "流体/工程物理", 1, "涡激振动 流体 被动控制 圆柱", 34, "en", 6, 1, 0, 1],
+ [879, "物理", "南", 1, 2, "深圳国际交流书院", "金属丝表面的光散射现象———环形光的几何特征与调控", "150626_77346", "日常现象/光学", 0, "光 散射 金属丝 光学 衍射", 23, "zh", 0, 0, 0, 0],
+ [971, "物理", "南", 1, 1, "武汉爱莎文华高级中学", "一种基于实测有限尺寸磁相互作用的非接触磁摆链动力学与模态研究", "150639_26214", "日常现象/磁相互作用", 0, "磁 摆 模态 耦合振动", 112, "zh", 7, 0, 0, 1],
+ [1038, "物理", "南", 1, 2, "重庆市育才中学校", "一种磁力炮的加速机制及其实验研究 ——发射判据、耗散修正与构型相图", "150650_98069", "日常现象/磁相互作用", 0, "磁 磁力炮 加速 碰撞", 50, "zh", 7, 0, 0, 1],
+ [1111, "物理", "南", 1, 1, "Shanghai American School Puxi Campus", "The Sound of Stress: Listening to Deformations During Paper Crumpling", "150704_90595", "日常现象/声学", 0, "纸 揉皱 声 形变", 18, "en", 2, 1, 18, 1],
+ [102, "化学", "北", 1, 1, "北京市二十一世纪学校", "基于双层片材结构的聚乳酸基微孔材料制备与疏水性能研究", "150740_38928", "功能材料", 2, "聚乳酸 可降解 微孔 疏水 材料", 25, "zh", 2, 1, 13, 1],
+ [123, "化学", "北", 1, 1, "北京师范大学附属实验中学", "Electroless-Plated Magnesiophilic 3D Current Collectors for Long-Cycle-Life Magnesium Metal Anodes", "150809_29072", "双碳/电池储能", 2, "镁电池 负极 集流体 电池", 31, "en", 2, 1, 0, 1],
+ [124, "化学", "北", 1, 1, "北京师范大学附属实验中学", "对于高压无负极钠离子电池的电解液设计", "150830_69404", "双碳/电池储能", 2, "钠电池 无负极 电解液 电池", 24, "zh", 2, 1, 6, 1],
+ [207, "化学", "北", 1, 1, "北京师范大学附属实验中学", "掺杂防污剂的互穿双网络弹性体的可控制备及海洋杀菌防污性能研究", "150844_63198", "功能材料", 2, "防污 弹性体 海洋 杀菌 材料", 38, "zh", 2, 1, 0, 1],
+ [351, "化学", "北", 1, 3, "江苏省海安高级中学", "面向极端环境固态锂硫电池电解质膜的制备及电化学储能性能研究", "150859_56760", "双碳/电池储能", 2, "锂硫电池 固态电解质 电池 极端环境", 67, "zh", 2, 1, 0, 1],
+ [565, "化学", "北", 1, 1, "北京师范大学附属实验中学", "Dual-Enzyme Activity Carbon Dots Design in Microglial Polarization for Inflammatory Therapy After Subarachnoid Hemorrhage", "150913_82433", "纳米医用", 2, "碳点 纳米酶 炎症 神经 医用", 31, "en", 2, 1, 0, 1],
+ [635, "化学", "北", 1, 2, "北京市第八十中学", "微流控界面聚合制备相变微胶囊及其储热性能研究", "150926_95987", "功能材料", 2, "微流控 相变 储热 微胶囊", 63, "zh", 6, 1, 0, 1],
+ [651, "化学", "北", 1, 2, "北京市十一学校", "Screening Allele-Specific siRNA for Single-Nucleotide-Mutated Type 3 Rickets", "150938_22174", "化学生物交叉", 2, "siRNA 基因 罕见病 药物 佝偻病", 19, "en", 6, 1, 0, 1],
+ [680, "化学", "北", 1, 1, "郑州中学", "Metal Ion-Mediated Modulation of Human Chorionic Gonadotropin Immunoactivity on Commercial Pregnancy Test Strips for PFOS Point-of-Care Testing", "150955_92064", "化学生物交叉", 1, "PFOS 检测 试纸 污染 低成本 传感", 40, "en", 2, 1, 53, 1],
+ [856, "化学", "北", 1, 1, "北京市第一〇一中学", "Dual-Anion Electrolyte Engineering for Stable Seawater Oxidation", "151010_94387", "电催化/双碳", 2, "海水 电解 电催化 制氢 电解液", 17, "en", 6, 1, 29, 1],
+ [895, "化学", "北", 1, 1, "北京师范大学第二附属中学国际部", "失效磷酸铁锂正极粉选择性提锂与再生电池级磷酸铁", "151024_85943", "绿色化学", 2, "电池回收 锂 磷酸铁锂 循环 再生", 18, "zh", 2, 1, 29, 1],
+ [1096, "化学", "北", 1, 1, "南京市金陵中学", "多氟化物修饰中空纤维人工肺膜材料表面的过程研究及性能评价", "151040_17236", "生物医用材料", 2, "人工肺 膜材料 医用 氟化", 66, "zh", 2, 1, 86, 1],
+ [1120, "化学", "北", 1, 1, "清华大学附属中学", "利用微流控技术构建细胞共培养平台探究紫草宁对伤口愈合过程的影响", "151053_21090", "化学生物交叉", 2, "微流控 细胞 伤口愈合 中药", 30, "en", 2, 1, 28, 1],
+ [94, "化学", "北", 0, 1, "北京市海淀区稻香湖学校", "Optimization of a Multifunctional Photothermal Hydrogel for Melanoma Post-surgical Therapy", "151112_27560", "生物医用材料", 2, "水凝胶 光热 肿瘤 医用", 31, "en", 2, 1, 0, 1],
+ [115, "化学", "南", 1, 1, "上海中学国际部", "A Three-Layer Gradient PLGA/Hydroxyapatite Scaffold with pH-Responsive Curcumin Release for Combined Osteogenic Induction and Macrophage Immunomodulation", "151146_38781", "生物医用材料", 2, "支架 骨修复 姜黄素 医用", 35, "en", 2, 0, 0, 1],
+ [247, "化学", "南", 1, 1, "华南师范大学附属中学", "A Low-Cost Graphite Interlayer Enables a Parallel Cu2Se/Ag2Se Sandwich Architecture with Enhanced Thermoelectric Current Output", "151200_32735", "双碳/新能源材料", 2, "热电 材料 低成本 能源", 22, "en", 2, 1, 0, 1],
+ [288, "化学", "南", 1, 1, "上海市世外中学", "温和条件下的热催化水活化：二维介孔CeO2-x-C纳米片催化5-羟甲基糠醛高选择性氧化制2,5-呋喃二甲醛", "151213_42427", "催化/生物质转化", 2, "催化 生物质 纳米片", 36, "zh", 2, 1, 51, 1],
+ [365, "化学", "南", 1, 1, "福田贝赛思学校", "Utilizing Membrane-Anchoring Lipophilic AIEgen for Sonodynamic Therapy against Toxoplasma Gondii", "151232_69134", "化学生物交叉", 2, "AIE 声动力 寄生虫 探针", 40, "en", 6, 1, 65, 1],
+ [511, "化学", "南", 1, 1, "上海民办包玉刚实验学校", "Mechanistic Insights into pH-Dependent Catalytic Behavior and Enzyme Structural Responses during Toluene Biodegradation for Green Treatment of Contaminated Water", "151244_36932", "环境治理", 2, "甲苯 生物降解 酶 水污染", 37, "en", 2, 1, 0, 1],
+ [609, "化学", "南", 1, 1, "深圳市高级中学", "基于TSPO靶点的大叶蒟抗抑郁活性成分虚拟筛选及分子机制研究", "151307_77076", "计算化学/药物筛选", 1, "虚拟筛选 分子对接 抗抑郁 天然产物 药物 中药", 34, "zh", 6, 1, 15, 1],
+ [647, "化学", "南", 1, 1, "上海中学国际部", "Tetrahydropyran-Assisted Solvation Structure Modulation in Glyme Ether Electrolytes for Highly Stable Anode-Free Sodium Metal Batteries", "151327_25661", "双碳/电池储能", 2, "钠电池 无负极 电解液 电池", 25, "en", 6, 1, 23, 1],
+ [764, "化学", "南", 1, 1, "上海星河湾双语学校", "Photocatalytic Conversion of Polylactic Acid over Oxygen-Vacancy-Rich Bismuth Oxychloride", "151341_17310", "环境治理", 2, "光催化 塑料 聚乳酸 降解", 19, "en", 2, 1, 17, 1],
+ [793, "化学", "南", 1, 1, "重庆市育才中学校", "NiFeCo基-PBA及其衍生物的制备与电催化析氧性能 研究：组分筛选与刻蚀改性", "151353_31591", "电催化/双碳", 2, "电催化 析氧 普鲁士蓝 制氢", 39, "zh", 2, 1, 38, 1],
+ [898, "化学", "南", 1, 3, "重庆市巴蜀中学校", "Scalable Fabrication of Nano-Arrayed ZnO/Cotton Composite Fibers for Human-Robot Interactive Fabric", "151409_39418", "功能材料", 2, "柔性传感 纤维 可穿戴 人机交互 纳米 传感器", 22, "en", 2, 1, 25, 1],
+ [948, "化学", "南", 1, 1, "上海外国语大学附属外国语学校", "pH/ROS双响应水凝胶-微球负载姜黄素用于中枢神经损伤再生修复", "151424_58563", "生物医用材料", 2, "水凝胶 神经修复 姜黄素 药物递送", 36, "zh", 2, 1, 29, 1],
+ [1130, "化学", "南", 1, 2, "上海中学国际部", "Epitaxial nickel-based Prussian blue analogues (PBAs) Coating Strategy for Durable Mn-Based PBAs in Sodium-Ion Batteries", "151442_38945", "双碳/电池储能", 2, "钠电池 普鲁士蓝 正极 电池", 12, "en", 2, 1, 8, 1],
+ [488, "化学", "南", 0, 1, "上海星河湾双语学校", "葡萄外泌体复合Janus水凝胶在口腔黏膜损伤修复中的应用", "151501_52264", "生物医用材料", 2, "外泌体 水凝胶 口腔 修复", 29, "zh", 2, 0, 0, 1],
+ [882, "化学", "南", 0, 1, "杭州外国语学校", "低温高性能硬碳钠离子电池负极材料研发", "151514_49043", "双碳/电池储能", 2, "钠电池 硬碳 负极 电池", 17, "zh", 6, 0, 9, 1]
+];
+const S26=R26.map(a=>({y:2026,id:a[0],s:a[1],rg:a[2],st:a[3],n:a[3]?"半决赛入围":"半决赛候补",team:a[4],sc:a[5],t:a[6],u:PDF_BASE+a[7]+".pdf",c:a[8],r:a[9],g:a[10],N:a[11],lang:a[12],legs:a[13],lab:a[14],refs:a[15],ok:a[16]}));
+const ALL=CORPUS.concat(HIST,S26);
+const PAST=CORPUS.concat(HIST);
+const fam=c=>c.replace(/深挖$/,"").split("/")[0];
+const nLegs=m=>(m&1)+(m>>1&1)+(m>>2&1);
+const pct=(a,b)=>b?Math.round(a*100/b):0;
+const median=v=>{if(!v.length)return null;const s=[...v].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+/* 2026 学科画像：运行时从 S26 计算，不写死数字 */
+function stats26(sub){
+  const R=S26.filter(p=>p.s===sub), P=R.filter(p=>p.ok);
+  const cl={}; R.forEach(p=>{cl[p.c]=(cl[p.c]||0)+1});
+  const scs={}; R.forEach(p=>{scs[p.sc]=(scs[p.sc]||0)+1});
+  const refs=P.map(p=>p.refs).filter(x=>x>0);
+  const rg={}; R.filter(p=>p.st).forEach(p=>{rg[p.rg]=(rg[p.rg]||0)+1});
+  return {R,P,in:R.filter(p=>p.st).length,alt:R.filter(p=>!p.st).length,rg,
+    clusters:Object.entries(cl).sort((a,b)=>b[1]-a[1]),
+    schools:Object.entries(scs).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>=2).slice(0,3),
+    pages:median(R.map(p=>p.N)),en:pct(R.filter(p=>p.lang==="en").length,R.length),
+    multi:pct(P.filter(p=>nLegs(p.legs)>=2).length,P.length),lab:pct(P.filter(p=>p.lab).length,P.length),
+    team:pct(R.filter(p=>p.team>1).length,R.length),refs:median(refs),refsN:refs.length,skip:R.length-P.length};
+}
+/* 历年趋势快照（2019–2025 获奖语料 + 2026 半决赛入围名单整理，演示口径） */
 const TREND={
- "数学":"2021–2025 金奖连续为纯数学课题且多为国际选手（新加坡/美国），应用题材仅零星获奖——纯数功底是这条赛道的硬门槛。",
- "物理":"日常现象类课题连续五届出现在最高奖层（2021 葡萄等离子体 → 2023 欧拉磁摆 → 2025 鸡蛋碎裂）；注意：磁摆类 2023 已获奖、2025 再现，热门现象必须做出明显差异化。",
- "化学":"电催化与碳转化连续五届高频（2021 生物质碳 → 2023 CO₂ 电催化 → 2025 海水制氢），生化交叉已冲到金奖层（2023 CRISPR 检测）。",
- "生物":"金奖题材从机理观察（2021 洞穴生物、2023 爬山虎）转向 2024–2025 的分子前沿与医工交叉；AI×生物自 2022 起逐年上升。",
- "计算机":"2021 并行算法夺金 → 2023 NLP/量子/CV → 2024–2025 LLM 与 AI for good 全面接管；算法理论始终有一席之地。",
- "经济":"博弈建模与实证因果推断双主线并行（2023 金奖为博弈建模），2024–2025 实证与 AI 冲击题材明显上升。"
+ "数学":"2021–2025 金奖连续为纯数学课题且多为国际选手（新加坡/美国），应用题材仅零星获奖——纯数功底是这条赛道的硬门槛。2026 半决赛 31 队入围中纯数 22 队（数论 7、组合 6 居前），应用建模 9 队——应用题能进半决赛，但历届金奖层仍是纯数。",
+ "物理":"日常现象类课题连续五届出现在最高奖层（2021 葡萄等离子体 → 2023 欧拉磁摆 → 2025 鸡蛋碎裂）；注意：磁摆类 2023 已获奖、2025 再现，热门现象必须做出明显差异化。2026 半决赛 26 队入围中日常现象类 16 队，其中磁力牛顿摆/磁摆链/磁力炮同年 5 队（南区 4 队）——磁相互作用母题已成红海。",
+ "化学":"电催化与碳转化连续五届高频（2021 生物质碳 → 2023 CO₂ 电催化 → 2025 海水制氢），生化交叉已冲到金奖层（2023 CRISPR 检测）。2026 半决赛 25 队入围中电池储能 5 队（钠电 3 队，候补再 +1）、化学生物交叉 4 队、医用材料 4 队，电催化退至 2 队。",
+ "生物":"金奖题材从机理观察（2021 洞穴生物、2023 爬山虎）转向 2024–2025 的分子前沿与医工交叉；AI×生物自 2022 起逐年上升。2026 半决赛 28 队入围以分子检测、神经环路/行为、分子前沿各 4 队为主；医工交叉可穿戴仅 1 队（帕金森冻结步态闭环提示），该簇今年密度反而偏低。",
+ "计算机":"2021 并行算法夺金 → 2023 NLP/量子/CV → 2024–2025 LLM 与 AI for good 全面接管；算法理论始终有一席之地。2026 半决赛 28 队入围中具身智能/机器人 4 队居首，3D 高斯泼溅、LLM 基础、智能体、AI×医疗各 2 队，AIGC 鉴伪 1 队（候补另 2 队）。",
+ "经济":"博弈建模与实证因果推断双主线并行（2023 金奖为博弈建模），2024–2025 实证与 AI 冲击题材明显上升。2026 半决赛 28 队入围中博弈/机制设计/平台 6 队，贸易战与出口管制、产业政策、健康经济、双碳建模各 3 队；北京市十一学校单校 5 队入围，集中度最高。"
 };
 
-/* 学科词典与元信息（演示用，简化自两届语料的偏好图谱） */
+/* 学科词典与元信息（演示用，简化自两届获奖语料的偏好图谱；v2026.10 补入 2026 半决赛入围高频词） */
 const SUBJECTS=[
- {k:"数学",dep:0,depTxt:"资源依赖低 · 智力门槛最高",kw:["证明","定理","数论","猜想","方程","几何","拓扑","组合","素数","矩阵","概率论","分析"]},
- {k:"物理",dep:0,depTxt:"资源依赖低–中 · 欢迎日常现象",kw:["现象","力学","声","光","摩擦","振动","流体","碎裂","悬浮","波","磁","实验装置","相变"]},
- {k:"化学",dep:2,depTxt:"资源依赖高 · 几乎必须实验室",kw:["催化","材料","电池","制氢","合成","纳米","降解","聚合","晶体","电极","碳"]},
- {k:"生物",dep:1,depTxt:"分子路线高 / 交叉路线中",kw:["老人","康复","医","患者","健康","疾病","细胞","基因","蛋白","植物","仿生","肌电","跌倒","传感器","外骨骼","疫苗"]},
- {k:"经济",dep:1,depTxt:"资源依赖低 · 要数据与计量",kw:["政策","市场","价格","博弈","养老金","劳动","消费","碳交易","金融","供应链","因果"]},
- {k:"计算机",dep:1,depTxt:"资源依赖中 · 要方法层贡献",kw:["机器学习","深度学习","算法","模型","识别","大模型","预警","检测","神经网络","AI","传感器","系统","数据"]}
+ {k:"数学",dep:0,depTxt:"资源依赖低 · 智力门槛最高",kw:["证明","定理","数论","猜想","方程","几何","拓扑","组合","素数","矩阵","概率论","分析","丢番图","图论","随机","代数","表示论","动力系统","不等式","数列","统计建模"]},
+ {k:"物理",dep:0,depTxt:"资源依赖低–中 · 欢迎日常现象",kw:["现象","力学","声","光","摩擦","振动","流体","碎裂","悬浮","波","磁","实验装置","相变","牛顿摆","液滴","虹吸","天线","骰子","共振","阻尼","热声","涡激","碰撞","弹跳","乐器","电磁"]},
+ {k:"化学",dep:2,depTxt:"资源依赖高 · 几乎必须实验室",kw:["催化","材料","电池","制氢","合成","纳米","降解","聚合","晶体","电极","碳","钠离子","锂","负极","正极","电解液","水凝胶","光催化","电催化","防污","微流控","热电","塑料"]},
+ {k:"生物",dep:1,depTxt:"分子路线高 / 交叉路线中",kw:["老人","康复","医","患者","健康","疾病","细胞","基因","蛋白","植物","仿生","肌电","跌倒","传感器","外骨骼","疫苗","小鼠","神经元","神经环路","肿瘤","菌","酶","肠道","脑电","阿尔茨海默","帕金森","噬菌体","CRISPR","种群","鸟"]},
+ {k:"经济",dep:1,depTxt:"资源依赖低 · 要数据与计量",kw:["政策","市场","价格","博弈","养老金","劳动","消费","碳交易","金融","供应链","因果","贸易","关税","出口管制","企业","创新","专利","补贴","产业","收入","就业","监管","投资","股票","平台","机制设计"]},
+ {k:"计算机",dep:1,depTxt:"资源依赖中 · 要方法层贡献",kw:["机器学习","深度学习","算法","模型","识别","大模型","预警","检测","神经网络","AI","传感器","系统","数据","可解释","机器人","无人机","强化学习","三维","生成","智能体","图神经网络","鉴伪","量子","密码"]}
 ];
 const DIMS=[
  {k:"问题真实性",q:"问题是不是学生自己的"},
@@ -296,7 +523,7 @@ const DIMS=[
  {k:"学术规范",q:"文献意识与论文写作"},
  {k:"独立性可辩护度",q:"五关追问下守不守得住"},
  {k:"资源可行性",q:"12–18 个月撑不撑得住"},
- {k:"表达与答辩",q:"总决赛为英文答辩"}
+ {k:"表达与答辩",q:"半决赛 35 分钟 · 总决赛英文"}
 ];
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
@@ -330,28 +557,36 @@ function analyze(){
     return {sub:s,score:Math.min(.97,base)};
   }).sort((a,b)=>b.score-a.score);
   const top=scores[0];
-  /* 相似课题 & 撞题热度 */
-  const sims=ALL.map(p=>{
+  /* 相似课题 & 撞题热度：题目 + 2026 条目的中文检索标签（英文题目也能被中文想法命中） */
+  const simScore=p=>{
+    const txt=p.t+" "+(p.g||"");
     let sc=(p.s===top.sub.k?2:0)+(scores[1]&&p.s===scores[1].sub.k?1:0);
-    sc+=top.sub.kw.filter(w=>p.t.includes(w)&&topic.includes(w)).length*1.5;
+    sc+=top.sub.kw.filter(w=>txt.includes(w)&&topic.includes(w)).length*1.5;
+    if(p.g)p.g.split(" ").forEach(w=>{if(w&&topic.includes(w))sc+=w.length>1?2:1});
     ["老人","跌倒","肌电","传感器","康复","预警"].forEach(w=>{if(topic.includes(w)&&p.t.includes(w))sc+=2});
-    return {p,sc};
-  }).sort((a,b)=>b.sc-a.sc).slice(0,5).filter(x=>x.sc>0);
+    return sc;
+  };
+  const rank=list=>list.map(p=>({p,sc:simScore(p)})).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc);
+  const simsPast=rank(PAST).slice(0,4), sims26=rank(S26).slice(0,4);
+  const sims=rank(ALL).slice(0,5);
   const cluster=sims[0]?sims[0].p.c:null;
   const heat=cluster?ALL.filter(p=>p.c===cluster).length:0;
+  const heat26=cluster?S26.filter(p=>p.c===cluster).length:0;
+  const st=stats26(top.sub.k);
+  const famN=cluster?st.R.filter(p=>fam(p.c)===fam(cluster)).length:0;
   /* 六维（演示规则） */
   const d=[];
   d.push({v:origin==="self"?4:origin==="mentor"?2:1, why:origin==="self"?"问题来自学生自己的观察，能讲出来龙去脉":origin==="mentor"?"问题来自他人建议，需要学生把它变成“自己的”":"热点跟随型选题，独立性与差异化都会被追问"});
-  d.push({v:[1,3,5][Math.min(methods.length,2)]||1, why:`当前占了 ${methods.length||0}/3 条腿（理论/实验/仿真），获奖论文普遍两条以上且互相验证`});
-  d.push({v:lit*2, why:lit===0?"尚无文献意识，函评关很难过":lit===1?"有初步文献基础，需建立与已有工作的对话":"文献工作扎实"});
+  d.push({v:[1,3,5][Math.min(methods.length,2)]||1, why:`当前占了 ${methods.length||0}/3 条腿（理论/实验/仿真）；2026 ${top.sub.k}半决赛入围全文中 ${st.multi}% 覆盖≥2 条腿${top.sub.k==="数学"?"（数学以理论单腿为主，此维重看证明深度）":"，多腿互证仍是加分项"}`});
+  d.push({v:lit*2, why:(lit===0?"尚无文献意识，函评关很难过":lit===1?"有初步文献基础，需建立与已有工作的对话":"文献工作扎实")+(st.refs?`；2026 ${top.sub.k}入围论文参考文献中位约 ${st.refs} 篇`:"")});
   d.push({v:Math.min(5,1+time+(origin==="self"?2:0)), why:"由投入时间与问题来源推断；最终以模拟答辩实测为准"});
-  d.push({v:top.sub.dep>resLevel?1:resLevel>=top.sub.dep+1?5:3, why:top.sub.dep>resLevel?`该赛道资源依赖（${top.sub.depTxt}）超出当前条件，存在根本性错配`:"资源与赛道匹配，有余量"});
-  d.push({v:eng*2+1, why:"总决赛为 30 分钟英文答辩，此维需长期专项训练"});
+  d.push({v:top.sub.dep>resLevel?1:resLevel>=top.sub.dep+1?5:3, why:(top.sub.dep>resLevel?`该赛道资源依赖（${top.sub.depTxt}）超出当前条件，存在根本性错配`:"资源与赛道匹配，有余量")+`；2026 ${top.sub.k}入围论文 ${st.lab}% 在封面/致谢出现高校·院所·实验室`});
+  d.push({v:eng*2+1, why:`2026 半决赛答辩 35 分钟（15 分钟 PPT + 20 分钟评委提问，中英文不限），总决赛为英文答辩；2026 ${top.sub.k}入围论文 ${st.en}% 用英文撰写`});
   const avg=d.reduce((a,x)=>a+x.v,0)/6;
   const min=Math.min(...d.map(x=>x.v));
   let band = min<=1 ? "D" : avg>=4.2 ? "A" : avg>=3.2 ? "B" : "C";
   if(band==="D"&&avg>=3)band="C";
-  return {topic,scores,top,sims,cluster,heat,d,avg,band,resLevel};
+  return {topic,scores,top,sims,simsPast,sims26,cluster,heat,heat26,famN,st,d,avg,band,resLevel};
 }
 
 const BANDS={
@@ -371,10 +606,32 @@ function run(){
       <div class="track"><div class="fill" style="width:${Math.round(x.score*100)}%"></div></div>
       <div class="val">${Math.round(x.score*100)}</div>
     </div>`).join("");
-  const simHtml=r.sims.length?r.sims.map(x=>`
-    <div class="simItem"><span class="yr">${x.p.y}·${x.p.s}${x.p.n?"·"+x.p.n:""}</span><span class="tt">${esc(x.p.t)}</span><span class="tag">${x.p.c}</span></div>`).join("")
-    :'<p class="sec-sub">语料中未检索到强相似课题——这可能是差异化机会，也可能是赛道错配信号，需顾问判断。</p>';
-  const heatHtml=r.cluster?`<div class="heat ${r.heat>=4?"h":"l"}">「${r.cluster}」簇 2019–2025 语料中出现 ${r.heat} 次 · ${r.heat>=4?"热门赛道，必须有明显差异化才有辨识度":"竞争密度可接受"}</div>`:"";
+  const LEG=m=>["理论","实验","仿真/算法"].filter((_,i)=>m>>i&1).join("+")||"未检出";
+  const simRow=x=>`
+    <div class="simItem"><span class="yr">${x.p.y}·${x.p.s}${x.p.n?"·"+x.p.n:""}</span><span class="tt">${esc(x.p.t)}${x.p.u?`<span class="meta">${esc(x.p.sc)} · ${x.p.lang==="en"?"英文":"中文"} ${x.p.N} 页 · ${x.p.ok?"方法腿："+LEG(x.p.legs):"全文文本层不可解析"}</span>`:""}</span><span class="tag">${x.p.c}</span>${x.p.u?`<a class="pdf" href="${x.p.u}" target="_blank" rel="noopener">全文</a>`:""}</div>`;
+  const noSim='<p class="sec-sub">语料中未检索到强相似课题——这可能是差异化机会，也可能是赛道错配信号，需顾问判断。</p>';
+  const simHtml=(r.simsPast.length||r.sims26.length)?`
+    <div class="subhead">历届获奖 / 总决赛入围（2019–2025）</div>${r.simsPast.length?r.simsPast.map(simRow).join(""):noSim}
+    <div class="subhead" style="margin-top:14px">2026 半决赛入围 · 最相近（附官网全文）</div>${r.sims26.length?r.sims26.map(simRow).join(""):noSim}`:noSim;
+  const heatHtml=r.cluster?`<div class="heat ${r.heat>=4||r.heat26>=3?"h":"l"}">「${r.cluster}」簇 2019–2026 语料中出现 ${r.heat} 次（其中 2026 半决赛名单 ${r.heat26} 队）· ${r.heat>=4||r.heat26>=3?"热门赛道，必须有明显差异化才有辨识度":"竞争密度可接受"}</div>`:"";
+  const S=r.st;
+  const rgTxt=["北","东","南"].filter(k=>S.rg[k]).map(k=>`${k} ${S.rg[k]}`).join(" / ");
+  const clBars=S.clusters.slice(0,6).map(([c,n])=>`
+    <div class="barrow wide${c===r.cluster?" mine":""}"><div class="lab">${c}${c===r.cluster?"<small>← 你的课题落在此簇</small>":""}</div>
+      <div class="track"><div class="fill" style="width:${Math.round(n/S.clusters[0][1]*100)}%"></div></div><div class="val">${n}</div></div>`).join("");
+  const tile=(v,l)=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`;
+  const panel26=`
+    <div class="panel"><div class="panel-h"><h2>2026 半决赛入围画像 · ${r.top.sub.k}</h2><span class="chip">官网公示名单 + 全文</span></div>
+      <div class="panel-b">
+        <p class="sec-sub" style="margin:0 0 8px">入围 ${S.in} 队（${rgTxt}）+ 候补 ${S.alt} 队 · 按簇分布（含候补）</p>
+        ${clBars}
+        <div class="statgrid">
+          ${tile(S.pages+" 页","论文页数中位数")}${tile(S.en+"%","用英文撰写")}${tile(S.multi+"%","覆盖≥2 条方法腿")}
+          ${tile(S.lab+"%","封面/致谢见高校·院所·实验室")}${tile(S.team+"%","2–3 人团队参赛")}${tile(S.refs?"≈"+S.refs+" 篇":"—","参考文献中位数")}
+        </div>
+        ${S.schools.length?`<p class="sec-sub" style="margin:10px 0 0">高频入围学校：${S.schools.map(([s,n])=>`${esc(s)} ${n} 队`).join("；")}</p>`:""}
+        <p class="panelnote">全文指标为前 12 页关键词自动统计（可解析 ${S.P.length}/${S.R.length} 篇，${S.skip} 篇因扫描件或中文字形未嵌入未计入；参考文献检出 ${S.refsN} 篇），簇为人工标注，用作基准参考需顾问抽样复核。名单处于公示期（10/28–11/3），以公示期满无异议为准。</p>
+      </div></div>`;
 
   if(view==="external"){
     const resCls=r.top.sub.dep>r.resLevel?"rr":r.resLevel>=r.top.sub.dep+1?"rg":"ry";
@@ -384,8 +641,9 @@ function run(){
     el.innerHTML=`
       <div class="panel"><div class="panel-b">
         <h3 class="sec-title">方向匹配</h3>
-        <p class="sec-sub">基于 2024–2025 两届 133 篇获奖论文全文 + 2019–2023 历届获奖课题题目层（方向参考，非获奖预测）</p>
+        <p class="sec-sub">基于 2024–2025 两届 133 篇获奖论文全文 + 2026 半决赛 186 篇入围论文全文 + 2019–2023 历届获奖课题题目层（方向参考，非获奖预测）</p>
         <div style="margin-top:10px">${bars}</div>
+        <div class="heat ${r.heat26>=3?"h":"l"}">今年（2026）「${r.top.sub.k}」半决赛入围 ${r.st.in} 队${r.cluster&&r.heat26?`，与你方向最接近的同类课题有 ${r.heat26} 队`:""}${r.heat26>=3?"——方向偏热，需要更鲜明的切入点":""}</div>
       </div></div>
       <div class="panel"><div class="panel-b">
         <h3 class="sec-title">资源匹配度</h3>
@@ -413,14 +671,15 @@ function run(){
   const weak=r.d.map((x,i)=>({...x,i})).filter(x=>x.v<=3).sort((a,b)=>a.v-b.v).slice(0,3);
   const ACT={0:["问题所有权测试","让学生脱稿向非本方向的人讲 15 分钟课题并录像，标出所有卡壳点，两周后复测。"],
     1:["补齐第二条腿","当前方法单一。8 周内为课题加上理论建模或数值仿真中的一条，与已有数据互相验证。"],
-    2:["文献对话训练","精读 5 篇同簇获奖论文+3 篇期刊论文，各写 200 字“它做了什么、我与它的差别”。"],
-    3:["模拟函评+追问","顾问按五关流程做一次 30 分钟模拟追问，记录所有守不住的技术选择，逐条补课。"],
+    2:["文献对话训练","精读 3 篇同簇获奖论文 + 2 篇 2026 同簇入围全文（见对照表“全文”）+ 3 篇期刊论文，各写 200 字“它做了什么、我与它的差别”。"],
+    3:["模拟函评+追问","顾问按 2026 半决赛节奏（15 分钟陈述 + 20 分钟追问）做一次模拟，记录所有守不住的技术选择，逐条补课。"],
     4:["资源落地里程碑","4 周内落实实验条件/导师/数据三者中缺失项，落实前暂停投入，避免沉没成本。"],
-    5:["英文答辩节奏训练","每周一次 5 分钟英文课题陈述，第 8 周做一次 30 分钟全流程模拟答辩。"]};
+    5:["英文答辩节奏训练","每周一次 5 分钟英文课题陈述，第 8 周做一次 35 分钟全流程模拟答辩（15+20，对齐 2026 半决赛赛制；总决赛须全英文）。"]};
   const acts=weak.length?weak.map(x=>`<li><b>${DIMS[x.i].k} · 当前 ${x.v}/5</b>${ACT[x.i][1]}</li>`).join(""):'<li><b>无 ≤3 分维度</b>进入赛前冲刺流程：模拟答辩 ×3 + 论文格式终审。</li>';
   el.innerHTML=`
     <div class="panel"><div class="panel-h"><h2>Module A · 方向匹配</h2><span class="chip">双通道：词典 + 语料检索（演示）</span></div>
-      <div class="panel-b">${bars}${heatHtml}<div class="heat l" style="margin-top:8px">五年趋势 · ${r.top.sub.k}：${TREND[r.top.sub.k]}</div></div></div>
+      <div class="panel-b">${bars}${heatHtml}<div class="heat l" style="margin-top:8px">历年趋势 · ${r.top.sub.k}：${TREND[r.top.sub.k]}</div></div></div>
+    ${panel26}
     <div class="panel"><div class="panel-h"><h2>Module B · 六维评估</h2><span class="chip">锚定式 Rubric · 每分必附依据</span></div>
       <div class="panel-b">${dims}</div></div>
     <div class="panel"><div class="panel-h"><h2>Module C · 档位参考（内部口径）</h2></div>
@@ -430,12 +689,12 @@ function run(){
             <div><div class="bandname">${B.name}</div><div class="bandrange">${B.range}</div></div></div>
           <ul class="band4">
             <li data-k="依据">六维均值 ${r.avg.toFixed(1)}/5；${B.note}</li>
-            <li data-k="基线">2023 届：1235 篇有效论文 → 89 队入围总决赛（≈7.2%）→ 61 个奖项（≈4.9%）。档位是与获奖论文标准的差距测量。</li>
+            <li data-k="基线">2023 届：1235 篇有效论文 → 89 队入围总决赛（≈7.2%）→ 61 个奖项（≈4.9%）。2026 届内地赛区半决赛入围 166 队（另候补 20 队），当年投稿总量尚未见公示。档位是与获奖论文标准的差距测量。</li>
             <li data-k="不可控">同年撞题、评委构成、答辩临场属不可约不确定性，任何档位都不能消除。</li>
             <li data-k="声明">本档位非获奖预测或承诺；对家庭的表述必须使用话术模板并经顾问审定。</li>
           </ul>
         </div></div></div>
-    <div class="panel"><div class="panel-h"><h2>同类获奖课题对照</h2><span class="chip">2019–2025 语料 Top5</span></div>
+    <div class="panel"><div class="panel-h"><h2>同类课题对照</h2><span class="chip">2019–2025 获奖 Top4 · 2026 入围 Top4</span></div>
       <div class="panel-b">${simHtml}</div></div>
     <div class="panel"><div class="panel-h"><h2>Module D · 未来 8–12 周提升路径</h2></div>
       <div class="panel-b"><ol class="acts">${acts}</ol></div></div>
