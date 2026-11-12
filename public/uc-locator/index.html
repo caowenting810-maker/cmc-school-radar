@@ -3820,7 +3820,7 @@ const ERR_MSG = { not_granted: '你没有允许本页调用 Claude。', rate_lim
    直接双击打开（file://）、放在内网或网站上、在线版都能读到。目录缺失时改从网络取：国内镜像 → 公共 CDN。 */
 const OCR_DIR = 'ocr/';
 const OCR_FILES = { lib: 'tesseract.min.js', worker: 'ocr-worker.js', core: 'ocr-core.js', eng: 'ocr-eng.js', chi: 'ocr-chi.js' };
-const OCR_NPM = (pkg, ver, path) => [`https://registry.npmmirror.com/${pkg}/${ver}/files/${path}`, `https://cdn.jsdelivr.net/npm/${pkg}@${ver}/${path}`, `https://unpkg.com/${pkg}@${ver}/${path}`];
+const OCR_NPM = (pkg, ver, path) => [`https://cdn.npmmirror.com/packages/${pkg}/${ver}/files/${path}`, `https://registry.npmmirror.com/${pkg}/${ver}/files/${path}`, `https://cdn.jsdelivr.net/npm/${pkg}@${ver}/${path}`, `https://unpkg.com/${pkg}@${ver}/${path}`];
 const OCR_NET = {
   lib: OCR_NPM('tesseract.js', '6.0.1', 'dist/tesseract.min.js'),
   worker: OCR_NPM('tesseract.js', '6.0.1', 'dist/worker.min.js'),
