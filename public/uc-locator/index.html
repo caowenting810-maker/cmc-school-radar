@@ -4224,4 +4224,265 @@ resetBar('');
 
 renderSchoolOptions(); syncControls(); renderRows(); renderExams(); renderActs(); renderMajorFor(); renderData(); render({ piqFull: true }); renderProfiles();
 </script>
+
+<!-- ============================================================
+     UC 定位器 · 外部视觉识别补丁 v1.0  (CMC 师说)
+     作用：把 askClaudeJSON() 换成调用通用 OpenAI 兼容视觉接口，
+           使照片 / 扫描版 PDF 在本站也能识别。
+     原则：不修改上方原文件任何一行；升级原文件后本补丁继续生效。
+     ============================================================ -->
+<script>
+(function () {
+  if (window.__ucVisionPatch) return;
+  window.__ucVisionPatch = '1.0';
+
+  var LS = 'ucLocatorVision_v1';
+  var PRESETS = [
+    { k: 'qwen', n: '通义千问 VL（阿里云）', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-vl-max' },
+    { k: 'doubao', n: '豆包视觉（火山方舟）', base: 'https://ark.cn-beijing.volces.com/api/v3', model: '' },
+    { k: 'zhipu', n: '智谱 GLM-4V', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4v-plus' },
+    { k: 'moonshot', n: 'Kimi 视觉（月之暗面）', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k-vision-preview' },
+    { k: 'openai', n: 'OpenAI', base: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+    { k: 'custom', n: '自定义 / 中转地址', base: '', model: '' }
+  ];
+
+  function cfg() {
+    var o = { base: '', key: '', model: '', maxImg: 5 };
+    try {
+      var s = JSON.parse(localStorage.getItem(LS) || '{}');
+      for (var k in s) if (s[k] !== undefined && s[k] !== null) o[k] = s[k];
+    } catch (e) {}
+    return o;
+  }
+  function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} }
+
+  function toDataURL(b) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () { res(String(fr.result)); };
+      fr.onerror = function () { rej({ code: 'read_failed' }); };
+      fr.readAsDataURL(b);
+    });
+  }
+
+  function pickJSON(t) {
+    if (!t) return null;
+    var s = String(t).trim();
+    var m = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (m) s = m[1].trim();
+    try { return JSON.parse(s); } catch (e) {}
+    var a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if (a >= 0 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (e) {} }
+    return null;
+  }
+
+  try {
+    if (typeof ERR_MSG === 'object' && ERR_MSG) {
+      ERR_MSG.no_key = '还没有配置识别接口。点右下角「识别设置」，填接口地址、Key 和模型名。';
+      ERR_MSG.http_401 = '接口 Key 无效或已过期。';
+      ERR_MSG.http_403 = '接口拒绝访问，请检查 Key 权限或账户余额。';
+      ERR_MSG.http_404 = '接口地址不对，或模型名不存在。';
+      ERR_MSG.http_429 = '接口调用太频繁或额度用尽，稍后再试。';
+      ERR_MSG.network = '连不上识别接口。检查网络，或在「识别设置」里换成中转地址。';
+      ERR_MSG.invalid_json = '接口返回的不是标准 JSON，换一个视觉模型再试。';
+      ERR_MSG.read_failed = '文件读取失败，换一份文件再试。';
+    }
+  } catch (e) {}
+
+  var origAsk = window.askClaudeJSON;
+
+  window.askClaudeJSON = async function (prompt, images, signal) {
+    if (window.claude && typeof window.claude.use === 'function' && origAsk) {
+      return origAsk.apply(this, arguments);
+    }
+    var c = cfg();
+    if (!c.base || !c.key || !c.model) throw { code: 'no_key' };
+
+    var list = (images || []).slice(0, Math.max(1, Math.min(10, c.maxImg || 5)));
+    var content = [{ type: 'text', text: String(prompt || '') }];
+    for (var i = 0; i < list.length; i++) {
+      content.push({ type: 'image_url', image_url: { url: await toDataURL(list[i]) } });
+    }
+
+    var res;
+    try {
+      res = await fetch(String(c.base).replace(/\/+$/, '') + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + c.key },
+        body: JSON.stringify({ model: c.model, messages: [{ role: 'user', content: content }], temperature: 0 }),
+        signal: signal
+      });
+    } catch (e) {
+      if (e && (e.name === 'AbortError' || e.code === 'cancelled')) throw { code: 'cancelled' };
+      throw { code: 'network' };
+    }
+    if (!res.ok) throw { code: 'http_' + res.status };
+    var j = await res.json();
+    var txt = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    var obj = pickJSON(txt);
+    if (!obj) throw { code: 'invalid_json' };
+    return { obj: obj, used: list.length };
+  };
+
+  function refreshHints() {
+    var c = cfg();
+    var ready = !!(c.base && c.key && c.model);
+    document.querySelectorAll('.aiHint').forEach(function (el) {
+      el.textContent = ready
+        ? '支持 Excel、CSV、Word、文字版 PDF、照片和扫描件。照片与扫描件走外部识别接口，每份最多识别 ' + (c.maxImg || 5) + ' 张。'
+        : '照片和扫描件需要先在右下角「识别设置」里配置接口（地址、Key、模型名）。Excel、CSV、Word、文字版 PDF 不受影响，可直接上传。';
+    });
+    var btn = document.getElementById('aiActBtn');
+    if (btn) btn.disabled = !ready;
+    var hint = document.getElementById('aiActHint');
+    if (hint) hint.textContent = ready
+      ? '深度评判走外部识别接口；规则评判照常可用。'
+      : '深度评判需要先配置识别接口；规则评判照常可用。';
+  }
+  setTimeout(refreshHints, 60);
+  setTimeout(refreshHints, 600);
+
+  // ---------- 设置面板 ----------
+  var css = document.createElement('style');
+  css.textContent = [
+    '#ucvBtn{position:fixed;right:16px;bottom:16px;z-index:99998;background:#111;color:#fff;border:0;border-radius:999px;',
+    'padding:10px 16px;font:600 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;',
+    'box-shadow:0 6px 24px rgba(0,0,0,.28);cursor:pointer}',
+    '#ucvBtn.on{background:#f26f21}',
+    '#ucvMask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:none}',
+    '#ucvMask.show{display:block}',
+    '#ucvBox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(460px,92vw);max-height:88vh;overflow:auto;',
+    'background:#fff;border-radius:16px;z-index:100000;padding:22px;box-sizing:border-box;',
+    'font:14px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#111;display:none}',
+    '#ucvBox.show{display:block}',
+    '#ucvBox h3{margin:0 0 4px;font-size:17px}',
+    '#ucvBox .sub{color:#777;font-size:12.5px;margin-bottom:16px}',
+    '#ucvBox label{display:block;font-size:12.5px;color:#555;margin:12px 0 5px}',
+    '#ucvBox input,#ucvBox select{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #ddd;border-radius:9px;',
+    'font:13px/1.4 inherit;color:#111;background:#fafafa}',
+    '#ucvBox input:focus,#ucvBox select:focus{outline:2px solid #f26f21;outline-offset:-1px;background:#fff}',
+    '#ucvRow{display:flex;gap:9px;margin-top:20px}',
+    '#ucvRow button{flex:1;padding:11px;border-radius:10px;border:1px solid #ddd;background:#fff;font:600 13.5px/1 inherit;cursor:pointer}',
+    '#ucvRow button.primary{background:#f26f21;border-color:#f26f21;color:#fff}',
+    '#ucvRow button:disabled{opacity:.5;cursor:default}',
+    '#ucvMsg{margin-top:12px;font-size:12.5px;line-height:1.6;min-height:18px}',
+    '#ucvMsg.ok{color:#128a4a}#ucvMsg.err{color:#c2261a}',
+    '#ucvBox .tip{background:#f6f6f4;border-radius:10px;padding:11px 13px;font-size:12px;color:#666;margin-top:16px;line-height:1.7}',
+    '#ucvBox .tip b{color:#111}'
+  ].join('');
+  document.head.appendChild(css);
+
+  var btn = document.createElement('button');
+  btn.id = 'ucvBtn'; btn.type = 'button'; btn.textContent = '⚙ 识别设置';
+  var mask = document.createElement('div'); mask.id = 'ucvMask';
+  var box = document.createElement('div'); box.id = 'ucvBox';
+
+  box.innerHTML =
+    '<h3>识别设置</h3>' +
+    '<div class="sub">配置后，成绩单照片和扫描版 PDF 就能自动识别。Key 只存在这台电脑的浏览器里，不会上传到任何服务器。</div>' +
+    '<label>接口服务</label><select id="ucvPreset"></select>' +
+    '<label>接口地址（Base URL）</label><input id="ucvBase" placeholder="https://…/v1" autocomplete="off">' +
+    '<label>API Key</label><input id="ucvKey" type="password" placeholder="sk-…" autocomplete="off">' +
+    '<label>模型名</label><input id="ucvModel" placeholder="如 qwen-vl-max" autocomplete="off">' +
+    '<label>每次最多识别几张图</label><input id="ucvMax" type="number" min="1" max="10" step="1">' +
+    '<div id="ucvMsg"></div>' +
+    '<div id="ucvRow"><button type="button" id="ucvTest">测试连接</button><button type="button" id="ucvSave" class="primary">保存</button></div>' +
+    '<div class="tip"><b>怎么拿 Key：</b>通义千问在阿里云百炼控制台，豆包在火山方舟控制台，智谱在 bigmodel.cn，都能直接生成。<br>' +
+    '<b>模型要选带视觉的：</b>名称里通常有 vl / vision / 4v / 4o。<br>' +
+    '<b>连不上怎么办：</b>如果提示跨域限制，把「接口地址」换成你自己的中转地址即可。</div>';
+
+  function q(id) { return box.querySelector('#' + id); }
+  function msg(t, cls) { var e = q('ucvMsg'); e.textContent = t || ''; e.className = cls || ''; }
+
+  var sel = q('ucvPreset');
+  PRESETS.forEach(function (p) {
+    var o = document.createElement('option'); o.value = p.k; o.textContent = p.n; sel.appendChild(o);
+  });
+  sel.onchange = function () {
+    var p = PRESETS.filter(function (x) { return x.k === sel.value; })[0];
+    if (!p) return;
+    if (p.base) q('ucvBase').value = p.base;
+    if (p.model) q('ucvModel').value = p.model;
+    msg('');
+  };
+
+  function fill() {
+    var c = cfg();
+    q('ucvBase').value = c.base || '';
+    q('ucvKey').value = c.key || '';
+    q('ucvModel').value = c.model || '';
+    q('ucvMax').value = c.maxImg || 5;
+    var hit = PRESETS.filter(function (p) { return p.base && p.base === c.base; })[0];
+    sel.value = hit ? hit.k : 'custom';
+  }
+  function open() { fill(); msg(''); mask.classList.add('show'); box.classList.add('show'); }
+  function close() { mask.classList.remove('show'); box.classList.remove('show'); }
+
+  btn.onclick = open;
+  mask.onclick = close;
+
+  function readForm() {
+    return {
+      base: q('ucvBase').value.trim(),
+      key: q('ucvKey').value.trim(),
+      model: q('ucvModel').value.trim(),
+      maxImg: Math.max(1, Math.min(10, parseInt(q('ucvMax').value, 10) || 5))
+    };
+  }
+
+  q('ucvSave').onclick = function () {
+    var c = readForm();
+    if (!c.base || !c.key || !c.model) { msg('三项都要填：接口地址、Key、模型名。', 'err'); return; }
+    saveCfg(c);
+    btn.classList.add('on');
+    btn.textContent = '⚙ 识别设置 · 已启用';
+    refreshHints();
+    msg('已保存。现在可以上传照片和扫描件了。', 'ok');
+    setTimeout(close, 900);
+  };
+
+  q('ucvTest').onclick = async function () {
+    var c = readForm();
+    if (!c.base || !c.key || !c.model) { msg('三项都要填才能测试。', 'err'); return; }
+    var b = q('ucvTest'); b.disabled = true; msg('正在测试…');
+    var px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    try {
+      var res = await fetch(String(c.base).replace(/\/+$/, '') + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + c.key },
+        body: JSON.stringify({
+          model: c.model,
+          messages: [{ role: 'user', content: [
+            { type: 'text', text: '只回复 {"ok":true}' },
+            { type: 'image_url', image_url: { url: px } }
+          ] }],
+          temperature: 0
+        })
+      });
+      if (!res.ok) {
+        var t = '';
+        try { var j = await res.json(); t = (j && (j.error && (j.error.message || j.error.code))) || ''; } catch (e) {}
+        msg('失败：HTTP ' + res.status + (t ? ' · ' + t : '') +
+          (res.status === 401 || res.status === 403 ? '（Key 或权限问题）' :
+           res.status === 404 ? '（地址或模型名不对）' : ''), 'err');
+      } else {
+        msg('连通成功，这个接口可以用于识别。', 'ok');
+      }
+    } catch (e) {
+      msg('连不上。可能是网络问题，或接口不允许网页直接调用（跨域限制）——这种情况需要换中转地址。', 'err');
+    }
+    b.disabled = false;
+  };
+
+  function mount() {
+    document.body.appendChild(btn);
+    document.body.appendChild(mask);
+    document.body.appendChild(box);
+    var c = cfg();
+    if (c.base && c.key && c.model) { btn.classList.add('on'); btn.textContent = '⚙ 识别设置 · 已启用'; }
+  }
+  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+
 </body></html>
