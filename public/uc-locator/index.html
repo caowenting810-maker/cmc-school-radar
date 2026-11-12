@@ -1687,20 +1687,148 @@ function normalizeActs(obj) {
   if (obj && Array.isArray(obj.notes)) out.notes = obj.notes.filter(n => typeof n === 'string').slice(0, 5);
   return out;
 }
+/* ---------- 活动清单：按「列画像」解析，不依赖表头文字，适配任意模板 ---------- */
+const ACT_LVL_KW = [['intl', /international|global|国际/i], ['national', /national|全国|国家/i], ['regional', /regional|地区/i], ['state', /state|provincial|省级|州级/i], ['city', /city|municipal|市级|社区|community/i], ['school', /school|校级|校内/i]];
+const ACT_CAT_LABEL = /^(奖项|荣誉|奖项荣誉|竞赛|获奖|比赛|awards?|honors?|honours?|competitions?|教育准备|学术预备|预备项目|学术项目|educational prep(aration)?( programs?)?|academic programs?|prep programs?|课外活动|活动|extracurricular(s| activities)?|其他课程|其它课程|课程|other coursework|coursework|courses?|志愿服务|社区服务|志愿|volunteer(ing)?( service)?|community service|工作经历|有偿工作|实习|工作|work experience|employment|jobs?|internships?)$/i;
+function mapCatLabel(t) {
+  const s = String(t || '').trim(); if (!s) return '';
+  if (/奖|award|honou?r|prize|medal|竞赛|比赛|contest|olympiad/i.test(s)) return 'award';
+  if (/志愿|volunt|community service|社区服务/i.test(s)) return 'vol';
+  if (/实习|工作|work|job|employ|\bintern(s|ship|ships)?\b/i.test(s)) return 'work';
+  if (/教育准备|学术预备|预备项目|夏校|summer|prep program|academic program/i.test(s)) return 'edu';
+  if (/其他课程|其它课程|课程|course/i.test(s)) return 'course';
+  if (/课外|extracurricular/i.test(s)) return 'ec';
+  return '';
+}
+function expandGrades(s) {
+  const t = String(s ?? '').trim();
+  if (!t || t.length > 60) return [];
+  if (/(?:19|20)\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}\/\d{4}/.test(t)) return [];
+  const out = new Set();
+  const rng = t.match(/(\d{1,2})\s*[-–—~至到]\s*(\d{1,2})/);
+  if (rng) { let a = +rng[1], b = +rng[2]; if (a > b) { const x = a; a = b; b = x; } for (let i = Math.max(a, 9); i <= Math.min(b, 12); i++) out.add(String(i)); }
+  (t.match(/(?<!\d)(9|10|11|12)(?!\d)/g) || []).forEach(g => out.add(g));
+  if (/freshman|9th/i.test(t)) out.add('9');
+  if (/sophomore|10th/i.test(t)) out.add('10');
+  if (/\bjunior\b|11th/i.test(t)) out.add('11');
+  if (/\bsenior\b|12th/i.test(t)) out.add('12');
+  if (/初三/.test(t)) out.add('9'); if (/高一/.test(t)) out.add('10'); if (/高二/.test(t)) out.add('11'); if (/高三/.test(t)) out.add('12');
+  return [...out].sort((a, b) => +a - +b);
+}
+function parseHrsWks(s) {
+  const t = String(s ?? '').trim(); let hrs = '', wks = '';
+  if (!t) return { hrs, wks };
+  const h = t.match(/(\d+(?:\.\d+)?)\s*(?:hrs?|hours?|小时)/i);
+  const w = t.match(/(\d+(?:\.\d+)?)\s*(?:wks?|weeks?|周)/i);
+  if (h) hrs = +h[1];
+  if (w) wks = +w[1];
+  if (hrs === '' && wks === '') { const m = t.match(/(\d+(?:\.\d+)?)\D{1,6}(\d+(?:\.\d+)?)/); if (m) { hrs = +m[1]; wks = +m[2]; } }
+  if (hrs !== '' && wks !== '' && hrs > 80) { const x = hrs; hrs = wks; wks = x; }
+  return { hrs, wks };
+}
+function tblClean(rows) { return (rows || []).map(r => (r || []).map(c => String(c ?? '').replace(/\s+/g, ' ').trim())).filter(r => r.some(Boolean)); }
+function colVals(clean, from, j) { const v = []; for (let i = from; i < clean.length; i++) { const x = (clean[i][j] || '').trim(); if (x) v.push(x); } return v; }
+function profileCol(v) {
+  const n = v.length; if (!n) return null;
+  const bare = v.map(x => x.replace(/^[#＃]\s*/, '').replace(/^(\d{1,3})[.。、)）]$/, '$1'));
+  const nums = bare.filter(x => /^\d{1,3}(?:\.\d+)?$/.test(x));
+  const ints = bare.filter(x => /^\d{1,3}$/.test(x)).map(Number);
+  const seq = n >= 2 && ints.length === n && ints.every((x, i) => x === i + 1);
+  const alpha = v.filter(x => /[A-Za-z\u4e00-\u9fa5]/.test(x)).length / n;
+  const gr = v.filter(x => x.length <= 24 && (/^\d{1,2}$/.test(x) ? (+x >= 9 && +x <= 12) : expandGrades(x).length > 0)).length;
+  const hw = v.filter(x => /\d\s*(?:hrs?|hours?|wks?|weeks?|小时|周)/i.test(x)).length;
+  const uniq = new Set(v.map(x => x.toLowerCase())).size;
+  return { n, alpha, seq, numRatio: nums.length / n, longRatio: v.filter(x => x.length >= 60).length / n, gradeRatio: gr / n, hwRatio: hw / n, uniqRatio: uniq / n, avgLen: v.reduce((s, x) => s + x.length, 0) / n };
+}
+function findHeaderRow(clean) {
+  const lim = Math.min(clean.length, 12);
+  for (let i = 0; i < lim; i++) {
+    const r = clean[i];
+    const txt = r.filter(c => c && c.length <= 70 && !/^\d+(?:\.\d+)?$/.test(c));
+    if (txt.length >= 2 && !r.some(c => /^\d+(?:\.\d+)?$/.test(c))) return i;
+  }
+  return -1;
+}
+function actsTableCat(text) {
+  if (/award|honou?r|奖项|荣誉/i.test(text)) return 'award';
+  if (/volunteer|community service|志愿|社区服务/i.test(text)) return 'vol';
+  if (/coursework|course name|其他课程|其它课程|课程名/i.test(text)) return 'course';
+  if (/prep program|educational prep|academic program|预备|夏校|summer program/i.test(text)) return 'edu';
+  if (/\bwork\b|job|employer|internship|实习|工作经历/i.test(text)) return 'work';
+  return 'ec';
+}
 function parseActsTable(rows) {
-  const clean = rows.map(r => r.map(c => String(c ?? '').trim())).filter(r => r.some(Boolean));
-  const hdrIdx = clean.findIndex(r => r.some(c => /活动|名称|activity|name|award|奖项/i.test(c)));
+  const clean = tblClean(rows);
+  if (!clean.length) return { entries: [] };
+  const hint = [rows && rows.title, rows && rows.sheet, rows && rows.name].filter(Boolean).join(' ');
+  const hdrIdx = findHeaderRow(clean);
+  const from = hdrIdx >= 0 ? hdrIdx + 1 : 0;
+  let width = 0; clean.forEach(r => { if (r.length > width) width = r.length; });
+  const hdr = hdrIdx >= 0 ? clean[hdrIdx] : [];
+  const prof = []; for (let j = 0; j < width; j++) prof.push(profileCol(colVals(clean, from, j)));
+  const R = { seq: [], grade: [], time: [], desc: [], cat: [], name: [] };
+  prof.forEach((p, j) => {
+    if (!p) return;
+    const hc = String(hdr[j] || '');
+    const vals = colVals(clean, from, j);
+    const tHdr = /hrs?|hours?|wks?|weeks?|小时|周|per\s*week/i.test(hc);
+    const gHdr = /grade|年级|学年/i.test(hc) && !/wk|week|yr\b|year/i.test(hc);
+    const catHdr = vals.length && p.avgLen <= 20 && vals.every(x => ACT_CAT_LABEL.test(x));
+    const dHdr = /描述|说明|简介|介绍|职责|describe|description|detail|responsibilit|what did you do/i.test(hc);
+    if (p.seq) { R.seq.push(j); return; }
+    if (catHdr) { R.cat.push(j); return; }
+    if (dHdr) { R.desc.push(j); return; }
+    if (tHdr || p.hwRatio >= 0.5) { R.time.push(j); return; }
+    if (gHdr || (p.gradeRatio >= 0.6 && p.alpha < 0.5 && p.avgLen <= 24)) { R.grade.push(j); return; }
+    if (p.longRatio >= 0.5 || p.avgLen >= 80) { R.desc.push(j); return; }
+    if (p.alpha >= 0.8 && p.avgLen >= 3 && p.uniqRatio > 0.5) { R.name.push(j); return; }
+    R.cat.push(j);
+  });
+  const tableCat = actsTableCat(hint + ' ' + hdr.join(' '));
+  const nameJ = R.name.length ? R.name[0] : -1;
+  const gradeJ = R.grade.length ? R.grade[0] : -1;
+  // 时长列补漏：数值型、短、且不是年级
+  if (!R.time.length) {
+    const cand = prof.map((p, j) => ({ j, p })).filter(x => x.p && x.j !== nameJ && x.j !== gradeJ && !R.seq.includes(x.j) && x.p.numRatio >= 0.8 && x.p.avgLen <= 8);
+    if (cand.length) { R.time.push(cand[0].j); if (cand[1]) R.time.push(cand[1].j); }
+  }
+  // 描述列补漏：最宽的一列
+  if (!R.desc.length) {
+    const cand = prof.map((p, j) => ({ j, p })).filter(x => x.p && x.j !== nameJ && x.j !== gradeJ && !R.time.includes(x.j) && !R.seq.includes(x.j) && x.p.avgLen >= 15);
+    if (cand.length) { cand.sort((a, b) => b.p.avgLen - a.p.avgLen); R.desc.push(cand[0].j); }
+  }
+  const descJ = R.desc.length ? R.desc.slice().sort((a, b) => (prof[b] ? prof[b].avgLen : 0) - (prof[a] ? prof[a].avgLen : 0))[0] : -1;
+  const extraJ = R.desc.filter(j => j !== descJ);
+  const timeJ = R.time.slice();
+  const lvlCand = [...R.cat, ...R.name].filter(j => j !== nameJ && (() => { const v = colVals(clean, from, j); return v.length && v.length <= 8 && v.every(x => x.length <= 24) && v.every(x => ACT_LVL_KW.some(([, re]) => re.test(x))); })());
+  const lvlJ = lvlCand.length ? lvlCand[0] : -1;
+  const catJraw = R.cat.find(j => j !== lvlJ && colVals(clean, from, j).some(v => mapCatLabel(v)));
+  const catJ = catJraw === undefined ? -1 : catJraw;
   const entries = [];
-  if (hdrIdx >= 0) {
-    const h = clean[hdrIdx]; const find = re => h.findIndex(c => re.test(c));
-    const ci = { name: find(/活动|名称|activity|name|award|奖项/i), cat: find(/类别|类型|category|type/i), gr: find(/年级|grade/i), hrs: find(/小时|hour/i), wks: find(/周数|weeks|week/i), desc: find(/描述|说明|description|detail/i), lvl: find(/级别|level/i) };
-    for (let i = hdrIdx + 1; i < clean.length; i++) {
-      const r = clean[i]; const name = ci.name >= 0 ? r[ci.name] : r[0]; if (!name) continue;
-      const catText = ci.cat >= 0 ? r[ci.cat] : '';
-      const cat = /奖|award|honor/i.test(catText + name) ? 'award' : /志愿|volunt|service/i.test(catText) ? 'vol' : /工作|实习|work|job|intern/i.test(catText) ? 'work' : /夏校|summer|program|项目/i.test(catText) ? 'edu' : /课程|course/i.test(catText) ? 'course' : 'ec';
-      entries.push({ cat, name, grades: ci.gr >= 0 ? r[ci.gr].match(/9|10|11|12/g) || [] : [], hrs: ci.hrs >= 0 ? parseFloat(r[ci.hrs]) : '', wks: ci.wks >= 0 ? parseFloat(r[ci.wks]) : '', level: '', desc: ci.desc >= 0 ? r[ci.desc] : '', check: true });
-    }
-  } else clean.forEach(r => { const t = r.join(' ').trim(); if (t.length > 3) entries.push({ cat: /奖|award|prize|medal/i.test(t) ? 'award' : 'ec', name: t.slice(0, 60), desc: t.length > 60 ? t : '', grades: [], check: true }); });
+  if (nameJ < 0) {
+    clean.forEach(r => {
+      const t = r.filter(Boolean).join(' ').trim();
+      if (t.length < 4) return;
+      if (/^(e\.?g\.?|example|示例|例子)/i.test(t)) return;
+      entries.push({ cat: mapCatLabel(t) || tableCat, name: t.slice(0, 90), desc: t.length > 90 ? t.slice(90) : '', extra: '', grades: [], hrs: '', wks: '', level: '', check: true });
+    });
+    return { entries };
+  }
+  for (let i = from; i < clean.length; i++) {
+    const r = clean[i];
+    const name = String(r[nameJ] || '').trim();
+    if (!name) continue;
+    if (/^(e\.?g\.?|example|示例|例子|请填写|填写)/i.test(name)) continue;
+    if (name.replace(/[\d\s.、,，]/g, '').length < 1) continue;
+    const cat = mapCatLabel(catJ >= 0 ? r[catJ] : '') || (tableCat !== 'ec' ? tableCat : (mapCatLabel(name) || 'ec'));
+    const tv = timeJ.map(j => String(r[j] || '').trim()).filter(Boolean);
+    let hrs = '', wks = '';
+    if (tv.length === 1) { const p = parseHrsWks(tv[0]); hrs = p.hrs; wks = p.wks; if (hrs === '' && wks === '') { const m = tv[0].match(/\d+(?:\.\d+)?/); if (m) hrs = +m[0]; } }
+    else if (tv.length >= 2) { const p = parseHrsWks(tv[0]); if (p.hrs !== '' || p.wks !== '') { hrs = p.hrs; wks = p.wks; } else { const a = tv[0].match(/\d+(?:\.\d+)?/), b = tv[1].match(/\d+(?:\.\d+)?/); if (a) hrs = +a[0]; if (b) wks = +b[0]; } }
+    let level = '';
+    if (lvlJ >= 0) { const lv = String(r[lvlJ] || ''); const hit = ACT_LVL_KW.find(([, re]) => re.test(lv)); if (hit) level = hit[0]; }
+    entries.push({ cat, name: name.slice(0, 120), grades: gradeJ >= 0 ? expandGrades(r[gradeJ]) : [], hrs, wks, level, desc: descJ >= 0 ? String(r[descJ] || '') : '', extra: extraJ.length ? extraJ.map(j => String(r[j] || '')).filter(Boolean).join('  ') : '', check: true });
+  }
   return { entries };
 }
 /* ---------- 换算表、课程供给、AP 证据、专业归类 ---------- */
@@ -4083,8 +4211,30 @@ async function pdfToImages(pdf, max) {
   }
   return out.filter(Boolean);
 }
-async function readSheet(file) { await loadScript(CDN.xlsx); const wb = window.XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array' }); return wb.SheetNames.map(n => window.XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' })); }
-async function readDocx(file) { await loadScript(CDN.mammoth); const r = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() }); return r.value || ''; }
+async function readSheet(file) { await loadScript(CDN.xlsx); const wb = window.XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array' }); return wb.SheetNames.map(n => { const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }); rows.sheet = n; rows.name = file.name; return rows; }); }
+async function readDocx(file) {
+  await loadScript(CDN.mammoth);
+  const buf = await file.arrayBuffer();
+  if (!window.mammoth.convertToHtml) { const r0 = await window.mammoth.extractRawText({ arrayBuffer: buf }); return { text: r0.value || '', tables: [] }; }
+  const r = await window.mammoth.convertToHtml({ arrayBuffer: buf });
+  const div = document.createElement('div'); div.innerHTML = r.value || '';
+  const tables = []; const recent = [];
+  const HEAD = /award|honou?r|prep program|coursework|volunteer|community service|work experience|extracurricular|奖项|荣誉|预备|课程|志愿|工作经历|课外/i;
+  [...div.children].forEach(el => {
+    if (el.tagName === 'TABLE') {
+      const rows = [...el.rows].map(row => [...row.cells].map(c => c.innerText.replace(/\s+/g, ' ').trim()));
+      const NOTE = /^[-\u2022\u00b7*\uff08(\u3010]|^-\s/;
+      let title = '';
+      for (let k = recent.length - 1; k >= Math.max(0, recent.length - 10); k--) { const t = recent[k]; if (t.length <= 55 && !NOTE.test(t) && HEAD.test(t)) { title = t; break; } }
+      if (!title) { for (let k = recent.length - 1; k >= Math.max(0, recent.length - 10); k--) { const t = recent[k]; if (t.length <= 40 && !NOTE.test(t)) { title = t; break; } } }
+      rows.title = title; rows.name = file.name; tables.push(rows);
+    } else {
+      const t = el.innerText.replace(/\s+/g, ' ').trim(); if (t) recent.push(t);
+    }
+  });
+  const text = [...div.querySelectorAll('p,li')].filter(x => !x.closest('table')).map(x => x.innerText.trim()).filter(Boolean).join('\n');
+  return { text, tables };
+}
 function csvToRows(text) { const sep = text.includes('\t') ? '\t' : ','; return text.split(/\r?\n/).map(l => { const out = []; let cur = '', q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === sep && !q) { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out; }); }
 
 let busyCtl = null;
@@ -4112,7 +4262,12 @@ async function collectFiles(fileList, statusId) {
     }
     else if (['xlsx','xls','xlsm','ods'].includes(ext)) { const ts = await readSheet(f); ts.forEach(t => tables.push(t)); texts.push(`【${f.name}】\n` + ts.map(t => t.map(r => r.join(' | ')).join('\n')).join('\n\n')); }
     else if (['csv','tsv','txt'].includes(ext)) { const t = await f.text(); if (ext !== 'txt') tables.push(csvToRows(t)); texts.push(`【${f.name}】\n${t}`); }
-    else if (ext === 'docx') texts.push(`【${f.name}】\n` + await readDocx(f));
+    else if (ext === 'docx') {
+      setBusyMsg(statusId, `正在读取 ${f.name}…`);
+      const r = await readDocx(f);
+      if (r && typeof r === 'object') { texts.push(`【${f.name}】\n` + (r.text || '')); (r.tables || []).forEach(t => tables.push(t)); }
+      else texts.push(`【${f.name}】\n` + r);
+    }
     else skipped.push(`${f.name}：不支持这种格式`);
   }
   if (images.length && !claudeImg) {
@@ -4276,7 +4431,7 @@ async function handleActs(fileList) {
   if (ctl.signal.aborted) return;
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
-  if (F.images.length || F.textBlob.trim()) {
+  if (!F.tables.length && (F.images.length || F.textBlob.trim())) {
     setBusyMsg(SID, '正在请 Claude 把清单整理成 UC 六个类别…');
     try {
       const prompt = ACT_PARSE_PROMPT + (F.textBlob.trim() ? `\n\nText extracted from the uploaded file(s):\n"""\n${F.textBlob}\n"""` : '\n\nThe list is in the attached image(s).');
@@ -4291,7 +4446,7 @@ async function handleActs(fileList) {
     let entries = []; F.tables.forEach(t => { entries = entries.concat(parseActsTable(t).entries); });
     if (!entries.length) entries = parseActsTable(F.textBlob.split(/\r?\n/).map(l => [l])).entries;
     parsed = normalizeActs({ entries }); via = F.ocr ? '本机' : '本地';
-    parsed.notes.unshift('本地识别只能按行读取，类别、年级与时长请逐条核对。');
+    parsed.notes.unshift(F.tables.length ? '已按表格结构逐行读取。请核对类别、年级与时长，描述保留原文。' : '本地识别只能按行读取，类别、年级与时长请逐条核对。');
   }
   if (!parsed.acts.length) { upStatus(SID, `<div class="up-result err">没有读出活动或奖项。请确认文件内容，或手动添加。${F.skipped.length ? '<br>' + F.skipped.map(esc).join('<br>') : ''}</div>`); return; }
   const prev = JSON.parse(JSON.stringify(S.acts));
