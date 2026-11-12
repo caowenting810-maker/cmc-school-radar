@@ -3804,7 +3804,9 @@ let sampleLimits = null, SAMPLE_FN = null;
 samplePromise.then(async s => {
   SAMPLE_FN = s;
   if (!s) {
-    document.querySelectorAll('.aiHint').forEach(el => { el.textContent = '当前环境不能调用 Claude：照片、截图和扫描版 PDF 改在本机识别（文件不上传），识别后请逐行核对。截图可先点一下页面空白处，再按 Ctrl+V（Mac 按 ⌘V）粘贴。'; });
+    const base = '当前环境不能调用 Claude：照片、截图和扫描版 PDF 改在本机识别（文件不上传），识别后请逐行核对。截图可先点一下页面空白处，再按 Ctrl+V（Mac 按 ⌘V）粘贴。';
+    document.querySelectorAll('.aiHint').forEach(el => { el.textContent = base; });
+    if (typeof ocrDirCheck === 'function') ocrDirCheck().then(ok => { if (!ok) document.querySelectorAll('.aiHint').forEach(el => { el.textContent = base + '没找到同目录的 ocr 文件夹：识别时会从网络加载组件（需要联网）；离线使用请把压缩包整个解压，再打开里面的 index.html。'; }); });
     ['aiActBtn'].forEach(id => { $(id).disabled = true; });
     $('aiActHint').textContent = '深度评判需要在 Claude 中打开本页；规则评判照常可用。';
     return;
@@ -3814,66 +3816,82 @@ samplePromise.then(async s => {
 const ERR_MSG = { not_granted: '你没有允许本页调用 Claude。', rate_limited: 'Claude 调用过于频繁，请稍后再试。', image_rejected: '图片无法识别，请换一张更清晰的 JPG / PNG。', refused: 'Claude 没有处理这份内容。', invalid_json: '返回结果格式不完整，请再试一次。', session_expired: '登录已过期，请重新登录 Claude。', sampling_disabled: '当前账号不能调用 Claude。' };
 
 /* ---------------- 本机识别（OCR）：不能调用 Claude 时，照片、截图与扫描版 PDF 在本机识别 ----------------
-   离线单文件版把识别组件与中英文字库直接嵌在页面里（不联网也能用）；在线版按需从同目录加载，再退到公共 CDN。 */
-const OCR_SRC = {
-  lib: ['https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js', 'ocr/tesseract.min.js'],
-  worker: ['https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js', 'ocr/worker.min.js'],
-  core: ['https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0/tesseract-core-lstm.wasm.js', 'ocr/tesseract-core-lstm.wasm.js'],
-  eng: ['https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz', 'ocr/eng.traineddata.b64.txt'],
-  chi_sim: ['https://cdn.jsdelivr.net/npm/@tesseract.js-data/chi_sim@1.0.0/4.0.0_best_int/chi_sim.traineddata.gz', 'ocr/chi_sim.traineddata.b64.txt']
+   识别组件放在页面同级的 ocr/ 目录，共五个脚本文件（识别库、worker、内核、英文字库、中文字库），用 <script> 加载：
+   直接双击打开（file://）、放在内网或网站上、在线版都能读到。目录缺失时改从网络取：国内镜像 → 公共 CDN。 */
+const OCR_DIR = 'ocr/';
+const OCR_FILES = { lib: 'tesseract.min.js', worker: 'ocr-worker.js', core: 'ocr-core.js', eng: 'ocr-eng.js', chi: 'ocr-chi.js' };
+const OCR_NPM = (pkg, ver, path) => [`https://registry.npmmirror.com/${pkg}/${ver}/files/${path}`, `https://cdn.jsdelivr.net/npm/${pkg}@${ver}/${path}`, `https://unpkg.com/${pkg}@${ver}/${path}`];
+const OCR_NET = {
+  lib: OCR_NPM('tesseract.js', '6.0.1', 'dist/tesseract.min.js'),
+  worker: OCR_NPM('tesseract.js', '6.0.1', 'dist/worker.min.js'),
+  core: OCR_NPM('tesseract.js-core', '6.0.0', 'tesseract-core-lstm.wasm.js'),
+  eng: OCR_NPM('@tesseract.js-data/eng', '1.0.0', '4.0.0_best_int/eng.traineddata.gz'),
+  chi: OCR_NPM('@tesseract.js-data/chi_sim', '1.0.0', '4.0.0_best_int/chi_sim.traineddata.gz')
 };
 const OCR_MAX_PAGES = 30;
-function ocrEmbedded(id) { const el = document.getElementById(id); return el ? el.textContent : null; }
+function ocrScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); rej(new Error('load')); }; document.head.appendChild(s); }); }
 async function ocrFetchFirst(urls, asText) {
-  let last = null;
-  for (const u of urls) {
-    // 首字节 15 秒还没到就换下一个地址（主站慢时自动切到 CDN，不干等）
-    const ctl = typeof AbortController === 'function' ? new AbortController() : null;
-    const timer = setTimeout(() => { try { if (ctl) ctl.abort(); } catch (e) {} }, 15000);
-    try {
-      const r = await fetch(u, ctl ? { signal: ctl.signal } : undefined);
-      clearTimeout(timer);
-      if (!r.ok) throw new Error(r.status);
-      return asText ? await r.text() : new Uint8Array(await r.arrayBuffer());
-    } catch (e) { clearTimeout(timer); last = e; }
-  }
-  throw new Error('无法加载本机识别组件，请检查网络后重试' + (last ? `（${last.message}）` : ''));
+  for (const u of urls) { try { const r = await fetch(u); if (!r.ok) continue; return asText ? await r.text() : new Uint8Array(await r.arrayBuffer()); } catch (e) { /* 下一个 */ } }
+  return null;
 }
-let OCR_WORKER = null;
+// ocr/ 目录里的部分是否齐全（页面加载后先试读识别库，用于提示）
+let OCR_DIR_OK = null;
+async function ocrDirCheck() {
+  if (OCR_DIR_OK !== null) return OCR_DIR_OK;
+  try { if (!window.Tesseract) await ocrScript(OCR_DIR + OCR_FILES.lib); OCR_DIR_OK = !!window.Tesseract; } catch (e) { OCR_DIR_OK = false; }
+  return OCR_DIR_OK;
+}
+let OCR_WORKER = null, OCR_NOTE = [];
 async function ocrWorker(onProg) {
   if (OCR_WORKER) return OCR_WORKER;
   OCR_WORKER = (async () => {
-    const emb = !!document.getElementById('ocr-core');
+    OCR_NOTE = [];
+    const P = window.__OCR_PARTS = window.__OCR_PARTS || {}, viaNet = [];
     const jsURL = code => URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
-    onProg && onProg('正在加载本机识别组件（首次约 20–40 秒，之后会缓存）…');
-    const [lib, worker, core] = emb ? ['ocr-lib', 'ocr-worker', 'ocr-core'].map(ocrEmbedded)
-      : await Promise.all([ocrFetchFirst(OCR_SRC.lib, true), ocrFetchFirst(OCR_SRC.worker, true), ocrFetchFirst(OCR_SRC.core, true)]);
-    if (!window.Tesseract) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = jsURL(lib); s.onload = res; s.onerror = () => rej(new Error('本机识别组件加载失败')); document.head.appendChild(s); });
-    onProg && onProg('正在加载中英文字库…');
-    // 字库交给 worker 自己取：离线版直接从页面内嵌的数据给，在线版按地址依次尝试（同目录 → 公共 CDN）
-    const abs = u => new URL(u, location.href).href;
-    const langSrc = emb ? { eng: { b64: ocrEmbedded('ocr-eng').replace(/\s+/g, '') }, chi_sim: { b64: ocrEmbedded('ocr-chi').replace(/\s+/g, '') } }
-      : { eng: { urls: OCR_SRC.eng.map(abs) }, chi_sim: { urls: OCR_SRC.chi_sim.map(abs) } };
-    const shim = `self.__OCR_LANG = ${JSON.stringify(langSrc)};
+    const toB64 = u8 => { let x = ''; for (let i = 0; i < u8.length; i += 0x8000) x += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(x); };
+    onProg && onProg('正在加载本机识别组件…');
+    // 1) 识别库
+    if (!window.Tesseract) { try { await ocrScript(OCR_DIR + OCR_FILES.lib); } catch (e) { for (const u of OCR_NET.lib) { try { await ocrScript(u); viaNet.push('识别库'); break; } catch (e2) { /* 下一个 */ } } } }
+    // 2) worker、内核、字库：先读 ocr/ 目录里的脚本，缺哪个再从网络取
+    for (const k of ['worker', 'core', 'eng', 'chi']) {
+      if (P[k]) continue;
+      if (k !== 'eng' && k !== 'chi') onProg && onProg('正在加载本机识别组件…'); else onProg && onProg(k === 'eng' ? '正在加载英文字库…' : '正在加载中文字库…');
+      try { await ocrScript(OCR_DIR + OCR_FILES[k]); } catch (e) { /* 目录里没有 */ }
+      if (P[k]) continue;
+      if (k === 'core') { const t = await ocrFetchFirst(OCR_NET.core, true); if (t) { P.coreFull = t; viaNet.push('识别内核'); } }
+      else if (k === 'worker') { const t = await ocrFetchFirst(OCR_NET.worker, true); if (t) { P.worker = t; viaNet.push('worker'); } }
+      else { const b = await ocrFetchFirst(OCR_NET[k], false); if (b) { P[k] = toB64(b); viaNet.push(k === 'eng' ? '英文字库' : '中文字库'); } }
+    }
+    const fix = '请确认 ocr 文件夹和页面放在同一目录、五个文件齐全（把压缩包整个解压后再打开 index.html），或连上网络后再试。';
+    if (!window.Tesseract || !P.worker || !(P.core || P.coreFull)) throw new Error(`本机识别组件没有加载成功。${fix}`);
+    if (!P.eng) throw new Error(`英文字库没有加载成功。${fix}`);
+    const langs = ['eng'].concat(P.chi ? ['chi_sim'] : []);
+    if (!P.chi) OCR_NOTE.push(`中文字库没有加载成功，这次只识别英文。${fix}`);
+    else if (viaNet.length) OCR_NOTE.push(viaNet.length >= 4 ? '没找到同目录的 ocr 文件夹，识别组件已从网络加载；离线使用请把压缩包整个解压，再打开里面的 index.html。' : `ocr 文件夹里缺少${viaNet.join('、')}，已从网络加载。`);
+    // 识别内核：ocr/ 目录 = 加载器 + 压缩的 wasm + 解压小工具；网络 = 自带 wasm 的单个脚本
+    const coreCode = P.core ? `${P.unzip}\n;self.__OCR_WASM_B64 = ${JSON.stringify(P.wasm)};\n${P.core}\n;(function () {
+  const O = self.TesseractCore;
+  self.TesseractCore = function (o) {
+    const b = atob(self.__OCR_WASM_B64); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+    return O(Object.assign({}, o || {}, { wasmBinary: self.fflate.gunzipSync(u) }));
+  };
+})();` : P.coreFull;
+    // 字库以 base64 拼进 worker 脚本，由 worker 内的 fetch 直接交给识别引擎（file:// 打开时 worker 读不到页面的其他地址）
+    const shim = `self.__OCR_LANG = ${JSON.stringify({ eng: P.eng, chi_sim: P.chi || null })};
 (function () {
   const f0 = self.fetch.bind(self);
   const bytes = s => { const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; };
   self.fetch = async function (u, o) {
     const m = String(u).match(/([A-Za-z_]+)\.traineddata(\.gz)?$/); const src = m && self.__OCR_LANG[m[1]];
-    if (!src) return f0(u, o);
-    if (src.b64) return new Response(bytes(src.b64));
-    let last = null;
-    for (const x of src.urls) { try { const r = await f0(x); if (r.ok) return /\.txt$/.test(x) ? new Response(bytes((await r.text()).replace(/\s+/g, ''))) : r; last = new Error(String(r.status)); } catch (e) { last = e; } }
-    throw last || new Error('字库加载失败');
+    return src ? new Response(bytes(src)) : f0(u, o);
   };
 })();
 `;
-    const w = await window.Tesseract.createWorker('eng+chi_sim', 1, {
-      // 识别内核与字库读取都拼进 worker 脚本：本地打开的文件（file://）里，worker 读不到页面生成的其他 blob 地址
-      workerPath: jsURL(shim + '\n;\n' + core + '\n;\n' + worker), corePath: 'embedded-core.js', langPath: 'https://ocr.invalid/tessdata', workerBlobURL: false, cacheMethod: 'none', gzip: true,
+    const w = await Promise.race([new Promise((_, rej) => setTimeout(() => rej(new Error('本机识别组件启动超时：当前浏览器可能不支持。请用 Chrome、Edge 或 Safari 打开 index.html 再试。')), 90000)), window.Tesseract.createWorker(langs.join('+'), 1, {
+      workerPath: jsURL(shim + '\n;\n' + coreCode + '\n;\n' + P.worker), corePath: 'embedded-core.js', langPath: 'https://ocr.invalid/tessdata', workerBlobURL: false, cacheMethod: 'none', gzip: true,
       logger: m => { if (onProg && m && m.status === 'recognizing text' && OCR_WORKER_PAGE) onProg(`正在本机识别第 ${OCR_WORKER_PAGE[0]} / ${OCR_WORKER_PAGE[1]} 页… ${Math.round((m.progress || 0) * 100)}%`); },
       errorHandler: e => { console.warn('OCR', e); }
-    });
+    })]);
     // 整页按「一块规整文字」切行，表格同一行的课程名与成绩不会被拆到两栏；保留词间空格，便于还原表格列
     await w.setParameters({ tessedit_pageseg_mode: '6', preserve_interword_spaces: '1' });
     return w;
@@ -4102,6 +4120,7 @@ async function collectFiles(fileList, statusId) {
       ocr = OCR_LAST = await ocrImages(images, statusId);
       ocr.forEach((p, i) => texts.push(`【本机识别 · 第 ${i + 1} 页】\n${p.plain}`));
       if (ocr.some(p => p.conf && p.conf < 55)) skipped.push('有图片不够清晰，本机识别可能认错较多：建议重新拍正、拍清楚，或改传原始 PDF。');
+      (typeof OCR_NOTE !== 'undefined' ? OCR_NOTE : []).forEach(n => skipped.push(n));
       images.length = 0;
     } catch (e) { skipped.push(`本机识别没有完成：${e.message || e}`); }
   }
