@@ -3816,18 +3816,26 @@ const ERR_MSG = { not_granted: '你没有允许本页调用 Claude。', rate_lim
 /* ---------------- 本机识别（OCR）：不能调用 Claude 时，照片、截图与扫描版 PDF 在本机识别 ----------------
    离线单文件版把识别组件与中英文字库直接嵌在页面里（不联网也能用）；在线版按需从同目录加载，再退到公共 CDN。 */
 const OCR_SRC = {
-  lib: ['ocr/tesseract.min.js', 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js'],
-  worker: ['ocr/worker.min.js', 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js'],
-  core: ['ocr/tesseract-core-lstm.wasm.js', 'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0/tesseract-core-lstm.wasm.js'],
-  eng: ['ocr/eng.traineddata.b64.txt', 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz'],
-  chi_sim: ['ocr/chi_sim.traineddata.b64.txt', 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/chi_sim@1.0.0/4.0.0_best_int/chi_sim.traineddata.gz']
+  lib: ['https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js', 'ocr/tesseract.min.js'],
+  worker: ['https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js', 'ocr/worker.min.js'],
+  core: ['https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0/tesseract-core-lstm.wasm.js', 'ocr/tesseract-core-lstm.wasm.js'],
+  eng: ['https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz', 'ocr/eng.traineddata.b64.txt'],
+  chi_sim: ['https://cdn.jsdelivr.net/npm/@tesseract.js-data/chi_sim@1.0.0/4.0.0_best_int/chi_sim.traineddata.gz', 'ocr/chi_sim.traineddata.b64.txt']
 };
 const OCR_MAX_PAGES = 30;
 function ocrEmbedded(id) { const el = document.getElementById(id); return el ? el.textContent : null; }
 async function ocrFetchFirst(urls, asText) {
   let last = null;
   for (const u of urls) {
-    try { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return asText ? await r.text() : new Uint8Array(await r.arrayBuffer()); } catch (e) { last = e; }
+    // 首字节 15 秒还没到就换下一个地址（主站慢时自动切到 CDN，不干等）
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = setTimeout(() => { try { if (ctl) ctl.abort(); } catch (e) {} }, 15000);
+    try {
+      const r = await fetch(u, ctl ? { signal: ctl.signal } : undefined);
+      clearTimeout(timer);
+      if (!r.ok) throw new Error(r.status);
+      return asText ? await r.text() : new Uint8Array(await r.arrayBuffer());
+    } catch (e) { clearTimeout(timer); last = e; }
   }
   throw new Error('无法加载本机识别组件，请检查网络后重试' + (last ? `（${last.message}）` : ''));
 }
@@ -3837,7 +3845,7 @@ async function ocrWorker(onProg) {
   OCR_WORKER = (async () => {
     const emb = !!document.getElementById('ocr-core');
     const jsURL = code => URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
-    onProg && onProg('正在加载本机识别组件…');
+    onProg && onProg('正在加载本机识别组件（首次约 20–40 秒，之后会缓存）…');
     const [lib, worker, core] = emb ? ['ocr-lib', 'ocr-worker', 'ocr-core'].map(ocrEmbedded)
       : await Promise.all([ocrFetchFirst(OCR_SRC.lib, true), ocrFetchFirst(OCR_SRC.worker, true), ocrFetchFirst(OCR_SRC.core, true)]);
     if (!window.Tesseract) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = jsURL(lib); s.onload = res; s.onerror = () => rej(new Error('本机识别组件加载失败')); document.head.appendChild(s); });
