@@ -818,7 +818,8 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
               <select id="supply"><option value="auto">按成绩单自动判断</option><option value="ample">充足</option><option value="limited">有限（限门数或只在高年级开）</option><option value="none">基本没有</option></select>
               <p class="hint" id="supplyNote"></p></div>
             <div class="field"><label for="trend">成绩趋势</label>
-              <select id="trend"><option value="up">上升</option><option value="flat">平稳</option><option value="down">下滑</option></select></div>
+              <select id="trend"><option value="up">上升</option><option value="flat">平稳</option><option value="down">下滑</option></select>
+              <p class="hint" id="trendNote"></p></div>
             <div class="field"><label for="rank">年级排名</label>
               <select id="rank"><option value="none">学校不排名 / 不清楚</option><option value="t5">前 5%</option><option value="t10">前 10%</option><option value="t15">前 15%</option><option value="t25">前 25%</option><option value="below">25% 之后</option></select>
               <p class="hint" id="rankNote"></p></div>
@@ -985,8 +986,10 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
         <li>照片、截图与扫描版 PDF：能调用 Claude 时由 Claude 识别；不能调用时（例如在企业微信里打开离线文件）改在本机识别，使用开源 Tesseract（Apache-2.0）中英文字库，文件不上传，识别前先拉平阴影、纠正拍歪的角度，成绩格再单独复核一遍；只把拿不准的行标黄并写明原因，黄行下面附原件截图（截图只留在本次打开的页面里）。Excel、CSV 成绩单按原表读入，只标出 A–G 类别没认出的行。活动表能识别模板里的填写说明、类别标题和示例行，按表头、竖排表单或一行一条读取。扫描版 UC 申请打印件的成绩表常被折行，本机只导入活动、PIQ 与英语，成绩请另传文字版打印件或学校成绩单。</li>
         <li>最低 GPA（加州居民 3.0、其他 3.4）：美式成绩明显低于最低线时不出区间；IB、百分制、英式等国际成绩由 UC 自行对照换算，本页换算偏低时照常估算并提示，顶部与中部校区几乎没有机会。</li>
         <li>区间上沿超过同池全池录取率 2 倍时，需要有 feeder、本校位次、专业容器，或国际生英语与学术双达标作依据，否则收紧。伯克利最高只到冲刺；UCLA 只有国际生托福 110 以上、单项 25 以上且学术达到录取者中段时可到匹配，其余情况同样只到冲刺。</li>
-        <li>国际生另按近年真实录取结果校准：中国课程、英式课程的成绩单课程门数多，荣誉加分在学术指数里按 24 个学期折算（UC GPA 本身照 UC 规则计算，不变）；UCLA、圣地亚哥对托福 110 / 单项 25 这条线格外敏感；尔湾、圣塔芭芭拉、戴维斯对学术达标的国际生录取面更宽，活动或 PIQ 偏弱的拖累也更明显；不加权 GPA 低于 3.85（B 偏多）时，各校都明显下调，荣誉课加分补不回来。打印件里每门课自带的成绩制（美制、中制百分制、IB 1–7、英式 9–1 / A*–E）分别换算。非加州学生只有 AP、IB、大学课算「荣誉课供给」：只上学校自定荣誉课或 A-Level 的学生，按「基本没有」做情境化。伯克利看重 A-Level 等外部统考成绩，英语达标的 A-Level 学生在伯克利的区间上调（档位仍只到冲刺）。在美国读高中的国际生，不套用「不加权 GPA 3.85 以下下调」这条。</li>
-        <li>选了所在高中，伯克利、UCLA 按该校近两届录取枚数折算（枚数 ÷ 美本申请人数，与同池全池录取率比较；只有毕业生数的学校按约六成申请 UC 折算）。该校录取较多且学生在本校前 15% 时，区间上调；不在前 15% 不上调，排在后段的不享受学校的整体优势。</li>
+        <li>国际生另按近年真实录取结果校准：中国课程、英式课程的成绩单课程门数多，荣誉加分在学术指数里按 24 个学期折算（UC GPA 本身照 UC 规则计算，不变）；UCLA、圣地亚哥对托福 110 / 单项 25 这条线格外敏感；尔湾、圣塔芭芭拉、戴维斯对学术达标的国际生录取面更宽，活动或 PIQ 偏弱的拖累也更明显；不加权 GPA 低于 3.85（B 偏多）时，各校都明显下调，荣誉课加分补不回来。打印件里每门课自带的成绩制（美制、中制百分制、IB 1–7、英式 9–1 / A*–E）分别换算。非加州学生只有 AP、IB 算学校的「荣誉课供给」（暑期或校外大学课是学生自己选修的，照常进 GPA 加分，但不算学校开课量）：只上学校自定荣誉课或 A-Level 的学生，按「基本没有」做情境化。伯克利看重 A-Level 等外部统考成绩，英语达标的 A-Level 学生在伯克利的区间上调（档位仍只到冲刺）。在美国读高中的国际生，不套用「不加权 GPA 3.85 以下下调」这条。</li>
+        <li>选了所在高中，伯克利、UCLA 按该校近两届录取枚数折算（枚数 ÷ 美本申请人数，与同池全池录取率比较；只有毕业生数的学校按约六成申请 UC 折算）。该校录取较多且学生在本校前 15% 时，区间上调；不在前 15% 不上调，排在后段的不享受学校的整体优势。录取偏少的学校按折算比的平方根下调：学校整体偏少，不等于英语与学术双达标的学生没有机会。</li>
+        <li>短板叠加：国际生在尔湾、圣塔芭芭拉、戴维斯，英语只过 UC 最低线、活动偏弱、PIQ 偏弱、不加权 GPA 低于 3.85 这四项里同时有两项及以上时，真实录取明显低于各项单独下调的结果，区间再整体下调；补到只剩一项短板时即取消。圣克鲁兹、河滨、默塞德不受影响。</li>
+        <li>成绩单显示 11 年级最近一学期明显下滑（平均掉 0.3 以上，或多门比上学期低一档）时，页面会提示顾问确认；区间按「申请画像 · 成绩趋势」的选择计算，不自动改。</li>
         <li>伯克利与 UCLA 同时录取极少见，系统按两校录取高度互斥估算：同时录取单独给一个很低的上限，两校都申时「至少录一所」约等于两校相加。</li>
         <li>SAT / ACT 不进入计算。区间向保守一侧取整。</li>
       </ul></div>
@@ -1147,7 +1150,7 @@ const CAMPUSES = [
 const M = {
   rigor:{hardest:1.12, hard:1, normal:.75}, trend:{up:1.06, flat:1, down:.8},
   rank:{t5:1.15, t10:1.08, t15:1.05, t25:1, below:.82, none:1}, act:{strong:1.3, mid:1, weak:.7}, piq:{strong:1.3, mid:1, weak:.7},
-  feeder:{ top:{high:1.5, normal:1, low:.4}, mid:{high:1.25, normal:1, low:.65}, std:{high:1.1, normal:1, low:.9} },
+  feeder:{ top:{high:1.5, normal:1, low:.6}, mid:{high:1.25, normal:1, low:.65}, std:{high:1.1, normal:1, low:.9} },
   eng:{ top:{3:1, 2:.55, 1:.3}, mid:{3:1, 2:.85, 1:.55}, std:{3:1, 2:.95, 1:.75} },
   ctx:{none:.26, limited:.13, ample:0}, ctxRigor:{hardest:1, hard:.6, normal:0}
 };
@@ -1200,9 +1203,13 @@ const INTL_CAL = {
   strongCap: { ucla: .55 },
   uwFloor: 3.85, uwScale: .2, std1: null,
   alevelUcb: 3.5,
-  // 戴维斯、尔湾、圣塔芭芭拉：53 名国际生回测里实际首轮录取率持续高于预测，按一半左右的差距上调，仍留保守余量
+  // 戴维斯、尔湾、圣塔芭芭拉：国际生回测（2026-11 更新到 68 名学生、397 个校区结果）里实际首轮录取率持续高于预测，按一半左右的差距上调，仍留保守余量
   stdLift: { uci: 1.3, ucsb: 1.3, ucd: 1.5 },
-  // 申报专业难度（非加州申请人，66 名学生、370 个校区结果回测，按留一法交叉验证取舍，系数已向 1 收缩）：
+  // 短板叠加（2026-11，68 名学生回测）：国际生在尔湾、圣塔芭芭拉、戴维斯，英语只过 UC 最低线、活动偏弱、PIQ 偏弱、不加权 GPA 低于 3.85
+  // 这四项里同时有两项及以上时，实际首轮录取率远低于各项单独下调相乘的结果（14 个校区结果：预测均值 48%，实际 21%），再整体下调
+  // 留一名学生交叉验证选到网格下沿 0.2；样本只有 4 名学生（11 个校区结果，全部未录），向 1 收缩取 0.3
+  stack: { n: 2, x: .3 },
+  // 申报专业难度（非加州申请人，66 名学生、370 个校区结果回测，2026-11 加入 2 名学生后复核未变，按留一法交叉验证取舍，系数已向 1 收缩）：
   // 同一学术水平下，热门社科在 UCLA、UCSD 明显更难；数理化在尔湾、圣塔芭芭拉、戴维斯明显更容易；
   // 统计 / 数据科学 / AI 等交叉专业在 UCLA、UCSD 比计算机本专业宽，计算机本专业更窄
   major: [
@@ -1259,6 +1266,9 @@ function campusEstimate(c, g, p) {
   const alUcb = !!(intl && c.id === 'ucb' && p.alevel && el === 3 && INTL_CAL.alevelUcb > 1);
   if (alUcb) odds *= INTL_CAL.alevelUcb;
   if (uwLow) odds *= Math.exp(-(INTL_CAL.uwFloor - g.uw) / INTL_CAL.uwScale);
+  const weakList = intl && c.tier === 'std' && !open ? [[el === 1, '英语只过最低线'], [p.act === 'weak', '活动偏弱'], [p.piq === 'weak', 'PIQ 偏弱'], [uwLow, '不加权 GPA 低于 3.85']].filter(w => w[0]).map(w => w[1]) : [];
+  const stacked = INTL_CAL.stack && weakList.length >= INTL_CAL.stack.n && INTL_CAL.stack.x < 1;
+  if (stacked) odds *= INTL_CAL.stack.x;
   if (intl && INTL_CAL.stdLift[c.id]) odds *= INTL_CAL.stdLift[c.id];
   const majCal = res !== 'ca' ? INTL_CAL.major.find(r => r.ids.includes(c.id) && r.m === major) : null;
   if (majCal) odds *= majCal.x;
@@ -1297,6 +1307,7 @@ function campusEstimate(c, g, p) {
   if (c.tier === 'top') capTier(strong && c.id === 'ucla' ? 'match' : 'reach');
   if (c.tier === 'top' && needEng && el < 3) { capTier('reach'); out.flags.push(p.engWeak ? `英语${p.engWeak}单项偏弱，未到伯克利、UCLA 的竞争线` : '英语未到伯克利、UCLA 的竞争线'); }
   if (c.id === 'ucla' && strong) out.flags.push('托福 110+、单项 25+ 且学术达到录取者中段：UCLA 对这类国际生录取面明显更宽，区间已上调，仍按冲刺 / 匹配看待');
+  if (stacked) out.flags.push(`短板叠加（${weakList.join('、')}）：国际生在尔湾、圣塔芭芭拉、戴维斯遇到两项及以上短板时，实际录取明显低于各项单独下调的结果，区间已再下调；补到只剩一项短板时，这一档下调就会取消`);
   if (uwLow) out.flags.push(`不加权 GPA ${trunc2(g.uw).toFixed(2)}，低于 3.85：B 偏多，国际生里位置靠后，荣誉课加分补不回来，区间已下调`);
   if (c.id === 'ucsd' && needEng && el === 2) out.flags.push('圣地亚哥对国际生英语敏感，未到托福 110 / 单项 25 时多进候补');
   if (alUcb) out.flags.push('伯克利看重 A-Level 等外部统考成绩：英语达标的 A-Level 学生区间已上调，档位仍只到冲刺');
@@ -2002,13 +2013,32 @@ function parseGradingScale(text) {
   }
   return best ? best.cut : null;
 }
-// 非加州学生只有 AP、IB、大学课能加分：学校自定的荣誉课不算「供给」（res 不传时按全部荣誉课算）
+// 非加州学生只有 AP、IB 能算学校的荣誉课供给：学校自定的荣誉课不算（res 不传时按全部荣誉课算）。
+// 暑期或校外的大学课是学生自己选修的，照常进 GPA 加分，但不代表学校开课量，不计入供给（2026-11 回测：计入时 A-Level 学生被少算情境）
 function deriveSupply(rows, res) {
   const core = rows.filter(r => r.yr === '10' || r.yr === '11');
   if (!core.length) return 'ample';
-  const counts = t => t && t !== 'reg' && (!res || res === 'ca' || ['ap', 'ibhl', 'ibsl', 'cl'].includes(t));
+  const counts = t => t && t !== 'reg' && t !== 'cl' && (!res || res === 'ca' || ['ap', 'ibhl', 'ibsl'].includes(t));
   let n = 0; core.forEach(r => { if (counts(r.type)) n += Math.max(1, [r.s1, r.s2].filter(v => v !== '' && v != null).length); });
   return n === 0 ? 'none' : n <= 4 ? 'limited' : 'ample';
+}
+/* 成绩走势：10–11 年级里最近一个有成绩的学期，与此前各学期的平均比较（按 UC 字母等级）。
+   平均掉 0.3 以上，或掉 0.15 以上且 3 门及以上比上学期低一档，判为明显下滑。只做提示，不自动改区间 */
+function gradeDecline(rows, scale, cut) {
+  const pt = r => v => { const x = toLetter(v, r.sys === 'uk' ? 'uk' : r.sys === 'ib' ? 'ib' : scale, r.sys === 'us' ? CUT_PRESETS.us : cut); return x && x !== 'P' && BASE_PTS[x] != null ? BASE_PTS[x] : null; };
+  const core = (rows || []).filter(r => AREAS.includes(r.area) && (r.yr === '10' || r.yr === '11'));
+  const sem = (yr, k) => core.filter(r => r.yr === yr).map(r => pt(r)(r[k])).filter(v => v != null);
+  const S = [sem('10', 's1'), sem('10', 's2'), sem('11', 's1'), sem('11', 's2')];
+  const li = S[3].length >= 3 ? 3 : S[2].length >= 3 ? 2 : -1;
+  const none = { down: false };
+  if (li < 0) return none;
+  const prevA = [].concat(...S.slice(0, li)); if (prevA.length < 4) return none;
+  const avg = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const prev = avg(prevA), last = avg(S[li]);
+  const dropped = [];
+  if (li === 3) core.filter(r => r.yr === '11').forEach(r => { const f = pt(r), a = f(r.s1), b = f(r.s2); if (a != null && b != null && a - b >= 1) dropped.push(r.name || '未命名课程'); });
+  const d = prev - last;
+  return { down: d >= 0.3 || (d >= 0.15 && dropped.length >= 3), prev, last, sem: li === 3 ? '11 年级下学期' : '11 年级上学期', dropped };
 }
 const EXAM_KINDS = { ap: 'AP', ib: 'IB', al: 'A-Level', as: 'AS', gcse: 'IGCSE / GCSE' };
 const EXAM_SCORES = { ap: ['5','4','3','2','1'], ib: ['7','6','5','4','3','2','1'], al: ['A*','A','B','C','D','E','U'], as: ['A','B','C','D','E','U'], gcse: ['9','8','7','6','5','4','3','2','1','A*','A','B','C','D','E','F','G','U'] };
@@ -2560,7 +2590,8 @@ function feederFor(name, c, res) {
 function feederMult(fb, rank) {
   if (!fb || fb.ratio == null) return null;
   const r = Math.min(2.5, Math.max(0.4, fb.ratio));
-  if (r < 1) return r;
+  // 学校整体偏少时按平方根下调（0.4 → 约 0.63）：68 名学生回测里，偏少学校的强学生（英语与学术双达标）照样拿到 UCLA、伯克利，直接乘 0.4 明显过严
+  if (r < 1) return Math.sqrt(r);
   if (TOP15.includes(rank)) return fb.cls === 'high' ? r * 1.5 : r;
   if (rank === 'below') return 1;
   return Math.sqrt(r);
@@ -2821,8 +2852,11 @@ function renderCtxNote() {
   const out = [];
   const sup = effSupply();
   const core = S.rows.filter(r => r.yr === '10' || r.yr === '11');
-  if (S.profile.supply === 'auto' && core.length) out.push([`本校荣誉课供给：按成绩单自动判断为「${SUPPLY_NAME[sup]}」${sup === 'none' ? `（10–11 年级没有${S.res === 'ca' ? ' AP / IB / 荣誉课' : '可加分的 AP / IB / 大学课；学校自定的荣誉课对非加州学生不加分'}）` : sup === 'limited' ? `（10–11 年级只有少量${S.res === 'ca' ? ' AP / IB / 荣誉课' : '可加分的 AP / IB / 大学课'}）` : ''}。GPA 照 UC 规则计算；区间按情境化后的学术指数比较。${sup !== 'ample' ? '如果学校其实开设、只是学生没选，请在「申请画像」里改为「充足」。' : ''}`, '']);
+  if (S.profile.supply === 'auto' && core.length) out.push([`本校荣誉课供给：按成绩单自动判断为「${SUPPLY_NAME[sup]}」${sup === 'none' ? `（10–11 年级没有${S.res === 'ca' ? ' AP / IB / 荣誉课' : '学校开设、可加分的 AP / IB 课；学校自定的荣誉课对非加州学生不加分，暑期或校外大学课是学生自选的，不算学校供给'}）` : sup === 'limited' ? `（10–11 年级只有少量${S.res === 'ca' ? ' AP / IB / 荣誉课' : '可加分的 AP / IB 课'}）` : ''}。GPA 照 UC 规则计算；区间按情境化后的学术指数比较。${sup !== 'ample' ? '如果学校其实开设、只是学生没选，请在「申请画像」里改为「充足」。' : ''}`, '']);
   const done = S.exams.filter(e => e.score !== '' && e.score != null);
+  // 成绩走势：最近一学期明显下滑时提示顾问确认（区间按「申请画像 · 成绩趋势」计算，不自动改）
+  const dec = gradeDecline(S.rows, S.scale, S.cut);
+  if (dec.down && S.profile.trend !== 'down') out.push([`成绩走势：${dec.sem}平均 ${dec.last.toFixed(2)}，此前各学期平均 ${dec.prev.toFixed(2)}（按 UC 字母等级）${dec.dropped.length ? `，${dec.dropped.length} 门比上学期低了一档（${dec.dropped.slice(0, 4).map(esc).join('、')}${dec.dropped.length > 4 ? ' 等' : ''}）` : ''}。审读会看到这个下滑，学业之外偏弱时影响更明显。如果属实，请在「申请画像 · 成绩趋势」里选「下滑」，并在附加说明里交代原因；区间目前按「${({ up: '上升', flat: '平稳', down: '下滑' })[S.profile.trend] || '平稳'}」计算。`, 'warn']);
   if (sup !== 'ample' && done.length) out.push([`已出分的 AP / IB 考试 ${done.length} 门，作为课程难度的情境证据参与比较，不进 GPA。`, '']);
   const zh = /chinese|中文|^zh$/i.test((S.ctx.instr || []).slice(-1)[0] || '');
   const engB = S.rows.some(r => r.area === 'b' && /(english|英语)/i.test(r.name));
@@ -4012,6 +4046,7 @@ function render(opts = {}) {
 
   renderCtxNote(); renderExamSum(); renderChk(); renderSchoolNote(fbs);
   $('supplyNote').textContent = S.profile.supply === 'auto' ? `当前按成绩单判断为「${SUPPLY_NAME[p.supply]}」` : '';
+  { const dec = gradeDecline(S.rows, S.scale, S.cut); $('trendNote').textContent = dec.down ? `成绩单显示 ${dec.sem}明显下滑（平均 ${dec.prev.toFixed(2)} → ${dec.last.toFixed(2)}）${S.profile.trend === 'down' ? '，已按下滑计算' : '，请确认后选择'}` : ''; }
   // section verdicts
   renderEng(engEv); renderActVerdict(actEv); renderPiqVerdict(piqEv);
   if (opts.piqFull) renderPiqs(piqEv); else refreshPiqTags(piqEv);
