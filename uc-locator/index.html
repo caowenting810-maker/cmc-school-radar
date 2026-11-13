@@ -4711,6 +4711,12 @@ async function collectFiles(fileList, statusId) {
   }
   return { images, texts, tables, skipped, ocr, textBlob: texts.join('\n\n').slice(0, 60000), fullText: texts.join('\n\n') };
 }
+// 当前环境到底能不能调用 Claude：先探一下，不能调用就别显示「正在请 Claude」
+async function claudeAvailable() {
+  const s = await Promise.race([samplePromise, new Promise(r => setTimeout(() => r(undefined), 1500))]);
+  if (s === undefined) return false; // 探测还没回来：按本机能做处理，本机也能出结果
+  return !!s;
+}
 async function askClaudeJSON(prompt, images, signal) {
   const sample = await Promise.race([samplePromise, new Promise(r => setTimeout(() => r(null), 12000))]);
   if (!sample) throw { code: 'unavailable' };
@@ -4820,7 +4826,9 @@ async function handleTranscript(fileList) {
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
   const preferLocal = F.tables.length > 0 && F.images.length === 0;
-  if (!preferLocal && (F.images.length || F.textBlob.trim())) {
+  // 先确认当前环境能不能调用 Claude：不能调用就直接在本机识别，不显示「正在请 Claude」，避免和页面上「不能调用 Claude」的提示打架
+  const claudeOK = await claudeAvailable();
+  if (claudeOK && !preferLocal && (F.images.length || F.textBlob.trim())) {
     setBusyMsg(SID, F.images.length ? '正在请 Claude 识别成绩单图片，约需 20–60 秒…' : '正在请 Claude 整理成绩单…');
     try {
       const prompt = PARSE_PROMPT + (F.textBlob.trim() ? `\n\nTranscript text extracted from the uploaded file(s):\n"""\n${F.textBlob}\n"""` : '\n\nThe transcript is in the attached image(s).');
@@ -4829,14 +4837,21 @@ async function handleTranscript(fileList) {
       if (F.images.length > r.used && r.used) parsed.notes.unshift(`图片较多，只识别了前 ${r.used} 张。`);
     } catch (e) {
       if (e && e.code === 'cancelled') return;
-      if (e && e.code !== 'unavailable' && e.code !== 'images_unavailable') F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + (F.tables.length || F.textBlob.trim() ? ' 已改用本地识别。' : ''));
+      if (e && (e.code === 'unavailable' || e.code === 'images_unavailable')) setBusyMsg(SID, '改在本机识别（文件不上传）…');
+      else F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + (F.tables.length || F.textBlob.trim() ? ' 已改用本地识别。' : ''));
     }
   }
   if (!parsed) {
     if (!F.tables.length && !F.textBlob.trim()) { upStatus(SID, `<div class="up-result err">没有从文件里认出文字。请换一张更清晰、拍正的照片，或上传 Excel、CSV、Word、PDF 再试。${F.skipped.length ? '<br>' + F.skipped.map(esc).join('<br>') : ''}</div>`); return; }
-    let courses = []; F.tables.forEach(t => { courses = courses.concat(parseTable(t).courses); });
-    if (!courses.length && F.ocr && F.ocr.length) courses = parseOcrLayout(F.ocr).courses;
-    if (!courses.length) courses = parseLines(F.ocr ? F.ocr.map(p => p.text).join('\n') : F.textBlob).courses;
+    let courses = [];
+    try {
+      F.tables.forEach(t => { courses = courses.concat(parseTable(t).courses); });
+      if (!courses.length && F.ocr && F.ocr.length) courses = parseOcrLayout(F.ocr).courses;
+      if (!courses.length) courses = parseLines(F.ocr ? F.ocr.map(p => p.text).join('\n') : F.textBlob).courses;
+    } catch (err) {
+      upStatus(SID, `<div class="up-result err">文字已经读出来了，但整理成绩时出错：${esc(err && err.message || err)}。请点「停止」后重试；如果一直这样，把这份成绩单发给顾问，我们补上这种版式。</div>`);
+      return;
+    }
     parsed = normalizeParsed({ courses }); via = F.ocr ? '本机' : '本地';
     const nSrc = parsed.rows.filter(r => r.src).length, nChk = parsed.rows.filter(r => r.check).length;
     if (F.ocr && nSrc && OCR_GUESSED) parsed.notes.unshift('成绩单上的学期列名没认清，已按从左到右当作上、下学期：请对照原件确认一行。');
@@ -4866,14 +4881,16 @@ async function handleActs(fileList) {
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
   const preferLocal = F.tables.length > 0 && F.images.length === 0;
-  if (!preferLocal && (F.images.length || F.textBlob.trim())) {
+  const claudeOK = await claudeAvailable();
+  if (claudeOK && !preferLocal && (F.images.length || F.textBlob.trim())) {
     setBusyMsg(SID, '正在请 Claude 把清单整理成 UC 六个类别…');
     try {
       const prompt = ACT_PARSE_PROMPT + (F.textBlob.trim() ? `\n\nText extracted from the uploaded file(s):\n"""\n${F.textBlob}\n"""` : '\n\nThe list is in the attached image(s).');
       const r = await askClaudeJSON(prompt, F.images, ctl.signal); parsed = normalizeActs(r.obj); via = 'Claude';
     } catch (e) {
       if (e && e.code === 'cancelled') return;
-      if (e && e.code !== 'unavailable' && e.code !== 'images_unavailable') F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + ' 已改用本地识别。');
+      if (e && (e.code === 'unavailable' || e.code === 'images_unavailable')) setBusyMsg(SID, '改在本机识别（文件不上传）…');
+      else F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + ' 已改用本地识别。');
     }
   }
   if (!parsed) {
