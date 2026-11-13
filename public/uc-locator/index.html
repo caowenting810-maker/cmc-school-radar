@@ -1632,7 +1632,7 @@ const AREA_KW = [
   ['d', /(biolog|chemi|physic|science|environment|anatomy|geograph|地理|生物|化学|物理|科学|环境)/i],
   ['a', /(histor|government|civics|politic|social stud|历史|政治|思想)/i],
   ['g', /(theory of knowledge|\bTOK\b)/i],
-  ['b_zh', /(语文)/], ['zh', /(chinese|mandarin|中文|汉语)/i], ['en', /(english|language arts|literature|composition|英语|英文)/i],
+  ['b_zh', /(语文)/], ['zh', /(chinese|mandarin|中文|汉语)/i], ['en', /(english|language arts|literature|composition|speech|public speaking|debate|英语|英文|演讲|辩论)/i],
   ['e', /(spanish|french|japanese|german|latin|korean|italian|arabic|日语|法语|西班牙语|德语|韩语|拉丁语)/i],
   ['g', /(computer|economic|psycholog|business|programming|信息|计算机|经济|心理|编程|技术|通用技术)/i]
 ];
@@ -4457,21 +4457,34 @@ function parseOcrLayout(pages) {
   const groupOf = (gs, x) => { let k = 0; gs.forEach((g, i) => { if (x >= g.x0 - 20) k = i; }); return k; };
   for (let ri = 0; ri < all.length; ri++) {
     const r = all[ri], cells = r.cells, rowText = cells.map(c => c.text).join(' ');
-    const nameIdx = cells.map((c, i) => OCR_NAME_H.test(c.text) ? i : -1).filter(i => i >= 0);
+    const rawNi = cells.map((c, i) => OCR_NAME_H.test(c.text) ? i : -1).filter(i => i >= 0);
+    // 「Subject | Course」紧挨着是同一栏的两个列名，只取最左那个当栏起点；左右并排时两组之间隔着别的列，不会被合并
+    const nameIdx = rawNi.filter((ni, k) => k === 0 || cells.slice(rawNi[k - 1] + 1, ni).some(c => c.text.trim()));
     // 表头行：含「课程 / 科目」等列名
     if (nameIdx.length) {
-      const prev = all[ri - 1] && !all[ri - 1].cells.some(c => ocrIsGrade(c.text)) ? all[ri - 1] : null; // 上一行可能是「高一 / 高二」或「Grade 10 / Grade 11」的合并表头
+      // 表头上方的行：左右并排时可能同一高度有左右两行，按纵向距离一起收，两组各自就近取
+      const prevCells = [];
+      for (let j = ri - 1; j >= 0 && ri - j <= 4 && all[ri].y - all[j].y <= 90; j--) { if (all[j].cells.some(c => ocrIsGrade(c.text) && !yrOf(c.text))) continue; prevCells.push(...all[j].cells); }
+      const prev = prevCells.length ? { cells: prevCells } : null;
       const next = all[ri + 1] && all[ri + 1].cells.filter(c => ocrSem(c.text) === 1 || ocrSem(c.text) === 2).length >= 2 ? all[ri + 1] : null; // 下一行可能是「上 / 下」「S1 / S2」
-      groups = nameIdx.map((ni, k) => {
+      const built = nameIdx.map((ni, k) => {
         const x0 = k === 0 ? 0 : cells[ni].x0, x1 = k + 1 < nameIdx.length ? cells[nameIdx[k + 1]].x0 : Infinity;
         const inG = c => c.xc >= x0 - 5 && c.xc < x1;
         // 合并表头里的年级只从「上一行」（或学期在下一行时的本行）取，不拿同一行别的列来推
         const yrCells = [...(prev ? prev.cells : []), ...(next ? cells : [])].filter(c => inG(c) && c.xc > cells[ni].x1 && yrOf(c.text));
         const head = (next ? next.cells : cells).filter(c => inG(c) && c.xc > cells[ni].x1);
         const cols = head.map(c => {
+          let sem = ocrSem(c.text);
+          // 学期写在表头上一行（The First Semester / The Second Semester / 上 / 下）时，按横向位置就近取；只对成绩列做，学分 / 绩点列不传
+          const gradeCol = /grade|mark|score|成绩|分数|评级|评价/i.test(c.text) && !/points?|gpa|绩点|credit|学分|quality/i.test(c.text);
+          if (prev && gradeCol && sem !== 1 && sem !== 2) {
+            const sc2 = prev.cells.filter(p => inG(p) && (ocrSem(p.text) === 1 || ocrSem(p.text) === 2));
+            if (sc2.length) { const near = sc2.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0]; sem = ocrSem(near.text); }
+          }
           let yr = yrOf(c.text);
-          if (!yr && yrCells.length) { const near = yrCells.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0]; yr = near ? yrOf(near.text) : null; }
-          const sem = ocrSem(c.text); const skip = OCR_SKIP_H.test(c.text) && !sem;
+          // 年级只补在学期列上（「高上」「高下」这类写法），别把年级发给课程名 / 学分 / 绩点列
+          if (!yr && (sem === 1 || sem === 2) && yrCells.length) { const near = yrCells.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0]; yr = near ? yrOf(near.text) : null; }
+          const skip = OCR_SKIP_H.test(c.text) && !sem;
           return { xc: c.xc, yr, sem: sem || (yr ? 3 : 0), skip };
         }).filter(c => c.skip || c.sem || c.yr);
         // 学期列里个别年级字没认出来（如「高上」）：按左右相邻学期列推回年级
@@ -4483,7 +4496,7 @@ function parseOcrLayout(pages) {
           else if (l && l.yr) sc[i].yr = String(+l.yr + (l.sem === 2 && sc[i].sem === 1 ? 1 : 0));
         }
         // 同一年级出现两列「全年」：只能是列名没认出来的上、下学期，按左右顺序认
-        { const byY = {}; cols.filter(c => !c.skip && c.sem === 3).forEach(c => { (byY[c.yr || '?'] = byY[c.yr || '?'] || []).push(c); });
+        { const byY = {}; cols.filter(c => !c.skip && c.sem === 3 && /grade|mark|score|成绩|分数|评级|评价/i.test(c.text || '')).forEach(c => { (byY[c.yr || '?'] = byY[c.yr || '?'] || []).push(c); });
           Object.values(byY).forEach(a => { if (a.length === 2) { a.sort((x, y) => x.xc - y.xc); a[0].sem = 1; a[1].sem = 2; OCR_GUESSED = true; } }); }
         // 学期列名没认出来（拍糊、印得浅）：看下面几行成绩落在哪几列，两列按上下学期、一列按全年
         if (!cols.some(c => !c.skip)) {
@@ -4504,9 +4517,26 @@ function parseOcrLayout(pages) {
         }
         return { x0, x1, nameX: cells[ni].x0, cols };
       });
+      // 左右并排的成绩单，表头可能被识别成两行：各留一组，别互相覆盖
+      if (!groups) groups = built;
+      else {
+        built.forEach(g => {
+          const same = groups.find(o => Math.abs(o.nameX - g.nameX) < 100); // 同一栏的表头又出现一次：就地更新
+          if (same) { Object.assign(same, g); return; }
+          // 明显更靠右 = 并排的另一栏：把上一组的右边界收窄到它的栏起点
+          const last = groups[groups.length - 1];
+          if (last.x1 === Infinity && g.nameX > last.nameX + 100) { last.x1 = g.nameX; g.x0 = g.nameX; }
+          groups.push(g);
+        });
+        groups.sort((a, b) => a.x0 - b.x0);
+      }
       // 表头上方最近的年级标记作为各栏默认年级
+      const yMarks = [];
+      prevCells.forEach(c => { const y = yrOf(c.text); if (y) yMarks.push([c, y]); });
       secYr = groups.map((g, k) => secYr[k] || null);
-      for (let j = ri - 1; j >= Math.max(0, ri - 4); j--) all[j].cells.forEach(c => { const y = yrOf(c.text); if (y && !all[j].cells.some(d => ocrIsGrade(d.text))) { const k = groupOf(groups, c.x0); if (!secYr[k]) secYr[k] = y; } });
+      yMarks.forEach(([c, y]) => { const k = groupOf(groups, c.x0); if (!secYr[k]) secYr[k] = y; });
+      // 上方只有一个年级标记（写在正中或左上）时，它是整张表的年级，不是某一栏的
+      if (yMarks.length && groups.length > 1 && new Set(yMarks.map(x => x[1])).size === 1) secYr = groups.map(() => yMarks[0][1]);
       if (next) ri++;
       continue;
     }
@@ -4524,7 +4554,9 @@ function parseOcrLayout(pages) {
       const firstColX = gradeCols.length ? Math.min(...gradeCols.map(c => c.xc)) : Infinity;
       const nearCol = c => g.cols.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0];
       const nameCells = inG.filter(c => c.x1 < firstColX - 8 && !(ocrIsGrade(c.text) && c.x0 > g.nameX + 60) && !(c.x0 > g.nameX + 80 && nearCol(c) && nearCol(c).skip && Math.abs(nearCol(c).xc - c.xc) < Math.abs(c.x0 - g.nameX)));
-      const name = nameCells.map(c => c.text).join(' ').replace(/^[\d.\s]+/, '').replace(/\s+/g, ' ').trim();
+      const nc = nameCells.slice();
+      if (nc.length >= 2 && nc[0].text.length <= 30 && nc[0].text.includes('/')) nc.shift();
+      const name = nc.map(c => c.text).join(' ').replace(/^[\d.\s]+/, '').replace(/\s+/g, ' ').trim();
       if (!/[A-Za-z一-龥]{2,}/.test(name) || OCR_NAME_H.test(name) || /^(average|total|gpa|cumulative|weighted|unweighted|credits? (earned|attempted)|平均|总分|合计|班级|排名|学分绩)/i.test(name)) { if (inG.length >= 2 && name && !/^(average|total|gpa|平均|总分|合计)/i.test(name)) OCR_MISSED.push(name || inG[0].text); return; }
       const vals = {}, used = {}; // col index -> grade / 用到的格子
       inG.filter(c => !nameCells.includes(c)).forEach(c => {
