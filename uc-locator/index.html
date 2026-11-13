@@ -1566,6 +1566,10 @@ function normGrade(v) {
   if (v === null || v === undefined) return '';
   let s = String(v).trim().replace(/[＋]/g, '+').replace(/[－—–]/g, '-').toUpperCase();
   if (!s || s === '-' || s === 'N/A' || s === 'NA') return '';
+  // 「A+ (94.98%)」「A-（85%）」：字母等级后面跟了百分制，取字母
+  let mm;
+  if ((mm = s.match(/^([A-F][+-]?)\s*[（(]\s*\d{1,3}(?:\.\d+)?\s*%?\s*[)）]/))) return mm[1];
+  if (/^PASS(ED)?$|^CR(EDIT)?$/.test(s)) return 'P';
   if (/^(A|B|C|D)[+-]?$/.test(s) || s === 'F' || s === 'P') return s;
   if (/^(A\*|A★|E|U|G)$/.test(s)) return s.replace('★', '*');
   if (/^(IP|PL)$/.test(s)) return '';
@@ -1575,8 +1579,8 @@ function normGrade(v) {
 }
 function yearFromText(t) {
   let m;
-  if ((m = t.match(/(?:grade|gr\.?)\s*(9|10|11|12)\b/i))) return m[1];
-  if ((m = t.match(/\b(9|10|11|12)(?:th)\s*grade/i))) return m[1];
+  if ((m = t.match(/(?:grade|gr\.?)\s*[:：]?\s*(9|10|11|12)(?:st|nd|rd|th)?\b/i))) return m[1];
+  if ((m = t.match(/\b(9|10|11|12)(?:st|nd|rd|th)\s*[:：]?\s*grade/i))) return m[1];
   if ((m = t.match(/\bG\s?(9|10|11|12)\b/))) return m[1];
   if ((m = t.match(/\byear\s*(10|11|12|13)\b/i))) return String(+m[1] - 1);
   if (/初三/.test(t)) return '9'; if (/高一/.test(t)) return '10'; if (/高二/.test(t)) return '11'; if (/高三/.test(t)) return '12';
@@ -1627,13 +1631,13 @@ function normalizeParsed(obj) {
 }
 const AREA_KW = [
   ['skip', /(体育|physical education|\bP\.?E\.?\d*\b|\bCAS\b|extended essay|班会|homeroom|advisory|军训|劳动|自习|study hall|心理健康|社会实践|研究性学习)/i],
-  ['f', /(art|music|drama|theat|dance|band|choir|orchestra|ceramic|photograph|美术|音乐|艺术|戏剧|舞蹈|合唱|设计)/i],
-  ['c', /(math|algebra|geometry|calculus|statistic|precalc|trigonometr|数学|微积分|统计|代数|几何)/i],
-  ['d', /(biolog|chemi|physic|science|environment|anatomy|geograph|地理|生物|化学|物理|科学|环境)/i],
-  ['a', /(histor|government|civics|politic|social stud|历史|政治|思想)/i],
+  ['f', /(art|music|drama|theat|dance|band|choir|orchestra|ceramic|photo|film|media arts|clothing|fashion|design|美术|音乐|艺术|戏剧|舞蹈|合唱|设计|服装|摄影|影视)/i],
+  ['c', /(math|algebra|\balg\b|geometry|\btrig\b|trigonometr|calculus|pre-?calc|\bcalc|statistic|数学|微积分|统计|代数|几何)/i],
+  ['d', /(biolog|\bbio\b|chemi|\bchem\b|physic|science|environment|anatomy|geograph|地理|生物|化学|物理|科学|环境)/i],
+  ['a', /(histor|government|civics|\bciv\b|politic|social stud|world civ|历史|政治|思想|社会)/i],
   ['g', /(theory of knowledge|\bTOK\b)/i],
   ['b_zh', /(语文)/], ['zh', /(chinese|mandarin|中文|汉语)/i], ['en', /(english|language arts|literature|composition|speech|public speaking|debate|英语|英文|演讲|辩论)/i],
-  ['e', /(spanish|french|japanese|german|latin|korean|italian|arabic|日语|法语|西班牙语|德语|韩语|拉丁语)/i],
+  ['e', /(spanish|french|japanese|german|latin|korean|italian|arabic|\basl\s?\d*\b|american sign|日语|法语|西班牙语|德语|韩语|拉丁语)/i],
   ['g', /(computer|economic|psycholog|business|programming|信息|计算机|经济|心理|编程|技术|通用技术)/i]
 ];
 function guessArea(name, zhMedium) {
@@ -1654,7 +1658,7 @@ function guessType(name) {
   return 'reg';
 }
 const GRADE_TOKEN = /^(?:A\*|[ABCD][+-]?|[EFPU]|\d{1,3}(?:\.\d+)?)$/;
-function isGradeToken(t) { if (!GRADE_TOKEN.test(t)) return false; if (/^\d/.test(t)) { const n = parseFloat(t); return n >= 0 && n <= 100; } return true; }
+function isGradeToken(t) { if (GRADE_TOKEN_LOOSE.test(t)) return true; if (!GRADE_TOKEN.test(t)) return false; if (/^\d/.test(t)) { const n = parseFloat(t); return n >= 0 && n <= 100; } return true; }
 function parseTable(rows) {
   const clean = rows.map(r => r.map(c => String(c ?? '').trim()));
   const zhMedium = clean.some(r => r.some(c => /语文/.test(c)));
@@ -4421,8 +4425,8 @@ const OCR_NAME_H = /^(课程名称|课程|科目|学科|course title|course name
 const OCR_SKIP_H = /(学分|credit|credits|hours?|学时|weight|权重|teacher|教师|code|代码|rank|排名|level|类型|type|备注|remark)/i;
 function ocrSem(t) {
   if (/^上$|[（(]上[)）]|^[高初]?.{0,2}上$/.test(t)) return 1; if (/^下$|[（(]下[)）]|^[高初]?.{0,2}下$/.test(t)) return 2;
-  if (/(上学期|第一学期|[一二三]\s*上|\bS\.?\s*1\b|\bSem(ester)?\.?\s*(1|I)\b|\bT(erm)?\.?\s*1\b|\bQ[12]\b|fall|autumn|first)/i.test(t)) return 1;
-  if (/(下学期|第二学期|[一二三]\s*下|\bS\.?\s*2\b|\bSem(ester)?\.?\s*(2|II)\b|\bT(erm)?\.?\s*2\b|\bQ[34]\b|spring|second)/i.test(t)) return 2;
+  if (/(上学期|第一学期|[一二三]\s*上|\bS\.?\s*1\b|\bSem(ester)?\.?\s*(1|I)\b|\bT(erm)?\.?\s*1\b|\bQ[12]\b|fall|autumn|first|\b1\s*(st|°|º)?\s*term\b)/i.test(t)) return 1;
+  if (/(下学期|第二学期|[一二三]\s*下|\bS\.?\s*2\b|\bSem(ester)?\.?\s*(2|II)\b|\bT(erm)?\.?\s*2\b|\bQ[34]\b|spring|second|\b2\s*(nd|°|º)?\s*term\b)/i.test(t)) return 2;
   if (/(final|总评|期末总评|年度|全年|year mark|annual|成绩|grade$|mark|score)/i.test(t)) return 3;
   return 0;
 }
@@ -4461,6 +4465,18 @@ function parseOcrLayout(pages) {
     // 「Subject | Course」紧挨着是同一栏的两个列名，只取最左那个当栏起点；左右并排时两组之间隔着别的列，不会被合并
     const nameIdx = rawNi.filter((ni, k) => k === 0 || cells.slice(rawNi[k - 1] + 1, ni).some(c => c.text.trim()));
     // 表头行：含「课程 / 科目」等列名
+    // 没有列名行（New Roads 这类：左边没有 Subject / Course，只有 Fall / Spring 两列）：把这一行当整表表头
+    if (!nameIdx.length) {
+      const semC = cells.filter(c => { const sv = ocrSem(c.text); return (sv === 1 || sv === 2) && !ocrIsGrade(c.text); });
+      if (semC.length >= 2 && cells.length <= 8) {
+        const ncols = semC.slice().sort((a, b) => a.xc - b.xc).map(c => ({ xc: c.xc, yr: yrOf(c.text), sem: ocrSem(c.text), skip: false, text: c.text }));
+        let y0 = null;
+        for (let j = ri - 1; j >= 0 && ri - j <= 6; j--) { const yy = all[j].cells.map(c => yrOf(c.text)).filter(Boolean)[0]; if (yy) { y0 = yy; break; } }
+        groups = [{ x0: 0, x1: Infinity, nameX: 0, cols: ncols, noHead: true }];
+        secYr = [y0 || secYr[0] || null];
+        continue;
+      }
+    }
     if (nameIdx.length) {
       // 表头上方的行：左右并排时可能同一高度有左右两行，按纵向距离一起收，两组各自就近取
       const prevCells = [];
