@@ -119,6 +119,19 @@ table.tx { border-collapse: collapse; width: 100%; min-width: 800px; font-size: 
 .tx tr.g9 td, .tx tr.g12 td { background: color-mix(in srgb, var(--paper) 60%, transparent); }
 .tx tr.flag td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
 .tx tr.flag td { background: color-mix(in srgb, var(--warn-bg) 55%, transparent); }
+.ocr-bar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 12px; margin-bottom: 10px; border: 1px solid var(--rule); border-left: 4px solid var(--warn); border-radius: 10px; background: color-mix(in srgb, var(--warn-bg) 40%, var(--sheet)); font-size: 13.5px; line-height: 1.55; }
+.ocr-bar[hidden] { display: none; }
+.ocr-bar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.tx tr.snip-tr td { padding: 0 6px 10px; border-bottom: 1px solid var(--rule); }
+.tx tr.flag + tr.snip-tr td, .tx tr.snip-tr td { border-top: 0; }
+.snip-box { display: grid; gap: 6px; }
+.snip-scroll { overflow-x: auto; max-width: 100%; }
+.snip { position: relative; overflow: hidden; box-shadow: 0 0 0 1px var(--rule); border-radius: 6px; background: #fff; } /* 不用 border：边框会让百分比定位整体偏移 */
+.snip img { position: absolute; max-width: none; height: auto; display: block; }
+.snip-hi { position: absolute; outline: 2px solid #d4380d; outline-offset: 2px; border-radius: 3px; pointer-events: none; }
+.snip-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.snip-why { color: var(--ink); } .snip-why.ok { color: var(--muted); }
+@media print { .ocr-bar, .tx tr.snip-tr { display: none !important; } }
 .tx select, .tx input { width: 100%; padding: 6px 7px; border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); font-size: 14px; }
 .tx input.grade { font-family: var(--f-data); text-align: center; }
 .tx td.c-name { min-width: 170px; } .tx td.c-area { width: 74px; } .tx td.c-yr { width: 132px; } .tx td.c-type { width: 186px; } .tx td.c-g { width: 82px; } .tx td.c-x { width: 36px; text-align: center; }
@@ -684,6 +697,7 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
             <span class="sample-tag sampleTag">示例数据 · 虚构学生</span>
             <p>9 年级与 12 年级只用于检查 A–G，不进 GPA；9、10 年级后的暑期课按 10 年级算，11 年级后暑期按 11 年级算。全年课填两个学期，学期课只填一个。黄色标记的行请核对。</p></div>
           <div class="sheet">
+            <div class="ocr-bar" id="ocrBar" hidden></div>
             <div class="tbl-scroll">
               <table class="tx" aria-label="成绩单">
                 <thead><tr><th>课程名称</th><th>A–G</th><th>年级</th><th>课程类型</th><th>上学期</th><th>下学期</th><th><span style="position:absolute;left:-9999px">删除</span></th></tr></thead>
@@ -968,7 +982,7 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
         <li>每个校区按学生在该校实际申报的专业排档；英语看总分与单项；活动与 PIQ 按评判档位调整；各项权重不公开。</li>
         <li>申报专业难度：UC 多数校区按专业或学院录取，同一份成绩换一个专业，机会可以差很多。计算机、工程、商科、护理按各校公布的分专业录取率收窄。国际生与外州生另按近年真实录取结果校准：经济、心理、传播等热门社科在 UCLA、圣地亚哥明显更难；数学、物理、化学在尔湾、圣塔芭芭拉、戴维斯明显更容易；计算机本专业在 UCLA、圣地亚哥更窄；统计、数据科学、AI 等交叉专业单列，不套计算机本专业的限额，各校都比计算机本专业宽，UCLA、圣地亚哥差得最明显。生命科学、工程在圣地亚哥也偏难，但样本还不够，暂未单独调整。「分专业录取区间」表可以直接对比同一学生换专业后的区间。</li>
         <li>圣克鲁兹、河滨、默塞德：对成绩偏低的学生录取面明显更宽（例如 IB 总分 25–28 的学生也有录取），GPA 低于该校中段时曲线放平，不套「不加权 3.85 以下下调」，并对所有学生上调：成绩好的学生在 90% 以上，成绩一般或偏低的区间至少从 50% 起。UC 仍不计入保底。</li>
-        <li>照片、截图与扫描版 PDF：能调用 Claude 时由 Claude 识别；不能调用时（例如在企业微信里打开离线文件）改在本机识别，使用开源 Tesseract（Apache-2.0）中英文字库，文件不上传，识别出的每一行都标黄待核对。扫描版 UC 申请打印件的成绩表常被折行，本机只导入活动、PIQ 与英语，成绩请另传文字版打印件或学校成绩单。</li>
+        <li>照片、截图与扫描版 PDF：能调用 Claude 时由 Claude 识别；不能调用时（例如在企业微信里打开离线文件）改在本机识别，使用开源 Tesseract（Apache-2.0）中英文字库，文件不上传，识别前先拉平阴影、纠正拍歪的角度，成绩格再单独复核一遍；只把拿不准的行标黄并写明原因，黄行下面附原件截图（截图只留在本次打开的页面里）。Excel、CSV 成绩单按原表读入，只标出 A–G 类别没认出的行。活动表能识别模板里的填写说明、类别标题和示例行，按表头、竖排表单或一行一条读取。扫描版 UC 申请打印件的成绩表常被折行，本机只导入活动、PIQ 与英语，成绩请另传文字版打印件或学校成绩单。</li>
         <li>最低 GPA（加州居民 3.0、其他 3.4）：美式成绩明显低于最低线时不出区间；IB、百分制、英式等国际成绩由 UC 自行对照换算，本页换算偏低时照常估算并提示，顶部与中部校区几乎没有机会。</li>
         <li>区间上沿超过同池全池录取率 2 倍时，需要有 feeder、本校位次、专业容器，或国际生英语与学术双达标作依据，否则收紧。伯克利最高只到冲刺；UCLA 只有国际生托福 110 以上、单项 25 以上且学术达到录取者中段时可到匹配，其余情况同样只到冲刺。</li>
         <li>国际生另按近年真实录取结果校准：中国课程、英式课程的成绩单课程门数多，荣誉加分在学术指数里按 24 个学期折算（UC GPA 本身照 UC 规则计算，不变）；UCLA、圣地亚哥对托福 110 / 单项 25 这条线格外敏感；尔湾、圣塔芭芭拉、戴维斯对学术达标的国际生录取面更宽，活动或 PIQ 偏弱的拖累也更明显；不加权 GPA 低于 3.85（B 偏多）时，各校都明显下调，荣誉课加分补不回来。打印件里每门课自带的成绩制（美制、中制百分制、IB 1–7、英式 9–1 / A*–E）分别换算。非加州学生只有 AP、IB、大学课算「荣誉课供给」：只上学校自定荣誉课或 A-Level 的学生，按「基本没有」做情境化。伯克利看重 A-Level 等外部统考成绩，英语达标的 A-Level 学生在伯克利的区间上调（档位仍只到冲刺）。在美国读高中的国际生，不套用「不加权 GPA 3.85 以下下调」这条。</li>
@@ -1586,7 +1600,7 @@ function normalizeParsed(obj) {
     if (!['9','10','11','12'].includes(yr)) yr = yearFromText(yrRaw) || '';
     if (!['9','10','11','12'].includes(yr)) return;
     let type = String(c.type || 'reg').toLowerCase(); if (!TYPE_IDS.includes(type)) type = 'reg';
-    out.rows.push({ name: String(c.name || '').slice(0, 80), area, yr, type, s1: normGrade(c.s1), s2: normGrade(c.s2), check: !!c.check, note: c.note ? String(c.note).slice(0, 120) : '' });
+    out.rows.push({ name: String(c.name || '').slice(0, 80), area, yr, type, s1: normGrade(c.s1), s2: normGrade(c.s2), check: !!c.check, note: c.note ? String(c.note).slice(0, 120) : '', ...(c.src && typeof c.src === 'object' ? { src: c.src } : {}) });
   });
   out.scale = detectScale(out.rows, obj.scale);
   if (out.scale === 'percent') out.rows.forEach(r => { ['s1','s2'].forEach(k => { if (r[k] && !/^\d/.test(r[k]) && !/^([ABCD][+-]?|F|P)$/i.test(r[k])) r.check = true; }); });
@@ -1650,7 +1664,10 @@ function parseTable(rows) {
       const type = ci.type >= 0 && r[ci.type] ? guessType(r[ci.type] + ' ' + name) : guessType(name);
       let s1 = ci.s1 >= 0 ? normGrade(r[ci.s1]) : '', s2 = ci.s2 >= 0 ? normGrade(r[ci.s2]) : '';
       if (!s1 && !s2 && ci.fin >= 0) { s1 = normGrade(r[ci.fin]); s2 = s1; }
-      out.push({ name, area, yr, type, s1, s2, check: true });
+      const why = [];
+      if (!(ci.area >= 0 && /^[a-g]$/i.test(r[ci.area])) && !AREA_KW.some(([kk, re]) => kk !== 'skip' && re.test(name))) why.push('A–G 类别没认出，暂按 G 填');
+      if (!(ci.yr >= 0 && r[ci.yr]) && !y && !curYr) why.push('年级是推出来的');
+      out.push({ name, area, yr, type, s1, s2, check: why.length > 0, note: why.join('；') });
     }
     if (out.length) return { courses: out };
   }
@@ -1673,12 +1690,93 @@ function parseLines(text) {
   });
   return { courses: out };
 }
-/* 活动清单规范化与本地解析 */
+/* 活动清单规范化与本地解析
+   Excel / CSV / Word 里的活动表有三种常见排法，本地都能读：
+   ① 一行一条、有表头（表头可以出现多次，每个类别一段，类别列可以是合并单元格）；
+   ② 表单式竖排「字段名 | 内容」或「字段名：内容」，每条以名称开头；
+   ③ 只有一列的清单。
+   模板里的填写说明（如「加州活动分为 6 类…」、UC 页面上抄来的英文提示）、类别标题、示例行一律跳过，类别标题用来给下面的条目定类别。 */
+const ACT_SEC = [
+  ['award', /award|hono(u)?r|prize|奖项|荣誉|获奖/i],
+  ['edu', /educational prep|preparation program|pre-?college|summer (program|school)|教育准备|夏校/i],
+  ['course', /other course ?work|coursework|other courses|其他课程/i],
+  ['vol', /volunteer|community service|志愿|社区服务|公益/i],
+  ['work', /work experience|employment|\bjobs?\b|internship|工作经历|实习|兼职/i],
+  ['ec', /extra-?curricular|课外活动/i]
+];
+// 文字里只出现一个类别时才算类别标题（「类型包括：奖项荣誉、教育准备项目…」这种列了全部类别的说明不算）
+function actSecCat(t) { const hit = ACT_SEC.filter(([, re]) => re.test(t)).map(([k]) => k); return hit.length === 1 ? hit[0] : null; }
+const ACT_INSTR = /(分为\s*\d+\s*类|每类|最多\s*\d+\s*(个|条|项)|共计|类型包括|请(在|按|用|填|注意|勿|根据|务必)|填写(说明|要求|示例|方法)|^注[:：意]|^说明[:：]|示例|样例|例如|举例|e\.g\.|for example|\bexample\b|add and (briefly )?describe|tell us (about|more)|since (9th|ninth) grade|you('ve| have) (received|participated|done|completed)|\bplease\b|instructions?|\boptional\b|characters? (max|limit)|\d+\s*(characters?|字符|个字)(以内|内)?|不超过\s*\d+|up to \d+|if (you|applicable)|如有|如果有|可选填|可不填|最多填)/i;
+function actInstr(t) {
+  const s = String(t || '').trim(); if (!s) return false;
+  if (/^[-–—*•·※]\s*\S/.test(s) && s.length > 25) return true;
+  if (/^(示例|样例|例[:：]|例如|举例|e\.g\.|example)/i.test(s)) return true;
+  if (/分为\s*\d+\s*类|每类(不限|最多)|(最多|不超过|共计)\s*填?\s*\d+\s*(个|条|项)|类型包括|填写(说明|要求|示例)|^(注|说明)[:：]|add and (briefly )?describe|tell us about/i.test(s) && s.length >= 8) return true;
+  return ACT_INSTR.test(s) && s.length > 30;
+}
+// 字段名：顺序有讲究（「评选要求（写清分母）」归评选要求，「名称与角色」归名称，「Job title」归角色）
+const ACT_FIELDS = [
+  ['cat', /^(活动)?(类别|类型|分类)$|^(category|activity type|type of activity|type)$/i],
+  ['extra', /eligib|requirement|评选|资格|要求|organi[sz]ation description|description of (the )?(company|organi[sz]ation)|(机构|组织|公司|单位)\s*(说明|描述|介绍|简介)/i],
+  ['denom', /分母|选拔规模|获奖比例|获奖人数|参赛人数|out of|denominator|selectivity/i],
+  ['grades', /年级|grade level|\bgrades?\b|when awarded|year\(?s\)? (of )?participat/i],
+  ['hrs', /小时|hours?\s*(per|\/|a|each)\s*week|hrs?\s*\/\s*w|per week/i],
+  ['wks', /周数|weeks?\s*(per|\/|a|each)\s*year|wks?\s*\/\s*y|per year/i],
+  ['level', /级别|等级|level of recognition|recognition level|\blevel\b/i],
+  ['paid', /付费|收费|费用|\bpaid\b|\bcost\b|tuition/i],
+  ['name', /名称|名字|\bname\b/i],
+  ['role', /职位|角色|头衔|职务|\bposition\b|\brole\b|\btitle\b/i],
+  ['desc', /描述|说明|内容|职责|经历|做了什么|成果|what did you do|describe|description|responsibilit|achieve|\bdetails?\b/i],
+  ['name', /^(活动|奖项|项目|课程|机构|公司|荣誉)$|^(activity|award( or honou?r)?|honou?r|program(me)?|course|organi[sz]ation|company|employer)$/i]
+];
+function actField(t, loose) {
+  const s = String(t || '').replace(/[（(][^）)]{0,30}[）)]/g, ' ').replace(/[*＊:：?？]+\s*$/, '').trim();
+  if (!s || s.length > (loose ? 140 : 70) || (!loose && actInstr(s))) return null;
+  for (const [k, re] of ACT_FIELDS) if (re.test(s)) return k;
+  return null;
+}
+// 类别标题：去掉类别词和编号后几乎不剩别的字（「Award or honor」「1. 奖项荣誉」「志愿服务 Volunteering」）
+function actSecTitle(t) {
+  const s = String(t || '').trim(); if (!s || s.length > 60) return null;
+  const c = actSecCat(s); if (!c) return null;
+  const rest = s.replace(/[（(][^）)]*[）)]/g, '').replace(/awards?|hono(u)?rs?|\bor\b|\band\b|educational|preparation|programs?|pre-?college|other|course ?work|courses?|volunteer(ing)?|community|service|\bwork\b|experiences?|employment|jobs?|internships?|extra-?curricular|activit(y|ies)|section|category|part|奖项|荣誉|教育准备|项目|其他|课程|志愿|服务|社区|工作|经历|实习|兼职|课外|活动|第.{1,2}类|类别|类型|类/gi, '').replace(/[\s\d.、:：\-–—|,，;；·&/]+/g, '');
+  return rest.length <= 3 ? c : null;
+}
+function actGrades(v) {
+  const map = { '初三': '9', '高一': '10', '高二': '11', '高三': '12', freshman: '9', sophomore: '10', junior: '11', senior: '12' };
+  let s = String(v || '').replace(/初三|高一|高二|高三|freshman|sophomore|junior|senior/gi, m => ` ${map[m.toLowerCase()]} `);
+  s = s.replace(/(?<!\d)(9|10|11|12)\s*(?:年级)?\s*[-–—~至到]\s*(9|10|11|12)(?!\d)/g, (m, a, b) => { const o = []; for (let i = +a; i <= +b; i++) o.push(i); return ` ${o.join(' ')} `; });
+  return [...new Set(s.match(/(?<!\d)(9|10|11|12)(?!\d)/g) || [])].sort((a, b) => a - b);
+}
+function actNum(v) { const m = String(v ?? '').match(/\d+(\.\d+)?/); return m ? +m[0] : ''; }
+function actLevel(v) {
+  const t = String(v || '');
+  return /international|world|global|国际|世界|全球/i.test(t) ? 'intl' : /national|国家|全国/i.test(t) ? 'national' : /regional|region|地区|区域|大区|赛区/i.test(t) ? 'regional'
+    : /state|province|provincial|省|州/i.test(t) ? 'state' : /city|community|municipal|district|市|区|社区|县/i.test(t) ? 'city' : /school|校/i.test(t) ? 'school' : '';
+}
+function actPaid(v) { const t = String(v || '').trim(); return !!t && !/^(否|无|不|no|n|false|0|免费|free|unpaid|×|✗|-|—)$/i.test(t) && /^(是|有|yes|y|true|1|√|✓|✔|付费|paid)$|付费|收费|\bpaid\b|[$¥￥]\s*\d|\d\s*(元|美元|usd)/i.test(t); }
+function actGuessCat(t) {
+  return /奖|award|prize|medal|hono(u)?r|winner|finalist|semi-?final|scholar|distinction|入围|一等|二等|三等|金牌|银牌|铜牌|冠军|亚军|季军|优胜/i.test(t) ? 'award'
+    : /志愿|volunteer|community service|公益|支教/i.test(t) ? 'vol'
+    : /实习|intern|兼职|part-?time|\bjob\b|employ|打工/i.test(t) ? 'work'
+    : /夏校|summer (program|school|camp|session)|pre-?college|研学|research program|科研项目/i.test(t) ? 'edu'
+    : /online course|coursera|edx|大学课程|网课|college course|dual enrol/i.test(t) ? 'course' : 'ec';
+}
+function actEntry(f, cat) {
+  const clean = s => String(s || '').replace(/\s+\n/g, '\n').trim();
+  let name = clean(f.name).replace(/^\s*(\(?\d{1,2}[).、.]|[①-⑳])\s*/, '');
+  const role = clean(f.role);
+  if (role && !name.includes(role)) name = name ? (/[一-龥]/.test(name + role) ? `${name}（${role}）` : `${role}, ${name}`) : role;
+  const text = `${name} ${f.desc || ''}`;
+  const c = (f.cat && actSecCat(f.cat)) || cat || ((f.level || f.denom) ? 'award' : actGuessCat(text));
+  return { cat: c, name, grades: actGrades(f.grades), hrs: actNum(f.hrs), wks: actNum(f.wks), level: actLevel(f.level), denom: clean(f.denom), paid: actPaid(f.paid), extra: clean(f.extra), desc: clean(f.desc), check: true };
+}
 function normalizeActs(obj) {
   const out = { acts: [], notes: [] };
   const list = Array.isArray(obj) ? obj : (obj && Array.isArray(obj.entries) ? obj.entries : []);
   list.slice(0, 30).forEach(e => {
     if (!e || typeof e !== 'object') return;
+    if (actInstr(e.name) && !String(e.desc || '').trim() && !String(e.extra || '').trim()) return; // 模板里的填写说明不当条目
     let cat = String(e.cat || 'ec').toLowerCase(); if (!ACT_CATS[cat]) cat = 'ec';
     const grades = (Array.isArray(e.grades) ? e.grades : String(e.grades || '').split(/[,，\s]+/)).map(g => String(g).replace(/\D/g, '')).filter(g => ['9','10','11','12'].includes(g));
     let level = String(e.level || ''); if (!(level in AWARD_LEVELS)) level = '';
@@ -1687,35 +1785,101 @@ function normalizeActs(obj) {
   if (obj && Array.isArray(obj.notes)) out.notes = obj.notes.filter(n => typeof n === 'string').slice(0, 5);
   return out;
 }
-/* ---------- 活动清单：按「列画像」解析，不依赖表头文字，适配任意模板 ---------- */
-const ACT_LVL_KW = [['intl', /international|global|国际/i], ['national', /national|全国|国家/i], ['regional', /regional|地区/i], ['state', /state|provincial|省级|州级/i], ['city', /city|municipal|市级|社区|community/i], ['school', /school|校级|校内/i]];
-const ACT_CAT_LABEL = /^(奖项|荣誉|奖项荣誉|竞赛|获奖|比赛|awards?|honors?|honours?|competitions?|教育准备|学术预备|预备项目|学术项目|educational prep(aration)?( programs?)?|academic programs?|prep programs?|课外活动|活动|extracurricular(s| activities)?|其他课程|其它课程|课程|other coursework|coursework|courses?|志愿服务|社区服务|志愿|volunteer(ing)?( service)?|community service|工作经历|有偿工作|实习|工作|work experience|employment|jobs?|internships?)$/i;
-function mapCatLabel(t) {
-  const s = String(t || '').trim(); if (!s) return '';
-  if (/奖|award|honou?r|prize|medal|竞赛|比赛|contest|olympiad/i.test(s)) return 'award';
-  if (/志愿|volunt|community service|社区服务/i.test(s)) return 'vol';
-  if (/实习|工作|work|job|employ|\bintern(s|ship|ships)?\b/i.test(s)) return 'work';
-  if (/教育准备|学术预备|预备项目|夏校|summer|prep program|academic program/i.test(s)) return 'edu';
-  if (/其他课程|其它课程|课程|course/i.test(s)) return 'course';
-  if (/课外|extracurricular/i.test(s)) return 'ec';
-  return '';
+function parseActsTable(rows) {
+  const clean = rows.map(r => (r || []).map(c => String(c ?? '').replace(/\r/g, '').trim()));
+  const cellsOf = r => (r || []).map((t, i) => ({ t, i })).filter(c => c.t);
+  // 竖排单元格可能写成「字段名：内容」
+  const kv = t => { const m = String(t).match(/^([^：:\n]{1,60})[：:]\s*([\s\S]+)$/); if (!m) return null; const k = actField(m[1], true); return k ? [k, m[2].trim()] : null; };
+  const isHeader = cs => { const labs = cs.map(c => [c, actField(c.t)]).filter(x => x[1]); return labs.length >= 2 && labs.length >= cs.length - 1 && labs.some(x => x[1] === 'name' || x[1] === 'desc') ? labs : null; };
+  // 竖排表单：同一张表里至少有「名称」和另外两种字段写在行首
+  const formSeen = new Set(), wideSeen = new Set();
+  clean.forEach((r, ri) => { const cs = cellsOf(r); if (!cs.length || isHeader(cs)) return;
+    if (cs.length >= 2) { const k = actField(cs[0].t, true); if (k) { formSeen.add(k); if (cs.length >= 3) wideSeen.add(k); } }
+    else { const p = kv(cs[0].t); if (p) formSeen.add(p[0]); else { const k = actField(cs[0].t); const nx = cellsOf(clean[ri + 1]); if (k && nx.length === 1 && !actField(nx[0].t)) formSeen.add(k); } } });
+  const formOK = formSeen.has('name') && formSeen.size >= 3;
+  const wide = formOK && wideSeen.has('name') && wideSeen.size >= 2; // 横排表单：第一列是字段名，每一列是一条
+  const entries = []; let skipped = 0, cat = null, cols = null, carryCat = '', form = null, mode = '', tf = {};
+  const pushForm = () => {
+    if (form && form.name) entries.push(actEntry(form, cat)); form = null;
+    Object.keys(tf).sort((a, b) => a - b).forEach(i => { if (tf[i].name) entries.push(actEntry(tf[i], tf[i].cat ? null : cat)); }); tf = {};
+  };
+  for (let ri = 0; ri < clean.length; ri++) {
+    const r = clean[ri], cs = cellsOf(r); if (!cs.length) continue;
+    const joined = cs.map(c => c.t).join(' ');
+    const labs = isHeader(cs);
+    if (labs) { // 表头行（可以每个类别一段、重复出现）
+      pushForm(); cols = {}; labs.forEach(([c, k]) => { (cols[k] = cols[k] || []).push(c.i); }); carryCat = ''; mode = 'table';
+      const other = cs.find(c => !labs.some(x => x[0] === c)); if (other && actSecCat(other.t)) cat = actSecCat(other.t);
+      continue;
+    }
+    // 填写说明：跳过；说明里只提到一个类别（如从 UC 奖项页抄来的提示）就当类别标题
+    if (cs.some(c => actInstr(c.t)) && cs.every(c => actInstr(c.t) || /^\d{1,2}[.、]?$/.test(c.t) || actSecTitle(c.t))) { const sc = actSecCat(joined); if (sc) { pushForm(); cat = sc; } skipped++; continue; }
+    // 类别标题
+    if (cs.length <= 2 && cs.every(c => actSecTitle(c.t) || /^\d{1,2}[.、]?$/.test(c.t)) && cs.some(c => actSecTitle(c.t))) { pushForm(); cat = actSecTitle(cs.find(c => actSecTitle(c.t)).t); skipped++; continue; }
+    if (cols) { // 一行一条
+      const get = k => (cols[k] || []).map(i => r[i] || '').filter(Boolean).join('\n');
+      let name = get('name'); if (!name && !cols.name) name = cs[0].t;
+      let catCell = get('cat'); if (catCell) carryCat = catCell; else if (cols.cat) catCell = carryCat;
+      const filled = ['desc', 'extra', 'grades', 'hrs', 'wks', 'level', 'denom', 'role'].filter(k => get(k)).length;
+      if (!name) { // 没有名称：描述跨了好几行时并入上一条
+        const d = get('desc'); const last = entries[entries.length - 1];
+        if (d && last && !actInstr(d)) last.desc = last.desc ? `${last.desc}\n${d}` : d; else if (catCell && actSecCat(catCell)) cat = actSecCat(catCell);
+        continue;
+      }
+      if (actInstr(name) && filled <= 1) { const sc = actSecCat(name); if (sc) cat = sc; skipped++; continue; }
+      if (/^(示例|样例|例\s*[:：\d]|example|e\.g\.)/i.test(name) || /^[x×]{2,}$/i.test(name) || actField(name)) { skipped++; continue; }
+      if (!filled && name.length > 70) { skipped++; continue; }
+      entries.push(actEntry({ name, cat: catCell, role: get('role'), grades: get('grades'), hrs: get('hrs'), wks: get('wks'), level: get('level'), denom: get('denom'), paid: get('paid'), extra: get('extra'), desc: get('desc') }, cat));
+      continue;
+    }
+    if (formOK) { // 竖排表单
+      let k = null, v = '';
+      const fk = actField(cs[0].t, true);
+      if (fk && wide && cs.length >= 3) {
+        mode = 'form';
+        if (fk === 'name') { pushForm(); cs.slice(1).forEach(c => { tf[c.i] = { name: c.t }; }); }
+        else cs.slice(1).forEach(c => { const f = tf[c.i] = tf[c.i] || {}; f[fk] = f[fk] ? `${f[fk]}\n${c.t}` : c.t; });
+        continue;
+      }
+      if (fk && cs.length >= 2) { k = fk; v = cs.slice(1).map(c => c.t).join('\n'); }
+      else if (cs.length === 1 && kv(cs[0].t)) [k, v] = kv(cs[0].t);
+      else if (cs.length === 1 && actField(cs[0].t)) {
+        const nx = cellsOf(clean[ri + 1]);
+        if (nx.length === 1 && !actField(nx[0].t) && !actInstr(nx[0].t) && !actSecTitle(nx[0].t) && !kv(nx[0].t)) { k = actField(cs[0].t); v = nx[0].t; ri++; }
+        else { skipped++; continue; }
+      }
+      if (k) {
+        mode = 'form';
+        if (k === 'cat') { const sc = actSecCat(v); if (sc) { if (form && form.name) pushForm(); cat = sc; } continue; }
+        if (k === 'name' && form && form.name) pushForm();
+        form = form || {}; form[k] = form[k] ? `${form[k]}\n${v}` : v;
+        continue;
+      }
+      if (form && cs.length === 1) { form.desc = form.desc ? `${form.desc}\n${cs[0].t}` : cs[0].t; continue; } // 接在上一格后面的长段落
+      continue;
+    }
+    // 只有一列（或没有表头）的清单：每行一条
+    const t = cs.map(c => c.t).filter(x => !/^\d{1,2}[.、]?$/.test(x));
+    if (!t.length || (t.length === 1 && t[0].length <= 3)) continue;
+    if (/^(示例|样例|例\s*[:：\d]|example|e\.g\.)/i.test(t[0])) { skipped++; continue; }
+    if (!entries.length && t.length === 1 && /(活动|奖项|荣誉|activit|award|hono).{0,8}(清单|列表|一览|汇总|\blist\b)|^(activities|awards|honou?rs|resume|简历)$/i.test(t[0])) { skipped++; continue; }
+    mode = mode || 'list';
+    entries.push(actEntry({ name: t[0].length > 60 && t.length === 1 ? t[0].slice(0, 60) : t[0], desc: t.length > 1 ? t.slice(1).join('\n') : (t[0].length > 60 ? t[0] : '') }, cat));
+  }
+  pushForm();
+  return { entries, skipped, mode };
 }
-function expandGrades(s) {
-  const t = String(s ?? '').trim();
+/* ---------- 补充解析：按「列画像」判断列角色，列顺序 / 表头写法随便换也能读 ---------- */
+function colGrades(v) {
+  const t = String(v ?? '').trim();
   if (!t || t.length > 60) return [];
   if (/(?:19|20)\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}\/\d{4}/.test(t)) return [];
-  const out = new Set();
+  const out = new Set(actGrades(t));
   const rng = t.match(/(\d{1,2})\s*[-–—~至到]\s*(\d{1,2})/);
   if (rng) { let a = +rng[1], b = +rng[2]; if (a > b) { const x = a; a = b; b = x; } for (let i = Math.max(a, 9); i <= Math.min(b, 12); i++) out.add(String(i)); }
-  (t.match(/(?<!\d)(9|10|11|12)(?!\d)/g) || []).forEach(g => out.add(g));
-  if (/freshman|9th/i.test(t)) out.add('9');
-  if (/sophomore|10th/i.test(t)) out.add('10');
-  if (/\bjunior\b|11th/i.test(t)) out.add('11');
-  if (/\bsenior\b|12th/i.test(t)) out.add('12');
-  if (/初三/.test(t)) out.add('9'); if (/高一/.test(t)) out.add('10'); if (/高二/.test(t)) out.add('11'); if (/高三/.test(t)) out.add('12');
-  return [...out].sort((a, b) => +a - +b);
+  return [...out].sort((x, y) => +x - +y);
 }
-function parseHrsWks(s) {
+function colHrsWks(s) {
   const t = String(s ?? '').trim(); let hrs = '', wks = '';
   if (!t) return { hrs, wks };
   const h = t.match(/(\d+(?:\.\d+)?)\s*(?:hrs?|hours?|小时)/i);
@@ -1726,110 +1890,93 @@ function parseHrsWks(s) {
   if (hrs !== '' && wks !== '' && hrs > 80) { const x = hrs; hrs = wks; wks = x; }
   return { hrs, wks };
 }
-function tblClean(rows) { return (rows || []).map(r => (r || []).map(c => String(c ?? '').replace(/\s+/g, ' ').trim())).filter(r => r.some(Boolean)); }
-function colVals(clean, from, j) { const v = []; for (let i = from; i < clean.length; i++) { const x = (clean[i][j] || '').trim(); if (x) v.push(x); } return v; }
-function profileCol(v) {
+function colProfile(v) {
   const n = v.length; if (!n) return null;
   const bare = v.map(x => x.replace(/^[#＃]\s*/, '').replace(/^(\d{1,3})[.。、)）]$/, '$1'));
-  const nums = bare.filter(x => /^\d{1,3}(?:\.\d+)?$/.test(x));
   const ints = bare.filter(x => /^\d{1,3}$/.test(x)).map(Number);
   const seq = n >= 2 && ints.length === n && ints.every((x, i) => x === i + 1);
   const alpha = v.filter(x => /[A-Za-z\u4e00-\u9fa5]/.test(x)).length / n;
-  const gr = v.filter(x => x.length <= 24 && (/^\d{1,2}$/.test(x) ? (+x >= 9 && +x <= 12) : expandGrades(x).length > 0)).length;
+  const gr = v.filter(x => x.length <= 24 && (/^\d{1,2}$/.test(x) ? (+x >= 9 && +x <= 12) : colGrades(x).length > 0)).length;
   const hw = v.filter(x => /\d\s*(?:hrs?|hours?|wks?|weeks?|小时|周)/i.test(x)).length;
   const uniq = new Set(v.map(x => x.toLowerCase())).size;
-  return { n, alpha, seq, numRatio: nums.length / n, longRatio: v.filter(x => x.length >= 60).length / n, gradeRatio: gr / n, hwRatio: hw / n, uniqRatio: uniq / n, avgLen: v.reduce((s, x) => s + x.length, 0) / n };
+  return { n, alpha, seq, numRatio: bare.filter(x => /^\d{1,3}(?:\.\d+)?$/.test(x)).length / n, longRatio: v.filter(x => x.length >= 60).length / n, gradeRatio: gr / n, hwRatio: hw / n, uniqRatio: uniq / n, avgLen: v.reduce((s, x) => s + x.length, 0) / n };
 }
-function findHeaderRow(clean) {
-  const lim = Math.min(clean.length, 12);
-  for (let i = 0; i < lim; i++) {
-    const r = clean[i];
-    const txt = r.filter(c => c && c.length <= 70 && !/^\d+(?:\.\d+)?$/.test(c));
-    if (txt.length >= 2 && !r.some(c => /^\d+(?:\.\d+)?$/.test(c))) return i;
-  }
-  return -1;
-}
-function actsTableCat(text) {
-  if (/award|honou?r|奖项|荣誉/i.test(text)) return 'award';
-  if (/volunteer|community service|志愿|社区服务/i.test(text)) return 'vol';
-  if (/coursework|course name|其他课程|其它课程|课程名/i.test(text)) return 'course';
-  if (/prep program|educational prep|academic program|预备|夏校|summer program/i.test(text)) return 'edu';
-  if (/\bwork\b|job|employer|internship|实习|工作经历/i.test(text)) return 'work';
-  return 'ec';
-}
-function parseActsTable(rows) {
-  const clean = tblClean(rows);
-  if (!clean.length) return { entries: [] };
+const COL_CAT_LABEL = /^(奖项|荣誉|奖项荣誉|竞赛|获奖|比赛|awards?|honors?|honours?|competitions?|教育准备|学术预备|预备项目|学术项目|educational prep(aration)?( programs?)?|academic programs?|prep programs?|课外活动|活动|extracurricular(s| activities)?|其他课程|其它课程|课程|other coursework|coursework|courses?|志愿服务|社区服务|志愿|volunteer(ing)?( service)?|community service|工作经历|有偿工作|实习|工作|work experience|employment|jobs?|internships?)$/i;
+function parseActsTableByCols(rows) {
+  const clean = (rows || []).map(r => (r || []).map(c => String(c ?? '').replace(/\s+/g, ' ').trim())).filter(r => r.some(Boolean));
+  if (!clean.length) return { entries: [], skipped: 0, mode: 'cols' };
   const hint = [rows && rows.title, rows && rows.sheet, rows && rows.name].filter(Boolean).join(' ');
-  const hdrIdx = findHeaderRow(clean);
+  const colValsOf = (from, j) => { const v = []; for (let i = from; i < clean.length; i++) { const x = (clean[i][j] || '').trim(); if (x) v.push(x); } return v; };
+  const HDRKW = /名称|活动|项目|组织|奖项|荣誉|描述|说明|职责|内容|年级|时长|小时|周|类别|级别|类型|序号|name|activit|program|organi[sz]|award|honou?r|describ|description|detail|responsibilit|what did you do|grade|hrs|hours|wks|weeks|level|type|categor|employer|company|title|#/i;
+  let hdrIdx = -1;
+  for (let i = 0; i < Math.min(clean.length, 12); i++) {
+    const r = clean[i];
+    if (r.some(c => /^\d+(?:\.\d+)?$/.test(c))) continue;
+    const txt = r.filter(c => c);
+    if (i >= clean.length - 1) break;
+    if (txt.length >= 2 && txt.every(c => c.length <= 40) && r.some(c => HDRKW.test(c))) { hdrIdx = i; break; }
+  }
   const from = hdrIdx >= 0 ? hdrIdx + 1 : 0;
   let width = 0; clean.forEach(r => { if (r.length > width) width = r.length; });
   const hdr = hdrIdx >= 0 ? clean[hdrIdx] : [];
-  const prof = []; for (let j = 0; j < width; j++) prof.push(profileCol(colVals(clean, from, j)));
+  const prof = []; for (let j = 0; j < width; j++) prof.push(colProfile(colValsOf(from, j)));
   const R = { seq: [], grade: [], time: [], desc: [], cat: [], name: [] };
   prof.forEach((p, j) => {
     if (!p) return;
-    const hc = String(hdr[j] || '');
-    const vals = colVals(clean, from, j);
-    const tHdr = /hrs?|hours?|wks?|weeks?|小时|周|per\s*week/i.test(hc);
-    const gHdr = /grade|年级|学年/i.test(hc) && !/wk|week|yr\b|year/i.test(hc);
-    const catHdr = vals.length && p.avgLen <= 20 && vals.every(x => ACT_CAT_LABEL.test(x));
-    const dHdr = /描述|说明|简介|介绍|职责|describe|description|detail|responsibilit|what did you do/i.test(hc);
+    const hc = String(hdr[j] || ''), vals = colValsOf(from, j);
+    const tHdr = /hrs?|hours?|wks?|weeks?|小时|周|时长|per\s*week/i.test(hc);
+    const gHdr = /grade|年级|学年/i.test(hc) && !/wk|week|yr\b|year|时长/i.test(hc);
+    const dHdr = /描述|说明|简介|介绍|职责|内容|describe|description|detail|responsibilit|what did you do/i.test(hc);
+    const nHdr = /名称|活动|项目|组织|奖项|荣誉|name|activit|program|organi[sz]|award|honou?r|employer|company|title/i.test(hc);
+    const catHdr = vals.length && p.avgLen <= 20 && vals.every(x => COL_CAT_LABEL.test(x));
     if (p.seq) { R.seq.push(j); return; }
     if (catHdr) { R.cat.push(j); return; }
     if (dHdr) { R.desc.push(j); return; }
-    if (tHdr || p.hwRatio >= 0.5) { R.time.push(j); return; }
+    if (nHdr) { R.name.push(j); return; }
+    if (tHdr || (p.hwRatio >= 0.5 && p.avgLen <= 25)) { R.time.push(j); return; }
     if (gHdr || (p.gradeRatio >= 0.6 && p.alpha < 0.5 && p.avgLen <= 24)) { R.grade.push(j); return; }
     if (p.longRatio >= 0.5 || p.avgLen >= 80) { R.desc.push(j); return; }
-    if (p.alpha >= 0.8 && p.avgLen >= 3 && p.uniqRatio > 0.5) { R.name.push(j); return; }
+    if (p.alpha >= 0.8 && p.avgLen >= 2 && p.uniqRatio > 0.5) { R.name.push(j); return; }
     R.cat.push(j);
   });
-  const tableCat = actsTableCat(hint + ' ' + hdr.join(' '));
-  const nameJ = R.name.length ? R.name[0] : -1;
-  const gradeJ = R.grade.length ? R.grade[0] : -1;
-  // 时长列补漏：数值型、短、且不是年级
   if (!R.time.length) {
-    const cand = prof.map((p, j) => ({ j, p })).filter(x => x.p && x.j !== nameJ && x.j !== gradeJ && !R.seq.includes(x.j) && x.p.numRatio >= 0.8 && x.p.avgLen <= 8);
+    const cand = prof.map((p, j) => ({ j, p })).filter(x => x.p && !R.seq.includes(x.j) && !R.grade.includes(x.j) && !R.desc.includes(x.j) && x.p.numRatio >= 0.8 && x.p.avgLen <= 8);
     if (cand.length) { R.time.push(cand[0].j); if (cand[1]) R.time.push(cand[1].j); }
   }
-  // 描述列补漏：最宽的一列
-  if (!R.desc.length) {
-    const cand = prof.map((p, j) => ({ j, p })).filter(x => x.p && x.j !== nameJ && x.j !== gradeJ && !R.time.includes(x.j) && !R.seq.includes(x.j) && x.p.avgLen >= 15);
-    if (cand.length) { cand.sort((a, b) => b.p.avgLen - a.p.avgLen); R.desc.push(cand[0].j); }
-  }
-  const descJ = R.desc.length ? R.desc.slice().sort((a, b) => (prof[b] ? prof[b].avgLen : 0) - (prof[a] ? prof[a].avgLen : 0))[0] : -1;
-  const extraJ = R.desc.filter(j => j !== descJ);
-  const timeJ = R.time.slice();
-  const lvlCand = [...R.cat, ...R.name].filter(j => j !== nameJ && (() => { const v = colVals(clean, from, j); return v.length && v.length <= 8 && v.every(x => x.length <= 24) && v.every(x => ACT_LVL_KW.some(([, re]) => re.test(x))); })());
+  const tableCat = actSecCat(hint) || actSecCat(hdr.join(' ')) || '';
+  let nameJ = -1;
+  for (const j of R.name) { if (prof[j].avgLen <= 40) { nameJ = j; break; } }
+  if (nameJ < 0 && R.name.length) nameJ = R.name[0];
+  if (nameJ < 0) { for (let j = 0; j < width; j++) { if (prof[j] && !R.seq.includes(j) && prof[j].alpha >= 0.5) { nameJ = j; break; } } }
+  if (nameJ < 0) return { entries: [], skipped: 0, mode: 'cols' };
+  let descJ = -1;
+  const dpool = [...R.desc, ...R.name.filter(j => j !== nameJ), ...R.cat];
+  const duniq = [...new Set(dpool)].filter(j => j !== nameJ && prof[j]);
+  if (R.desc.filter(j => j !== nameJ).length) { const c = R.desc.filter(j => j !== nameJ).map(j => ({ j, p: prof[j] })).sort((a, b) => b.p.avgLen - a.p.avgLen); descJ = c[0].j; }
+  else if (duniq.length) { const c = duniq.map(j => ({ j, p: prof[j] })).filter(x => x.p.avgLen >= 20).sort((a, b) => b.p.avgLen - a.p.avgLen); if (c.length) descJ = c[0].j; }
+  const lvlCand = [...new Set([...R.cat, ...R.name])].filter(j => j !== nameJ && j !== descJ && (() => { const v = colValsOf(from, j); return v.length && v.length <= 8 && v.every(x => x.length <= 24) && v.every(x => actLevel(x)); })());
   const lvlJ = lvlCand.length ? lvlCand[0] : -1;
-  const catJraw = R.cat.find(j => j !== lvlJ && colVals(clean, from, j).some(v => mapCatLabel(v)));
+  const catJraw = R.cat.find(j => j !== lvlJ && j !== descJ && j !== nameJ && colValsOf(from, j).some(v => actSecCat(v)));
   const catJ = catJraw === undefined ? -1 : catJraw;
-  const entries = [];
-  if (nameJ < 0) {
-    clean.forEach(r => {
-      const t = r.filter(Boolean).join(' ').trim();
-      if (t.length < 4) return;
-      if (/^(e\.?g\.?|example|示例|例子)/i.test(t)) return;
-      entries.push({ cat: mapCatLabel(t) || tableCat, name: t.slice(0, 90), desc: t.length > 90 ? t.slice(90) : '', extra: '', grades: [], hrs: '', wks: '', level: '', check: true });
-    });
-    return { entries };
-  }
+  const gradeJ = R.grade.length ? R.grade[0] : -1;
+  const skipJ = new Set([nameJ, descJ, lvlJ, catJ, gradeJ, ...R.seq, ...R.time]);
+  const extraJ = [];
+  for (let j = 0; j < width; j++) { if (!skipJ.has(j) && prof[j] && colValsOf(from, j).length) extraJ.push(j); }
+  const entries = []; let skipped = 0;
   for (let i = from; i < clean.length; i++) {
     const r = clean[i];
     const name = String(r[nameJ] || '').trim();
     if (!name) continue;
-    if (/^(e\.?g\.?|example|示例|例子|请填写|填写)/i.test(name)) continue;
-    if (name.replace(/[\d\s.、,，]/g, '').length < 1) continue;
-    const cat = mapCatLabel(catJ >= 0 ? r[catJ] : '') || (tableCat !== 'ec' ? tableCat : (mapCatLabel(name) || 'ec'));
-    const tv = timeJ.map(j => String(r[j] || '').trim()).filter(Boolean);
+    if (actInstr(name) || /^(e\.?g\.?|example|示例|例子|请填写|填写)/i.test(name)) { skipped++; continue; }
+    if (name.replace(/[\d\s.、,，]/g, '').length < 1) { skipped++; continue; }
+    const c = (catJ >= 0 ? actSecCat(r[catJ]) : null) || tableCat || actGuessCat(name + ' ' + (descJ >= 0 ? r[descJ] : ''));
+    const tv = R.time.map(j => String(r[j] || '').trim()).filter(Boolean);
     let hrs = '', wks = '';
-    if (tv.length === 1) { const p = parseHrsWks(tv[0]); hrs = p.hrs; wks = p.wks; if (hrs === '' && wks === '') { const m = tv[0].match(/\d+(?:\.\d+)?/); if (m) hrs = +m[0]; } }
-    else if (tv.length >= 2) { const p = parseHrsWks(tv[0]); if (p.hrs !== '' || p.wks !== '') { hrs = p.hrs; wks = p.wks; } else { const a = tv[0].match(/\d+(?:\.\d+)?/), b = tv[1].match(/\d+(?:\.\d+)?/); if (a) hrs = +a[0]; if (b) wks = +b[0]; } }
-    let level = '';
-    if (lvlJ >= 0) { const lv = String(r[lvlJ] || ''); const hit = ACT_LVL_KW.find(([, re]) => re.test(lv)); if (hit) level = hit[0]; }
-    entries.push({ cat, name: name.slice(0, 120), grades: gradeJ >= 0 ? expandGrades(r[gradeJ]) : [], hrs, wks, level, desc: descJ >= 0 ? String(r[descJ] || '') : '', extra: extraJ.length ? extraJ.map(j => String(r[j] || '')).filter(Boolean).join('  ') : '', check: true });
+    if (tv.length === 1) { const p = colHrsWks(tv[0]); hrs = p.hrs; wks = p.wks; if (hrs === '' && wks === '') hrs = actNum(tv[0]); }
+    else if (tv.length >= 2) { const p = colHrsWks(tv[0]); if (p.hrs !== '' || p.wks !== '') { hrs = p.hrs; wks = p.wks; } else { hrs = actNum(tv[0]); wks = actNum(tv[1]); } }
+    entries.push({ cat: c, name: name.slice(0, 120), grades: gradeJ >= 0 ? colGrades(r[gradeJ]) : [], hrs, wks, level: lvlJ >= 0 ? actLevel(r[lvlJ]) : '', denom: '', paid: false, extra: extraJ.map(j => String(r[j] || '')).filter(Boolean).join('  '), desc: descJ >= 0 ? String(r[descJ] || '') : '', check: true });
   }
-  return { entries };
+  return { entries, skipped, mode: 'cols' };
 }
 /* ---------- 换算表、课程供给、AP 证据、专业归类 ---------- */
 const CUT_PRESETS = { us: { A:90, B:80, C:70, D:60 }, cn: { A:85, B:70, C:60, D:0 } };
@@ -2465,6 +2612,8 @@ Rules:
 - grades: US grade levels "9"-"12" (高一=10, 高二=11, 高三=12; UK Year N = N-1). hrs = hours per week, wks = weeks per year, numbers or null if not stated.
 - level and denom only for awards: denom is the selectivity as stated (e.g. "前 20 / 3000 人"); never invent one.
 - paid: true only if the text says it is a paid program.
+- The file may be a fill-in template: skip instruction text (lines explaining how many entries or categories are allowed, prompts copied from the UC site such as "-Add and briefly describe any honors/awards…"), section titles, column headers, empty numbered rows and example rows. Never use an instruction sentence as an entry name.
+- name is the activity / award name plus the student's role, at most 60 characters as written by the student; put longer explanations in desc.
 - Never invent entries. Set check:true when you guessed the category or grades.
 - notes: up to 3 short reminders in Chinese.`;
 
@@ -2608,6 +2757,34 @@ function gradeCell(r, k) {
   }
   return `<input class="grade" type="text" inputmode="decimal" maxlength="5" data-id="${r.id}" data-k="${k}" id="g-${r.id}-${k}" value="${esc(v)}" aria-label="${lab}">`;
 }
+/* ---------------- 本机识别的成绩单：在表格里逐行对照原件 ----------------
+   只有拿不准的行标黄（写明原因），黄行下面直接放原件截图、框出看不清或改过的格子；其余行可一键全部显示原件抽查。
+   截图只存在本次打开的页面里，不保存、不上传。 */
+var OCR_SHOW_ALL = false;
+function ocrSnipOK(r) { return !!(r && r.src && r.src.sid && r.src.sid === OCR_SID && OCR_SNAPS[r.src.p]); }
+function ocrSnipRow(r) {
+  if (!ocrSnipOK(r) || !(r.check || OCR_SHOW_ALL)) return '';
+  const sp = OCR_SNAPS[r.src.p], f = sp.f, s = r.src, pad = Math.max(6, Math.round((s.y1 - s.y0) * 0.35));
+  const x0 = Math.max(0, Math.round((s.x0 - pad * 2) * f)), y0 = Math.max(0, Math.round((s.y0 - pad) * f));
+  const x1 = Math.min(sp.w, Math.round((s.x1 + pad * 2) * f)), y1 = Math.min(sp.h, Math.round((s.y1 + pad) * f));
+  const w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0), pc = (v, of) => (v / of * 100).toFixed(3) + '%';
+  // 截图按表格宽度等比缩放（成绩矩阵一行很长时也能一眼看全）；红框是看不清或自动改过的格子
+  const hi = (s.hi || []).map(b => `<span class="snip-hi" style="left:${pc(b[0] * f - x0, w)};top:${pc(b[1] * f - y0, h)};width:${pc((b[2] - b[0]) * f, w)};height:${pc((b[3] - b[1]) * f, h)}"></span>`).join('');
+  const meta = r.check
+    ? `<span class="snip-why">${esc(r.note || '请对照原件核对')}</span><button class="btn small" type="button" data-ok="${r.id}">核对无误</button>`
+    : '<span class="snip-why ok">原件</span>';
+  return `<tr class="snip-tr${r.check ? ' flag' : ''}"><td colspan="7"><div class="snip-box">
+    <div class="snip-scroll"><div class="snip" role="img" aria-label="原件截图：${esc(r.name || '')}" style="width:min(100%, ${w}px);aspect-ratio:${w} / ${h}"><img src="${sp.url}" alt="" style="width:${pc(sp.w, w)};left:${pc(-x0, w)};top:${pc(-y0, h)}">${hi}</div></div>
+    <div class="snip-meta">${meta}</div></div></td></tr>`;
+}
+function renderOcrBar() {
+  const el = $('ocrBar'); if (!el) return;
+  if (!S.rows.some(ocrSnipOK)) { el.hidden = true; el.innerHTML = ''; return; }
+  const n = S.rows.filter(r => r.check).length;
+  el.hidden = false;
+  el.innerHTML = `<span>${n ? `<strong>${n} 行待核对。</strong>黄色行下面是原件截图，红框是看不清或自动改过的格子；对照后点「核对无误」，有错直接改。` : '<strong>标黄的行都已核对。</strong>其余行是识别把握较高的，可以显示原件抽查。'}</span>
+    <span class="ocr-bar-btns"><button class="btn small" type="button" data-ocr="all" aria-pressed="${OCR_SHOW_ALL}">${OCR_SHOW_ALL ? '只看待核对行的原件' : '每行都显示原件'}</button>${n ? '<button class="btn small" type="button" data-ocr="okall">全部核对无误</button>' : ''}</span>`;
+}
 function renderRows() {
   $('txBody').innerHTML = S.rows.map(r => {
     const hon = honorsEligible(r.type, S.res) && (r.yr === '10' || r.yr === '11');
@@ -2617,8 +2794,9 @@ function renderRows() {
       <td class="c-yr"><select data-id="${r.id}" data-k="yr" id="y-${r.id}" aria-label="年级"><option value="9"${r.yr==='9'?' selected':''}>9 年级</option><option value="10"${r.yr==='10'?' selected':''}>10 年级＋暑期</option><option value="11"${r.yr==='11'?' selected':''}>11 年级＋暑期</option><option value="12"${r.yr==='12'?' selected':''}>12 年级</option></select></td>
       <td class="c-type"><div class="type-wrap"><select data-id="${r.id}" data-k="type" id="t-${r.id}" aria-label="课程类型">${TYPE_IDS.map(t => `<option value="${t}"${t === r.type ? ' selected' : ''}>${TYPE_LABEL[t]}</option>`).join('')}</select><span class="hon-dot${hon ? '' : ' off'}" title="${hon ? '可拿荣誉加分' : ''}"></span></div></td>
       <td class="c-g">${gradeCell(r, 's1')}</td><td class="c-g">${gradeCell(r, 's2')}</td>
-      <td class="c-x"><button class="icon-btn" type="button" data-del="${r.id}" aria-label="删除 ${esc(r.name || '这门课')}">×</button></td></tr>`;
+      <td class="c-x"><button class="icon-btn" type="button" data-del="${r.id}" aria-label="删除 ${esc(r.name || '这门课')}">×</button></td></tr>${ocrSnipRow(r)}`;
   }).join('');
+  renderOcrBar();
 }
 
 /* ---------------- AP / IB 考试、情境提示、各校申报专业 ---------------- */
@@ -3932,7 +4110,7 @@ let sampleLimits = null, SAMPLE_FN = null;
 samplePromise.then(async s => {
   SAMPLE_FN = s;
   if (!s) {
-    const base = '当前环境不能调用 Claude：照片、截图和扫描版 PDF 改在本机识别（文件不上传），识别后请逐行核对。截图可先点一下页面空白处，再按 Ctrl+V（Mac 按 ⌘V）粘贴。';
+    const base = '当前环境不能调用 Claude：照片、截图和扫描版 PDF 改在本机识别（文件不上传），识别后核对标黄的行即可（每行附原件截图）。截图可先点一下页面空白处，再按 Ctrl+V（Mac 按 ⌘V）粘贴。';
     document.querySelectorAll('.aiHint').forEach(el => { el.textContent = base; });
     if (typeof ocrDirCheck === 'function') ocrDirCheck().then(ok => { if (!ok) document.querySelectorAll('.aiHint').forEach(el => { el.textContent = base + '没找到同目录的 ocr 文件夹：识别时会从网络加载组件（需要联网）；离线使用请把压缩包整个解压，再打开里面的 index.html。'; }); });
     ['aiActBtn'].forEach(id => { $(id).disabled = true; });
@@ -3948,7 +4126,7 @@ const ERR_MSG = { not_granted: '你没有允许本页调用 Claude。', rate_lim
    直接双击打开（file://）、放在内网或网站上、在线版都能读到。目录缺失时改从网络取：国内镜像 → 公共 CDN。 */
 const OCR_DIR = 'ocr/';
 const OCR_FILES = { lib: 'tesseract.min.js', worker: 'ocr-worker.js', core: 'ocr-core.js', eng: 'ocr-eng.js', chi: 'ocr-chi.js' };
-const OCR_NPM = (pkg, ver, path) => [`https://cdn.npmmirror.com/packages/${pkg}/${ver}/files/${path}`, `https://registry.npmmirror.com/${pkg}/${ver}/files/${path}`, `https://cdn.jsdelivr.net/npm/${pkg}@${ver}/${path}`, `https://unpkg.com/${pkg}@${ver}/${path}`];
+const OCR_NPM = (pkg, ver, path) => [`https://registry.npmmirror.com/${pkg}/${ver}/files/${path}`, `https://cdn.jsdelivr.net/npm/${pkg}@${ver}/${path}`, `https://unpkg.com/${pkg}@${ver}/${path}`];
 const OCR_NET = {
   lib: OCR_NPM('tesseract.js', '6.0.1', 'dist/tesseract.min.js'),
   worker: OCR_NPM('tesseract.js', '6.0.1', 'dist/worker.min.js'),
@@ -4027,19 +4205,67 @@ async function ocrWorker(onProg) {
   return OCR_WORKER;
 }
 let OCR_WORKER_PAGE = null;
-// 预处理：小截图放大 → 灰度 → 用自动阈值找出表格横线与竖线并擦掉（表格线会让识别整行乱码）→ 浅色底纹提亮
+// 预处理：小截图放大 → 灰度 → 去阴影（按局部底色拉平光照）→ 纠正拍歪的角度 → 用自动阈值找出表格横线与竖线并擦掉（表格线会让识别整行乱码）→ 浅色底纹提亮
+// 同时留一张纠正角度后的彩色缩略图，用来在成绩表里逐行对照原件
+function ocrOtsu(g) {
+  const hist = new Array(256).fill(0); for (let p = 0; p < g.length; p++) hist[g[p]]++;
+  let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
+  let sB = 0, wB = 0, best = 0, th = 160;
+  for (let t = 0; t < 256; t++) { wB += hist[t]; if (!wB) continue; const wF = g.length - wB; if (!wF) break; sB += t * hist[t]; const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF); if (v > best) { best = v; th = t; } }
+  return th;
+}
+// 光照拉平：每 32×32 块取亮部（第 92 百分位）当底色，平滑后逐点除掉
+function ocrFlatten(g, W, H) {
+  const B = 32, bw = Math.ceil(W / B), bh = Math.ceil(H / B), bg = new Float32Array(bw * bh);
+  for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+    const h = new Uint32Array(256); let n = 0;
+    for (let y = by * B; y < Math.min(H, by * B + B); y += 2) for (let x = bx * B; x < Math.min(W, bx * B + B); x += 2) { h[g[y * W + x]]++; n++; }
+    let acc = 0, t = 255; const want = n * 0.92; for (let v = 0; v < 256; v++) { acc += h[v]; if (acc >= want) { t = v; break; } }
+    bg[by * bw + bx] = Math.max(t, 60);
+  }
+  const sm = new Float32Array(bw * bh);
+  for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) { let s = 0, n = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const yy = by + dy, xx = bx + dx; if (yy < 0 || xx < 0 || yy >= bh || xx >= bw) continue; s += bg[yy * bw + xx]; n++; } sm[by * bw + bx] = s / n; }
+  for (let y = 0; y < H; y++) {
+    const fy = Math.min(bh - 1, Math.max(0, y / B - 0.5)), y0 = Math.floor(fy), y1 = Math.min(bh - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < W; x++) {
+      const fx = Math.min(bw - 1, Math.max(0, x / B - 0.5)), x0 = Math.floor(fx), x1 = Math.min(bw - 1, x0 + 1), tx = fx - x0;
+      const b = (sm[y0 * bw + x0] * (1 - tx) + sm[y0 * bw + x1] * tx) * (1 - ty) + (sm[y1 * bw + x0] * (1 - tx) + sm[y1 * bw + x1] * tx) * ty;
+      const p = y * W + x; g[p] = Math.min(255, Math.round(g[p] * 255 / b));
+    }
+  }
+}
+// 角度：在 ±6° 内找让深色像素按行最「集中」的角度（投影方差最大）
+function ocrSkew(g, W, H) {
+  const th = ocrOtsu(g), pts = [], st = Math.max(2, Math.round(Math.sqrt(W * H / 250000)));
+  for (let y = 0; y < H; y += st) for (let x = 0; x < W; x += st) if (g[y * W + x] <= th) pts.push(x, y);
+  if (pts.length < 400) return 0;
+  // 按采样步长分箱：否则 0° 时采样网格正好落在每隔几行的箱子里，分数虚高
+  const score = a => { const t = Math.tan(a * Math.PI / 180), off = Math.ceil(Math.abs(t) * W / st) + 2, hist = new Float64Array(Math.ceil(H / st) + 2 * off + 2); for (let i = 0; i < pts.length; i += 2) hist[Math.round((pts[i + 1] - pts[i] * t) / st) + off]++; let s = 0; for (let i = 0; i < hist.length; i++) s += hist[i] * hist[i]; return s; };
+  let best = 0, bs = -1;
+  for (let a = -6; a <= 6.001; a += 0.5) { const v = score(a); if (v > bs) { bs = v; best = a; } }
+  for (let a = best - 0.45; a <= best + 0.451; a += 0.1) { const v = score(a); if (v > bs) { bs = v; best = a; } }
+  return Math.abs(best) < 0.3 ? 0 : best;
+}
 async function ocrPrep(blob) {
   const bmp = await createImageBitmap(blob);
   const k = bmp.width < 1400 ? Math.min(2.5, 1800 / bmp.width) : Math.min(1, 2600 / bmp.width);
   const W = Math.round(bmp.width * k), H = Math.round(bmp.height * k);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.drawImage(bmp, 0, 0, W, H);
-  const im = ctx.getImageData(0, 0, W, H), d = im.data, g = new Uint8Array(W * H), hist = new Array(256).fill(0);
-  for (let i = 0, p = 0; p < g.length; i += 4, p++) { const v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000 | 0; g[p] = v; hist[v]++; }
-  // Otsu 阈值
-  let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
-  let sB = 0, wB = 0, best = 0, th = 160;
-  for (let t = 0; t < 256; t++) { wB += hist[t]; if (!wB) continue; const wF = g.length - wB; if (!wF) break; sB += t * hist[t]; const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF); if (v > best) { best = v; th = t; } }
+  let im = ctx.getImageData(0, 0, W, H), d = im.data, g = new Uint8Array(W * H);
+  for (let i = 0, p = 0; p < g.length; i += 4, p++) g[p] = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000 | 0;
+  ocrFlatten(g, W, H);
+  const ang = ocrSkew(g, W, H);
+  // 对照用缩略图：彩色原图按同一角度转正
+  const SW = Math.min(W, 1600), f = SW / W, snap = document.createElement('canvas'); snap.width = SW; snap.height = Math.round(H * f);
+  { const sx = snap.getContext('2d'); sx.fillStyle = '#fff'; sx.fillRect(0, 0, snap.width, snap.height); sx.translate(snap.width / 2, snap.height / 2); sx.rotate(-ang * Math.PI / 180); sx.drawImage(bmp, -snap.width / 2, -snap.height / 2, snap.width, snap.height); }
+  if (ang) { // 把拉平后的灰度图转正
+    for (let i = 0, p = 0; p < g.length; i += 4, p++) { d[i] = d[i + 1] = d[i + 2] = g[p]; d[i + 3] = 255; }
+    const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; tmp.getContext('2d').putImageData(im, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.translate(W / 2, H / 2); ctx.rotate(-ang * Math.PI / 180); ctx.drawImage(tmp, -W / 2, -H / 2); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    im = ctx.getImageData(0, 0, W, H); d = im.data; for (let i = 0, p = 0; p < g.length; i += 4, p++) g[p] = d[i];
+  }
+  const th = ocrOtsu(g);
   const dark = new Uint8Array(W * H); for (let p = 0; p < g.length; p++) dark[p] = g[p] <= th ? 1 : 0;
   const hT = Math.max(60, Math.round(W * 0.05)), vT = Math.max(60, Math.round(H * 0.03));
   const kill = new Uint8Array(W * H);
@@ -4048,6 +4274,7 @@ async function ocrPrep(blob) {
   // 只擦表格线；其余保留灰度（浅灰色的字段名不会被阈值吃掉），浅色底纹提亮为白
   for (let i = 0, p = 0; p < g.length; i += 4, p++) { const v = kill[p] ? 255 : g[p] > 215 ? 255 : g[p]; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
   ctx.putImageData(im, 0, 0);
+  cv.__snap = snap; cv.__angle = ang;
   return cv;
 }
 // 常见误认：「高一 / 高二」的横画被认成 - 或 =，罗马数字 II 被认成 I1、[1、||
@@ -4055,6 +4282,7 @@ function ocrNorm(t) {
   return t.trim()
     .replace(/(高|初)\s*[-—_一―‐]\s*(?=[上下（(]|$|\s|学)/g, '$1一').replace(/(高|初)\s*[=二〓]\s*(?=[上下（(]|$|\s|学)/g, '$1二').replace(/(高|初)\s*[≡三]\s*/g, '$1三')
     .replace(/([A-Za-z]{3,})\s+([Ii1lL|\[\]]{3})$/, (m, a, b) => b === '111' ? m : `${a} III`).replace(/([A-Za-z]{3,})\s+([Ii1lL|\[\]]{2})$/, (m, a, b) => b === '11' ? m : `${a} II`).replace(/([A-Za-z]{3,})\s+[|l\[]$/, '$1 I')
+    .replace(/\b(Algebra)\s+11$/i, '$1 II').replace(/\b([A-Za-z]{4,})\s+111$/, '$1 III') // 加拿大 BC 课程有 English 11、French 11 这类按年级命名的课，只改不会有歧义的写法
     .replace(/[‘’`]/g, "'");
 }
 // 由单词坐标还原表格行：同一行里间距明显大于字宽的地方视为换列
@@ -4066,11 +4294,12 @@ function ocrRows(data) {
     const cw = ws.map(w => (w.bbox.x1 - w.bbox.x0) / Math.max(1, [...w.text].length)).sort((a, b) => a - b)[Math.floor(ws.length / 2)] || 10;
     const cells = []; let cur = null;
     ws.forEach(w => {
-      if (cur && w.bbox.x0 - cur.x1 <= Math.max(cw * 1.6, 10)) { cur.text += (/[一-龥]$/.test(cur.text) && /^[一-龥]/.test(w.text) ? '' : ' ') + w.text; cur.x1 = w.bbox.x1; }
-      else { cur = { x0: w.bbox.x0, x1: w.bbox.x1, text: w.text }; cells.push(cur); }
+      const conf = typeof w.confidence === 'number' ? w.confidence : 100;
+      if (cur && w.bbox.x0 - cur.x1 <= Math.max(cw * 1.6, 10)) { cur.text += (/[一-龥]$/.test(cur.text) && /^[一-龥]/.test(w.text) ? '' : ' ') + w.text; cur.x1 = w.bbox.x1; cur.y0 = Math.min(cur.y0, w.bbox.y0); cur.y1 = Math.max(cur.y1, w.bbox.y1); cur.conf = Math.min(cur.conf, conf); }
+      else { cur = { x0: w.bbox.x0, x1: w.bbox.x1, y0: w.bbox.y0, y1: w.bbox.y1, text: w.text, conf }; cells.push(cur); }
     });
     cells.forEach(c => { c.text = ocrNorm(c.text); c.xc = (c.x0 + c.x1) / 2; });
-    rows.push({ y: l.bbox.y0, cells });
+    rows.push({ y: l.bbox.y0, y1: l.bbox.y1, cells });
   })));
   return rows.sort((a, b) => a.y - b.y);
 }
@@ -4080,12 +4309,76 @@ async function ocrImages(images, statusId, signal) {
   for (let i = 0; i < images.length; i++) {
     if (signal && signal.aborted) break;
     OCR_WORKER_PAGE = [i + 1, images.length]; setBusyMsg(statusId, `正在本机识别第 ${i + 1} / ${images.length} 页…`);
-    const { data } = await w.recognize(await ocrPrep(images[i]), {}, { text: true, blocks: true });
+    const cv = await ocrPrep(images[i]);
+    const { data } = await w.recognize(cv, {}, { text: true, blocks: true });
     const rows = ocrRows(data);
-    pages.push({ rows, text: rows.map(r => r.cells.map(c => c.text).join('  ')).join('\n'), plain: rows.map(r => r.cells.map(c => c.text).join(' ')).join('\n'), conf: data.confidence });
+    if (i < 8) { setBusyMsg(statusId, `正在复核第 ${i + 1} 页的成绩…`); OCR_WORKER_PAGE = null; await ocrRecheck(w, cv, rows, signal); }
+    const snap = await ocrSnap(cv.__snap, cv.width); cv.__snap = null;
+    pages.push({ rows, text: rows.map(r => r.cells.map(c => c.text).join('  ')).join('\n'), plain: rows.map(r => r.cells.map(c => c.text).join(' ')).join('\n'), conf: data.confidence, snap });
   }
   OCR_WORKER_PAGE = null;
+  OCR_SID = Date.now(); OCR_SNAPS = pages.map(p => p.snap);
   return pages;
+}
+// 成绩格复核：把识别把握不高、或认不出成绩的短格子单独裁出来，只允许数字和等级字母，再认一遍
+async function ocrRecheck(w, cv, rows, signal) {
+  const cand = [], names = [];
+  const numLike = t => /^[0-9OoIlSsBZG|.,]{2,6}$/.test(t) && /\d/.test(t), letLike = t => /^[A-F48][+\-t4_~—–]?$/.test(t);
+  // 这一页的成绩以数字还是字母为主、是不是百分制：乱码格只换成同一类
+  let nN = 0, nL = 0, nBig = 0; rows.forEach(r => r.cells.slice(1).forEach(c => { const t = c.text.replace(/\s/g, ''); if (ocrIsGrade(t) && !yearFromText(t)) { const v = normGrade(t); if (/^\d/.test(v)) { nN++; if (+v >= 10) nBig++; } else nL++; } }));
+  const want = nN > nL * 2 ? 'num' : nL > nN * 2 ? 'let' : '', pct = nBig > nN * 0.6;
+  const okTok = t => /^\d{1,3}(\.\d{1,2})?$/.test(t) ? (+t <= 100 && (!pct || +t >= 10)) : /^(A\*|[A-F][+-]?|P|U)$/.test(t);
+  rows.forEach(r => {
+    // 表头、年级行不复核（S1、Course 这类字会被只认数字和等级的复核改坏）
+    if (r.cells.some(c => OCR_NAME_H.test(c.text) || ocrSem(c.text) || yearFromText(c.text))) return;
+    const nG = r.cells.slice(1).filter(c => ocrIsGrade(c.text)).length;
+    r.cells.forEach((c, ci) => {
+      const t = c.text.replace(/\s/g, '');
+      if (!t || ocrSem(t)) return;
+      if (ci === 0) { if (nG >= 1 && c.conf < 75 && t.length <= 16) names.push(c); return; }
+      // 字母成绩一律复核（A- 的减号、B+ 的加号最容易丢）；数字成绩只复核把握不高的
+      if ((ocrIsGrade(t) && (c.conf < 88 || (want === 'let' && /^[A-F][+-]?$/.test(t)))) || (!ocrIsGrade(t) && (numLike(t) || letLike(t) || (nG >= 1 && t.length <= 4 && !/[一-龥]/.test(t))))) cand.push(c);
+    });
+  });
+  const crop = c => {
+    const pad = Math.round((c.y1 - c.y0) * 0.4) + 6;
+    const x0 = Math.max(0, c.x0 - pad), y0 = Math.max(0, c.y0 - pad), x1 = Math.min(cv.width, c.x1 + pad), y1 = Math.min(cv.height, c.y1 + pad);
+    const sm = document.createElement('canvas'); sm.width = x1 - x0 + 16; sm.height = y1 - y0 + 16;
+    const sx = sm.getContext('2d'); sx.fillStyle = '#fff'; sx.fillRect(0, 0, sm.width, sm.height); sx.drawImage(cv, x0, y0, x1 - x0, y1 - y0, 8, 8, x1 - x0, y1 - y0);
+    return sm;
+  };
+  if (!cand.length && !names.length) return;
+  try {
+    // 课程名：单独一行再认一遍，把握明显更高才换
+    if (names.length) {
+      await w.setParameters({ tessedit_pageseg_mode: '7' });
+      for (const c of names.slice(0, 30)) {
+        if (signal && signal.aborted) break;
+        const { data } = await w.recognize(crop(c));
+        const t = ocrNorm(String(data.text || '').replace(/\s*\n\s*/g, ' ')), conf = data.confidence || 0;
+        if (t && /[A-Za-z一-龥]{2,}/.test(t) && conf > c.conf + 10) { c.text = t.replace(/(?<=[一-龥])\s+(?=[一-龥])/g, ''); c.conf = conf; }
+      }
+    }
+    if (cand.length) {
+      await w.setParameters({ tessedit_pageseg_mode: '7', tessedit_char_whitelist: '0123456789.ABCDEFPU+-*' });
+      for (const c of cand.slice(0, 80)) {
+        if (signal && signal.aborted) break;
+        const { data } = await w.recognize(crop(c));
+        const t = String(data.text || '').replace(/\s+/g, ''), old = c.text.replace(/\s/g, ''), conf = data.confidence || 0;
+        if (!t || !okTok(t)) continue;
+        const isNum = /^\d/.test(t);
+        if (ocrIsGrade(old) ? isNum !== /^\d/.test(normGrade(old)) : (want && isNum !== (want === 'num'))) continue; // 数字格只换成数字，字母格只换成字母
+        if (t === old) c.conf = Math.max(c.conf, conf);
+        else if (!ocrIsGrade(old) || conf > c.conf + 10) { c.was = c.text; c.text = t; c.conf = conf; }
+        else c.alt = t; // 两次认得不一样：不改，只提醒
+      }
+    }
+  } finally { await w.setParameters({ tessedit_pageseg_mode: '6', tessedit_char_whitelist: '' }); }
+}
+// 原件缩略图：用于在成绩表里逐行对照（只存在本次打开的页面里，不保存）
+var OCR_SID = 0, OCR_SNAPS = [];
+async function ocrSnap(sc, W) {
+  try { const b = await new Promise(r => sc.toBlob(r, 'image/jpeg', 0.85)); return b ? { url: URL.createObjectURL(b), f: sc.width / W, w: sc.width, h: sc.height } : null; } catch (e) { return null; }
 }
 
 /* 识别结果按表格解析：支持「每节一个年级」与「表头按学期分列」（如 高一上 / 高一下 / 高二上 …）两种排版，也支持左右两栏并排 */
@@ -4098,9 +4391,27 @@ function ocrSem(t) {
   if (/(final|总评|期末总评|年度|全年|year mark|annual|成绩|grade$|mark|score)/i.test(t)) return 3;
   return 0;
 }
+// 一页成绩以数字为主时，把夹在里面的 O / l / S / B 认回数字；以字母为主时，把 4 / 8 / At 认回 A / B / A+
+function ocrFixTok(t, kind) {
+  const s = String(t).replace(/\s/g, ''); if (!s || s.length > 6) return null;
+  if (kind === 'num') {
+    const n = s.replace(/[Oo]/g, '0').replace(/[Il|!\]]/g, '1').replace(/[Ss]/g, '5').replace(/B/g, '8').replace(/Z/g, '2').replace(/G/g, '6').replace(/[gq]/g, '9').replace(/,/g, '.');
+    if (n === s) return null;
+    if (/^\d{2,3}(\.\d{1,2})?$/.test(n) && +n <= 100) return n;
+    return null;
+  }
+  if (kind === 'let') { const m = s.match(/^([ABCDF48])([+t4e\-_~—–])?$/); if (!m || (/^[ABCDF][+-]?$/.test(s))) return null; return ({ '4': 'A', '8': 'B' }[m[1]] || m[1]) + (m[2] ? (/[+t4e]/.test(m[2]) ? '+' : '-') : ''); }
+  return null;
+}
 function ocrIsGrade(t) { const r = String(t).replace(/[|]/g, '').trim(); if (!r || r.length > 6) return false; const s = normGrade(r); return !!s && /^(A\*|[ABCD][+-]?|[EFPU]|\d{1,3}(\.\d+)?)$/.test(s); }
+var OCR_MISSED = [], OCR_GUESSED = false;
 function parseOcrLayout(pages) {
-  const all = pages.flatMap(p => p.rows), text = pages.map(p => p.text).join('\n');
+  OCR_MISSED = []; OCR_GUESSED = false;
+  const all = pages.flatMap((p, pi) => p.rows.map(r => ({ ...r, page: pi }))), text = pages.map(p => p.text).join('\n');
+  // 这份成绩单以数字还是字母为主（用来纠正个别认错的格子）
+  let nNum = 0, nLet = 0, nSmall = 0;
+  all.forEach(r => r.cells.slice(1).forEach(c => { if (!ocrIsGrade(c.text) || yearFromText(c.text)) return; const v = normGrade(c.text); if (/^\d/.test(v)) { nNum++; if (+v <= 7) nSmall++; } else nLet++; }));
+  const KIND = nNum > nLet * 2 ? 'num' : nLet > nNum * 2 ? 'let' : null, IBISH = nSmall > nNum * 0.6;
   const zhMedium = /语文/.test(text), out = [];
   // 只写学年（2023-2024）不写年级时，按出现顺序推年级：4 个学年 → 9–12，3 个 → 9–11，2 个 → 10–11
   const sy = [...new Set((text.match(/\b(20\d{2})\s*[-–—~至/]\s*(20)?\d{2}\b/g) || []).map(s => s.match(/20\d{2}/)[0]))].sort();
@@ -4136,6 +4447,26 @@ function parseOcrLayout(pages) {
           if (r && r.yr) sc[i].yr = String(+r.yr - (r.sem === 1 && sc[i].sem === 2 ? 1 : 0));
           else if (l && l.yr) sc[i].yr = String(+l.yr + (l.sem === 2 && sc[i].sem === 1 ? 1 : 0));
         }
+        // 同一年级出现两列「全年」：只能是列名没认出来的上、下学期，按左右顺序认
+        { const byY = {}; cols.filter(c => !c.skip && c.sem === 3).forEach(c => { (byY[c.yr || '?'] = byY[c.yr || '?'] || []).push(c); });
+          Object.values(byY).forEach(a => { if (a.length === 2) { a.sort((x, y) => x.xc - y.xc); a[0].sem = 1; a[1].sem = 2; OCR_GUESSED = true; } }); }
+        // 学期列名没认出来（拍糊、印得浅）：看下面几行成绩落在哪几列，两列按上下学期、一列按全年
+        if (!cols.some(c => !c.skip)) {
+          const xs = [];
+          for (let j = ri + (next ? 2 : 1); j < Math.min(all.length, ri + 12); j++) {
+            const rc = all[j].cells; if (rc.some(c => OCR_NAME_H.test(c.text))) break;
+            rc.forEach((c, i) => { const t = c.text.replace(/\s/g, ''); if (i > 0 && inG(c) && c.x0 > cells[ni].x1 && (ocrIsGrade(t) || ocrFixTok(t, KIND))) xs.push([c.xc, /^\d/.test(normGrade(ocrFixTok(t, KIND) || t))]); });
+          }
+          xs.sort((a, b) => a[0] - b[0]); const cl = [];
+          xs.forEach(([x, num]) => { const l = cl[cl.length - 1]; if (l && x - l.x1 < 60) { l.x1 = x; l.n++; l.s += x; l.num += num; } else cl.push({ x0: x, x1: x, n: 1, s: x, num: +num }); });
+          let big = cl.filter(c => c.n >= 2);
+          // 去掉学分列：离「学分 / Credits」列名最近的那一簇，或字母成绩单里全是数字的那一簇
+          cols.filter(k => k.skip).forEach(k => { if (!big.length) return; const nb = big.slice().sort((a, b) => Math.abs(a.s / a.n - k.xc) - Math.abs(b.s / b.n - k.xc))[0]; if (Math.abs(nb.s / nb.n - k.xc) < 200) big = big.filter(c => c !== nb); });
+          if (KIND === 'let') big = big.filter(c => c.num < c.n * 0.6);
+          if (big.length === 2) { big.forEach((c, i) => cols.push({ xc: c.s / c.n, yr: null, sem: i + 1, skip: false, guessed: true })); OCR_GUESSED = true; }
+          else if (big.length === 1) cols.push({ xc: big[0].s / big[0].n, yr: null, sem: 3, skip: false, guessed: true });
+          cols.sort((a, b) => a.xc - b.xc);
+        }
         return { x0, x1, nameX: cells[ni].x0, cols };
       });
       // 表头上方最近的年级标记作为各栏默认年级
@@ -4159,20 +4490,36 @@ function parseOcrLayout(pages) {
       const nearCol = c => g.cols.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0];
       const nameCells = inG.filter(c => c.x1 < firstColX - 8 && !(ocrIsGrade(c.text) && c.x0 > g.nameX + 60) && !(c.x0 > g.nameX + 80 && nearCol(c) && nearCol(c).skip && Math.abs(nearCol(c).xc - c.xc) < Math.abs(c.x0 - g.nameX)));
       const name = nameCells.map(c => c.text).join(' ').replace(/^[\d.\s]+/, '').replace(/\s+/g, ' ').trim();
-      if (!/[A-Za-z一-龥]{2,}/.test(name) || OCR_NAME_H.test(name) || /^(average|total|gpa|cumulative|weighted|unweighted|credits? (earned|attempted)|平均|总分|合计|班级|排名|学分绩)/i.test(name)) return;
-      const vals = {}; // col index -> grade
+      if (!/[A-Za-z一-龥]{2,}/.test(name) || OCR_NAME_H.test(name) || /^(average|total|gpa|cumulative|weighted|unweighted|credits? (earned|attempted)|平均|总分|合计|班级|排名|学分绩)/i.test(name)) { if (inG.length >= 2 && name && !/^(average|total|gpa|平均|总分|合计)/i.test(name)) OCR_MISSED.push(name || inG[0].text); return; }
+      const vals = {}, used = {}; // col index -> grade / 用到的格子
       inG.filter(c => !nameCells.includes(c)).forEach(c => {
-        if (!ocrIsGrade(c.text)) return;
+        let t = c.text, fixed = c.was || null;
+        const fx = (!ocrIsGrade(t) || (KIND === 'let' && /^[48]$/.test(t.trim()))) ? ocrFixTok(t, KIND) : null;
+        if (fx) { fixed = t; t = fx; } else if (!ocrIsGrade(t)) return;
         let best = -1, bd = Infinity; g.cols.forEach((col, i) => { const d = Math.abs(col.xc - c.xc); if (d < bd) { bd = d; best = i; } });
-        if (best >= 0 && !g.cols[best].skip && vals[best] === undefined) vals[best] = normGrade(c.text);
+        if (best >= 0 && !g.cols[best].skip && vals[best] === undefined) { vals[best] = normGrade(t); used[best] = { c, fixed }; }
       });
       const byYr = {};
-      Object.entries(vals).forEach(([i, v]) => { const col = g.cols[+i]; const yr = col.yr || secYr[k]; if (!yr) return; const o = byYr[yr] = byYr[yr] || {}; if (col.sem === 1) o.s1 = v; else if (col.sem === 2) o.s2 = v; else o.fin = v; });
+      Object.entries(vals).forEach(([i, v]) => { const col = g.cols[+i]; const yr = col.yr || secYr[k]; if (!yr) return; const o = byYr[yr] = byYr[yr] || { u: [] }; if (col.sem === 1) o.s1 = v; else if (col.sem === 2) o.s2 = v; else o.fin = v; o.u.push(used[i]); });
       const area = guessArea(name, zhMedium); if (!area) return;
+      if (!Object.keys(byYr).length && inG.length >= 3 && nameCells.length) OCR_MISSED.push(name);
+      const nconf = Math.min(...nameCells.map(c => c.conf ?? 100));
       Object.entries(byYr).forEach(([yr, o]) => {
         const s1 = o.s1 || o.fin || '', s2 = o.s2 || o.fin || '';
         if (!s1 && !s2) return;
-        out.push({ name, area, yr, type: guessType(name), s1, s2, check: true });
+        // 只把真正拿不准的行标黄，并写明原因
+        const why = [];
+        o.u.forEach(u => { const v = normGrade(u.c.text); if (u.fixed) why.push(`「${String(u.fixed).trim()}」读作 ${normGrade(ocrFixTok(u.c.text, KIND) || u.c.text)}`); else if (u.c.alt) why.push(`成绩 ${v} 也可能是 ${normGrade(u.c.alt)}`); else if ((u.c.conf ?? 100) < 70) why.push(`成绩 ${v} 看得不太清`); });
+        if (nconf < 55) why.push('课程名可能认错');
+        const semCol = sem => g.cols.some(c => !c.skip && c.sem === sem && (c.yr || secYr[k]) === yr);
+        if (!o.fin && semCol(1) && semCol(2) && (!o.s1 || !o.s2)) why.push(!o.s1 ? '上学期成绩没读到' : '下学期成绩没读到');
+        if (KIND === 'num' && !IBISH) [s1, s2].forEach(v => { if (v && /^\d/.test(v) && +v < 50) why.push(`成绩 ${v} 偏低，可能认错`); else if (v && !/^\d/.test(v)) why.push(`成绩 ${v} 是字母，和其他成绩不一致`); });
+        if (!AREA_KW.some(([kk, re]) => kk !== 'skip' && re.test(name))) why.push('A–G 类别没认出，暂按 G 填');
+        const cs = [...nameCells, ...o.u.map(u => u.c)];
+        const hi = o.u.filter(u => u.fixed || u.c.alt || (u.c.conf ?? 100) < 70).map(u => u.c).concat(nconf < 55 ? nameCells : []).map(c => [c.x0, c.y0 ?? r.y, c.x1, c.y1 ?? (r.y1 || r.y + 20)]);
+        const gx = g.cols.filter(c => !c.skip).map(c => c.xc); // 截图横向铺到这一栏最右边的成绩列，没读到的格子也看得见
+        const src = { sid: OCR_SID, p: r.page, x0: Math.min(...cs.map(c => c.x0)), x1: Math.max(...cs.map(c => c.x1), ...(gx.length ? [Math.max(...gx) + 40] : [])), y0: Math.min(...cs.map(c => c.y0 ?? r.y)), y1: Math.max(...cs.map(c => c.y1 ?? (r.y1 || r.y + 20))), hi };
+        out.push({ name, area, yr, type: guessType(name), s1, s2, check: why.length > 0, note: [...new Set(why)].join('；'), src });
       });
     });
   }
@@ -4389,7 +4736,8 @@ async function handleTranscript(fileList) {
   if (ctl.signal.aborted) return;
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
-  if (F.images.length || F.textBlob.trim()) {
+  const preferLocal = F.tables.length > 0 && F.images.length === 0;
+  if (!preferLocal && (F.images.length || F.textBlob.trim())) {
     setBusyMsg(SID, F.images.length ? '正在请 Claude 识别成绩单图片，约需 20–60 秒…' : '正在请 Claude 整理成绩单…');
     try {
       const prompt = PARSE_PROMPT + (F.textBlob.trim() ? `\n\nTranscript text extracted from the uploaded file(s):\n"""\n${F.textBlob}\n"""` : '\n\nThe transcript is in the attached image(s).');
@@ -4407,7 +4755,10 @@ async function handleTranscript(fileList) {
     if (!courses.length && F.ocr && F.ocr.length) courses = parseOcrLayout(F.ocr).courses;
     if (!courses.length) courses = parseLines(F.ocr ? F.ocr.map(p => p.text).join('\n') : F.textBlob).courses;
     parsed = normalizeParsed({ courses }); via = F.ocr ? '本机' : '本地';
-    parsed.notes.unshift(F.ocr ? '本机识别（不经过 Claude）可能认错个别字母或数字，所有行都已标黄：请对照原件逐行核对课程、成绩、年级和 A–G 类别。' : '本地识别只能读出排版规整的表格，所有行都已标黄，请逐行核对年级和 A–G 类别。');
+    const nSrc = parsed.rows.filter(r => r.src).length, nChk = parsed.rows.filter(r => r.check).length;
+    if (F.ocr && nSrc && OCR_GUESSED) parsed.notes.unshift('成绩单上的学期列名没认清，已按从左到右当作上、下学期：请对照原件确认一行。');
+    if (F.ocr && nSrc && OCR_MISSED.length) parsed.notes.unshift(`有 ${OCR_MISSED.length} 行像是课程、但成绩没认出来（${OCR_MISSED.slice(0, 4).map(n => `「${n}」`).join('')}${OCR_MISSED.length > 4 ? ' 等' : ''}），没有导入：请对照原件手动补上。`);
+    parsed.notes.unshift(F.ocr && nSrc ? `本机识别（不经过 Claude）：${nChk ? `拿不准的 ${nChk} 行已标黄并写明原因，黄行下面附了原件截图，对照后点「核对无误」或直接改` : '每一行的识别把握都较高'}；其余行可点表格上方「每行都显示原件」抽查。` : !F.ocr && courses.length && F.tables.length ? `成绩按表格原样读入${nChk ? `；A–G 类别或年级拿不准的 ${nChk} 行已标黄，请核对` : ''}。${courses.some(c => /语文/.test(c.name)) ? '中文授课学校的语文、英语分别归 B、E 还是 E、B，请按 UC 当年说明确认。' : ''}` : F.ocr ? '本机识别（不经过 Claude）可能认错个别字母或数字，所有行都已标黄：请对照原件逐行核对课程、成绩、年级和 A–G 类别。' : '本地识别只能读出排版规整的表格，所有行都已标黄，请逐行核对年级和 A–G 类别。');
   }
   if (!parsed.rows.length) { upStatus(SID, `<div class="up-result err">没有从文件里读出课程。请确认上传的是成绩单，或换一种格式再试。${F.skipped.length ? '<br>' + F.skipped.map(esc).join('<br>') : ''}</div>`); return; }
   UNDO = JSON.parse(JSON.stringify({ rows: S.rows, scale: S.scale, cut: S.cut, isSample: S.isSample, manual: S.manual, exams: S.exams, ctx: S.ctx }));
@@ -4431,7 +4782,8 @@ async function handleActs(fileList) {
   if (ctl.signal.aborted) return;
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
-  if (!F.tables.length && (F.images.length || F.textBlob.trim())) {
+  const preferLocal = F.tables.length > 0 && F.images.length === 0;
+  if (!preferLocal && (F.images.length || F.textBlob.trim())) {
     setBusyMsg(SID, '正在请 Claude 把清单整理成 UC 六个类别…');
     try {
       const prompt = ACT_PARSE_PROMPT + (F.textBlob.trim() ? `\n\nText extracted from the uploaded file(s):\n"""\n${F.textBlob}\n"""` : '\n\nThe list is in the attached image(s).');
@@ -4443,10 +4795,15 @@ async function handleActs(fileList) {
   }
   if (!parsed) {
     if (!F.tables.length && !F.textBlob.trim()) { upStatus(SID, `<div class="up-result err">没有从文件里认出文字。请换一张更清晰的照片，或上传 Excel、CSV、Word、PDF 再试。${F.skipped.length ? '<br>' + F.skipped.map(esc).join('<br>') : ''}</div>`); return; }
-    let entries = []; F.tables.forEach(t => { entries = entries.concat(parseActsTable(t).entries); });
-    if (!entries.length) entries = parseActsTable(F.textBlob.split(/\r?\n/).map(l => [l])).entries;
+    let entries = [], skippedRows = 0; const modes = new Set();
+    const take = p => { entries = entries.concat(p.entries); skippedRows += p.skipped; if (p.entries.length) modes.add(p.mode); };
+    F.tables.forEach(t => take(parseActsTable(t)));
+    if (!entries.length) F.tables.forEach(t => take(parseActsTableByCols(t)));
+    if (!entries.length) take(parseActsTable(F.textBlob.split(/\r?\n/).map(l => [l])));
     parsed = normalizeActs({ entries }); via = F.ocr ? '本机' : '本地';
-    parsed.notes.unshift(F.tables.length ? '已按表格结构逐行读取。请核对类别、年级与时长，描述保留原文。' : '本地识别只能按行读取，类别、年级与时长请逐条核对。');
+    const longN = parsed.acts.filter(a => a.name.length > UC_LIMITS.name).length;
+    parsed.notes.unshift(modes.has('list') && modes.size === 1 ? '这份清单没有表头，本地按一行一条读取：类别是按名称猜的，年级、时长请逐条补上。' : `已按表头 / 字段名读取${skippedRows ? `，跳过了模板里的 ${skippedRows} 行填写说明、类别标题和示例` : ''}。类别、年级与时长请逐条核对。`);
+    if (longN) parsed.notes.push(`有 ${longN} 条名称超过 UC 的 60 字符（计数标红），请缩短。`);
   }
   if (!parsed.acts.length) { upStatus(SID, `<div class="up-result err">没有读出活动或奖项。请确认文件内容，或手动添加。${F.skipped.length ? '<br>' + F.skipped.map(esc).join('<br>') : ''}</div>`); return; }
   const prev = JSON.parse(JSON.stringify(S.acts));
@@ -4516,10 +4873,14 @@ $('txBody').addEventListener('input', e => {
   const t = e.target; const id = +t.dataset.id; const k = t.dataset.k; if (!id || !k) return;
   const r = S.rows.find(x => x.id === id); if (!r) return;
   r[k] = t.value; S.isSample = false;
-  if (r.check) { r.check = false; const tr = t.closest('tr'); if (tr) { tr.classList.remove('flag'); tr.removeAttribute('title'); } }
+  if (r.check) { r.check = false; const tr = t.closest('tr'); if (tr) { tr.classList.remove('flag'); tr.removeAttribute('title'); const sn = tr.nextElementSibling; if (sn && sn.classList.contains('snip-tr')) { sn.classList.remove('flag'); const m = sn.querySelector('.snip-meta'); if (m) m.innerHTML = '<span class="snip-why ok">已修改</span>'; } } renderOcrBar(); }
   if (k === 'type' || k === 'yr') { renderRows(); const el = $(`${k === 'type' ? 't' : 'y'}-${id}`); if (el) el.focus(); }
   render();
 });
+$('txBody').addEventListener('click', e => { const ok = e.target.closest('[data-ok]'); if (!ok) return; const r = S.rows.find(x => x.id === +ok.dataset.ok); if (r) { r.check = false; r.note = ''; renderRows(); render(); } });
+$('ocrBar').addEventListener('click', e => { const b = e.target.closest('[data-ocr]'); if (!b) return;
+  if (b.dataset.ocr === 'all') OCR_SHOW_ALL = !OCR_SHOW_ALL; else S.rows.forEach(r => { if (ocrSnipOK(r) && r.check) { r.check = false; r.note = ''; } });
+  renderRows(); render(); });
 $('txBody').addEventListener('click', e => { const d = e.target.closest('[data-del]'); if (!d) return; S.rows = S.rows.filter(r => r.id !== +d.dataset.del); renderRows(); render(); });
 $('addRow').addEventListener('click', () => { const last = S.rows[S.rows.length - 1]; S.rows.push({ id: uid++, name:'', area:'a', yr: last ? last.yr : '10', type:'reg', s1:'', s2:'' }); renderRows(); render(); const el = $(`n-${uid - 1}`); if (el) el.focus(); });
 $('clearRows').addEventListener('click', () => { const yrs = ['10','10','11','11']; S.rows = []; ['b','c','b','c'].forEach((a, i) => S.rows.push({ id: uid++, name:'', area:a, yr: yrs[i], type:'reg', s1:'', s2:'' })); S.isSample = false; S.manual = { on:false, capped:'', uw:'' }; syncControls(); renderRows(); render(); const el = $(`n-${S.rows[0].id}`); if (el) el.focus(); });
