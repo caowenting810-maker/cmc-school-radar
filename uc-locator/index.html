@@ -1569,7 +1569,6 @@ function normGrade(v) {
   if (!s || s === '-' || s === 'N/A' || s === 'NA') return '';
   if (/^(A|B|C|D)[+-]?$/.test(s) || s === 'F' || s === 'P') return s;
   if (/^(A\*|A★|E|U|G)$/.test(s)) return s.replace('★', '*');
-  if (/^PASS(ED)?$|^CR(EDIT)?$/.test(s)) return 'P';
   if (/^(IP|PL)$/.test(s)) return '';
   const n = parseFloat(s);
   if (!isNaN(n) && n >= 0 && n <= 100) return String(n);
@@ -4558,8 +4557,8 @@ const OCR_SKIP_H = /(学分|credit|credits|hours?|学时|weight|权重|teacher|�
 function ocrQuarter(t) { return /quarter|季度|期中|mid-?term/i.test(String(t || '')); }
 function ocrSem(t) {
   if (/^上$|[（(]上[)）]|^[高初]?.{0,2}上$/.test(t)) return 1; if (/^下$|[（(]下[)）]|^[高初]?.{0,2}下$/.test(t)) return 2;
-  if (/(上学期|第一学期|[一二三]\s*上|\bS\.?\s*1\b|\bSem(ester)?\.?\s*(1|I)\b|\bT(erm)?\.?\s*1\b|\b[1Il](st|s|t|°|º)?\s*(term|sem)|^[1Il](st|s)$|\bQ[12]\b|fall|autumn|first)/i.test(t)) return 1;
-  if (/(下学期|第二学期|[一二三]\s*下|\bS\.?\s*2\b|\bSem(ester)?\.?\s*(2|II)\b|\bT(erm)?\.?\s*2\b|\b2(nd|n|m|d|°|º)?\s*(term|sem)|^2(nd|n|m|d)$|\bQ[34]\b|spring|second)/i.test(t)) return 2;
+  if (/(上学期|第一学期|[一二三]\s*上|\bS\.?\s*1\b|\bSem(ester)?\.?\s*(1|I)\b|\bT(erm)?\.?\s*1\b|\b[1Il](st|s|t)?\s*(term|sem)|^[1Il](st|s)$|\bQ[12]\b|fall|autumn|first)/i.test(t)) return 1;
+  if (/(下学期|第二学期|[一二三]\s*下|\bS\.?\s*2\b|\bSem(ester)?\.?\s*(2|II)\b|\bT(erm)?\.?\s*2\b|\b2(nd|n|m|d)?\s*(term|sem)|^2(nd|n|m|d)$|\bQ[34]\b|spring|second)/i.test(t)) return 2;
   if (/(final|总评|期末总评|年度|全年|year mark|annual|成绩|grade$|mark|score)/i.test(t)) return 3;
   return 0;
 }
@@ -4594,9 +4593,7 @@ function parseOcrLayout(pages) {
   const groupOf = (gs, x) => { let k = 0; gs.forEach((g, i) => { if (x >= g.x0 - 20) k = i; }); return k; };
   for (let ri = 0; ri < all.length; ri++) {
     const r = all[ri], cells = r.cells, rowText = cells.map(c => c.text).join(' ');
-    const rawNi = cells.map((c, i) => OCR_NAME_H.test(c.text) ? i : -1).filter(i => i >= 0);
-    // 「Subject | Course」紧挨着是同一栏的两个列名，只取最左那个当栏起点；左右并排时两组之间隔着别的列，不会被合并
-    const nameIdx = rawNi.filter((ni, k) => k === 0 || cells.slice(rawNi[k - 1] + 1, ni).some(c => c.text.trim()));
+    const nameIdx = cells.map((c, i) => OCR_NAME_H.test(c.text) ? i : -1).filter(i => i >= 0);
     // 只有学期列名的表头（美高成绩单常见：每个学年下面一行「Fall  Spring」，课程名那一列没有列名）
     const semOnly = !nameIdx.length && cells.length >= 2 && cells.every(c => { const s = ocrSem(c.text); return (s === 1 || s === 2) && !ocrIsGrade(c.text) && c.text.length <= 24 && !yrOf(c.text); });
     // 表头行：含「课程 / 科目」等列名
@@ -4604,8 +4601,7 @@ function parseOcrLayout(pages) {
       const prev = all[ri - 1] && !all[ri - 1].cells.some(c => ocrIsGrade(c.text)) ? all[ri - 1] : null; // 上一行可能是「高一 / 高二」或「Grade 10 / Grade 11」的合并表头
       const next = !semOnly && all[ri + 1] && all[ri + 1].cells.filter(c => ocrSem(c.text) === 1 || ocrSem(c.text) === 2).length >= 2 ? all[ri + 1] : null; // 下一行可能是「上 / 下」「S1 / S2」
       if (semOnly) groups = [{ x0: 0, x1: Infinity, nameX: 0, quarter: false, cols: cells.map(c => ({ xc: c.xc, yr: null, sem: ocrSem(c.text), skip: false })) }];
-      else {
-        const built = nameIdx.map((ni, k) => {
+      else groups = nameIdx.map((ni, k) => {
         const x0 = k === 0 ? 0 : cells[ni].x0, x1 = k + 1 < nameIdx.length ? cells[nameIdx[k + 1]].x0 : Infinity;
         const inG = c => c.xc >= x0 - 5 && c.xc < x1;
         // 合并表头里的年级只从「上一行」（或学期在下一行时的本行）取，不拿同一行别的列来推
@@ -4613,9 +4609,8 @@ function parseOcrLayout(pages) {
         const head = (next ? next.cells : cells).filter(c => inG(c) && c.xc > cells[ni].x1);
         const cols = head.map(c => {
           let yr = yrOf(c.text);
+          if (!yr && yrCells.length) { const near = yrCells.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0]; yr = near ? yrOf(near.text) : null; }
           const sem = ocrSem(c.text); const skip = OCR_SKIP_H.test(c.text) && !sem;
-          // 年级只补在学期列上（「高上」「高下」这类写法），别把年级发给课程名 / 学分 / 绩点列，否则课程列会被当成成绩列
-          if (!yr && (sem === 1 || sem === 2) && yrCells.length) { const near = yrCells.slice().sort((a, b) => Math.abs(a.xc - c.xc) - Math.abs(b.xc - c.xc))[0]; yr = near ? yrOf(near.text) : null; }
           return { xc: c.xc, yr, sem: sem || (yr ? 3 : 0), skip };
         }).filter(c => c.skip || c.sem || c.yr);
         // 学期列里个别年级字没认出来（如「高上」）：按左右相邻学期列推回年级
@@ -4649,32 +4644,14 @@ function parseOcrLayout(pages) {
         // 表头上方一到三行里、落在这一栏范围内的标题：年级与学期（如「Grade 10 1st Term」「十年级第一学期」「Grade 11 — First Semester」）
         const above = [];
         for (let j = ri - 1; j >= Math.max(0, ri - 3); j--) { if (all[j].page !== r.page || all[j].cells.some(c => ocrIsGrade(c.text) && !yrOf(c.text))) break; above.push(...all[j].cells.filter(inG)); }
-        const gYr = above.map(c => yrOf(c.text)).find(Boolean) || null;
-        // 学期标题（The First / Second Semester）左右并排时，按横向位置就近取，不能直接取第一个
-        const semAbove = above.filter(c => { const sv = ocrSem(c.text); return sv === 1 || sv === 2; });
-        const gSem = semAbove.length ? ocrSem(semAbove.slice().sort((a, b) => Math.abs(a.xc - cells[ni].xc) - Math.abs(b.xc - cells[ni].xc))[0].text) : 0;
+        const gYr = above.map(c => yrOf(c.text)).find(Boolean) || null, gSem = above.map(c => ocrSem(c.text)).find(s => s === 1 || s === 2) || 0;
         cols.forEach(c => { if (c.skip) return; if (c.sem === 3 && gSem) c.sem = gSem; if (!c.yr && gYr) c.yr = gYr; });
         const quarter = head.some(c => ocrQuarter(c.text));
         return { x0, x1, nameX: cells[ni].x0, cols, quarter };
       });
-        // 左右并排的成绩单，表头常被识别成两行：各留一组，别互相覆盖
-        if (!groups) groups = built;
-        else {
-          built.forEach(g => {
-            const same = groups.find(o => Math.abs(o.nameX - g.nameX) < 100); // 同一栏的表头又出现一次：就地更新
-            if (same) { Object.assign(same, g); return; }
-            const last = groups[groups.length - 1];
-            if (last.x1 === Infinity && g.nameX > last.nameX + 100) { last.x1 = g.nameX; g.x0 = g.nameX; } // 明显更靠右 = 并排的另一栏
-            groups.push(g);
-          });
-          groups.sort((a, b) => a.x0 - b.x0);
-        }
-      }
       // 表头上方最近的年级标记作为各栏默认年级
       secYr = groups.map((g, k) => secYr[k] || null);
       for (let j = ri - 1; j >= Math.max(0, ri - 4); j--) all[j].cells.forEach(c => { const y = yrOf(c.text); if (y && !all[j].cells.some(d => ocrIsGrade(d.text))) { const k = groupOf(groups, c.x0); if (!secYr[k]) secYr[k] = y; } });
-      // 上方只有一个年级标记（写在正中或左上）时，它是整张表的年级，不是某一栏的
-      if (groups.length > 1 && secYr.filter(Boolean).length === 1) secYr = groups.map(() => secYr.find(Boolean));
       if (next) ri++;
       continue;
     }
@@ -4841,12 +4818,6 @@ async function collectFiles(fileList, statusId, opt) {
   }
   return { images, texts, tables, skipped, ocr, docText, textBlob: texts.join('\n\n').slice(0, 60000), fullText: texts.join('\n\n') };
 }
-// 当前环境到底能不能调用 Claude：先探一下，不能调用就别显示「正在请 Claude」
-async function claudeAvailable() {
-  const s = await Promise.race([samplePromise, new Promise(r => setTimeout(() => r(undefined), 1500))]);
-  if (s === undefined) return false; // 探测还没回来：按本机能做处理，本机也能出结果
-  return !!s;
-}
 async function askClaudeJSON(prompt, images, signal) {
   const sample = await Promise.race([samplePromise, new Promise(r => setTimeout(() => r(null), 12000))]);
   if (!sample) throw { code: 'unavailable' };
@@ -4956,9 +4927,7 @@ async function handleTranscript(fileList) {
   if (ctl.signal.aborted) return;
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
-  // 先确认当前环境能不能调用 Claude：不能调用就直接在本机识别，不显示「正在请 Claude」，避免和页面上「不能调用 Claude」的提示打架
-  const claudeOK = await claudeAvailable();
-  if (claudeOK && (F.images.length || F.textBlob.trim())) {
+  if (F.images.length || F.textBlob.trim()) {
     setBusyMsg(SID, F.images.length ? '正在请 Claude 识别成绩单图片，约需 20–60 秒…' : '正在请 Claude 整理成绩单…');
     try {
       const r = await askClaudeTranscript(F, SID, ctl.signal);
@@ -4967,24 +4936,18 @@ async function handleTranscript(fileList) {
       if (r.batches > 1) parsed.notes.unshift(`扫描页较多，分 ${r.batches} 批识别后合并：同一门课的上、下学期在不同页时已合成一行，请抽查。`);
     } catch (e) {
       if (e && e.code === 'cancelled') return;
-      if (e && (e.code === 'unavailable' || e.code === 'images_unavailable')) setBusyMsg(SID, '改在本机识别（文件不上传）…');
-      else F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + (F.tables.length || F.textBlob.trim() ? ' 已改用本地识别。' : ''));
+      if (e && e.code !== 'unavailable' && e.code !== 'images_unavailable') F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + (F.tables.length || F.textBlob.trim() ? ' 已改用本地识别。' : ''));
     }
   }
   if (!parsed) {
     if (!F.tables.length && !F.textBlob.trim()) { upStatus(SID, `<div class="up-result err">没有从文件里认出文字。请换一张更清晰、拍正的照片，或上传 Excel、CSV、Word、PDF 再试。${F.skipped.length ? '<br>' + F.skipped.map(esc).join('<br>') : ''}</div>`); return; }
     let courses = [], nText = 0, nOcr = 0; F.tables.forEach(t => { courses = courses.concat(parseTable(t).courses); });
     if (!courses.length) {
-      try {
-        // 文字版页面与扫描页分别读，再按「学年 + 课程」合并（每学期一张成绩报告单时，上、下学期合成一行）
-        const fromText = (F.docText || '').trim() ? parseLines(F.docText).courses : [];
-        const fromOcr = F.ocr && F.ocr.length ? parseOcrLayout(F.ocr).courses : [];
-        nText = fromText.length; nOcr = fromOcr.length;
-        courses = mergeCourses([...fromText, ...fromOcr]);
-      } catch (err) {
-        upStatus(SID, `<div class="up-result err">文字已经读出来了，但整理成绩时出错：${esc(err && err.message || err)}。请点「停止」后重试；如果一直这样，把这份成绩单发给顾问，我们补上这种版式。</div>`);
-        return;
-      }
+      // 文字版页面与扫描页分别读，再按「学年 + 课程」合并（每学期一张成绩报告单时，上、下学期合成一行）
+      const fromText = (F.docText || '').trim() ? parseLines(F.docText).courses : [];
+      const fromOcr = F.ocr && F.ocr.length ? parseOcrLayout(F.ocr).courses : [];
+      nText = fromText.length; nOcr = fromOcr.length;
+      courses = mergeCourses([...fromText, ...fromOcr]);
     }
     parsed = normalizeParsed({ courses }); via = F.ocr && nOcr ? (nText ? '文字版与本机' : '本机') : '本地';
     const nSrc = parsed.rows.filter(r => r.src).length, nChk = parsed.rows.filter(r => r.check).length;
@@ -5034,16 +4997,14 @@ async function handleActs(fileList) {
   if (ctl.signal.aborted) return;
   { const ucT = F.texts.find(t => isUCApp(t)), caT = F.texts.find(t => isCommonApp(t)); if (ucT || caT) { importBundle(ucT, caT, SID); return; } }
   let parsed = null, via = '';
-  const claudeOK = await claudeAvailable();
-  if (claudeOK && (F.images.length || F.textBlob.trim())) {
+  if (F.images.length || F.textBlob.trim()) {
     setBusyMsg(SID, '正在请 Claude 把清单整理成 UC 六个类别…');
     try {
       const prompt = ACT_PARSE_PROMPT + (F.textBlob.trim() ? `\n\nText extracted from the uploaded file(s):\n"""\n${F.textBlob}\n"""` : '\n\nThe list is in the attached image(s).');
       const r = await askClaudeJSON(prompt, F.images, ctl.signal); parsed = normalizeActs(r.obj); via = 'Claude';
     } catch (e) {
       if (e && e.code === 'cancelled') return;
-      if (e && (e.code === 'unavailable' || e.code === 'images_unavailable')) setBusyMsg(SID, '改在本机识别（文件不上传）…');
-      else F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + ' 已改用本地识别。');
+      if (e && e.code !== 'unavailable' && e.code !== 'images_unavailable') F.skipped.push((ERR_MSG[e.code] || '识别没有完成。') + ' 已改用本地识别。');
     }
   }
   if (!parsed) {
