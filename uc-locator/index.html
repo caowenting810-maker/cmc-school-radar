@@ -1,4 +1,5 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><title>黑马 UC 定位器</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>黑马 UC 定位器</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -282,7 +283,7 @@ table.eng { border-collapse: collapse; width: 100%; font-size: 14px; }
 .flags li { font-size: 12.5px; color: var(--warn); background: var(--warn-bg); padding: 4px 8px; border-radius: 6px; }
 
 .mx-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 12px; background: var(--sheet); }
-table.mx { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 980px; font-size: 13px; }
+table.mx { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1520px; font-size: 13px; }
 .mx th, .mx td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--rule-soft); }
 .mx thead th { font-weight: 500; font-size: 12.5px; color: var(--muted); background: var(--sheet); }
 .mx thead th button { border: 0; background: transparent; cursor: pointer; color: inherit; font: inherit; padding: 2px 4px; border-radius: 6px; }
@@ -625,7 +626,7 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
     </div>
     <h1>UC GPA 计算与<em>九校</em>录取区间</h1>
     <p class="print-meta" id="printMeta"></p>
-    <p class="lede">上传成绩单自动算出 UC 三种 GPA；再录入托福、活动与奖项清单、PIQ 选题，系统按黑马定位口径逐项评判，并给出九个本科校区、九个专业方向的录取区间。</p>
+    <p class="lede">上传成绩单自动算出 UC 三种 GPA；再录入托福、活动与奖项清单、PIQ 选题，系统按黑马定位口径逐项评判，并给出九个本科校区、十六个专业方向的录取区间。</p>
     <div class="meta-row"><span>区间依据：Fall 2026 录取数据（适用 Fall 2027 申请）</span><span>UC 不看 SAT / ACT</span><span>只给判断与追问，不代写</span><span>区间为估算，不是录取承诺</span></div>
   </div>
 </header>
@@ -838,7 +839,7 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
               <p class="hint" id="piqAutoNote"></p></div>
           </div>
           <div class="sheet" style="display:grid;gap:10px">
-            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><strong style="font-size:14px">各校申报专业</strong><span class="hint">导入 UC 申请打印件会自动填写；不填就按第一志愿算。各校分专业难度已计入：限额专业、国际生扎堆的热门专业下调，申请集中度低的专业上调。统计 / 数据科学请选「统计 / 数据」，不要选「计算机」。</span></div>
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><strong style="font-size:14px">各校申报专业</strong><span class="hint">导入 UC 申请打印件会自动填写；不填就按第一志愿算。各校分专业难度已计入：限额专业、国际生扎堆的热门专业下调，申请集中度低的专业上调。统计 / 数据科学请选「统计 / 数据」，不要选「计算机」。环境、农业 / 食品 / 营养、传播、公共卫生、需作品集的艺术各有单独方向：伯克利、戴维斯的环境与食品营养类在专门学院，选对应方向即可，所在学院会写在校区卡片里。</span></div>
             <div class="tbl-scroll"><table class="mf" aria-label="各校申报专业"><thead><tr><th>校区（勾选 = 已申请）</th><th>按哪个方向排档</th></tr></thead><tbody id="mfBody"></tbody></table></div>
           </div>
         </section>
@@ -922,14 +923,14 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
   <section class="board" aria-labelledby="mxh">
     <div class="board-head">
       <div style="display:grid;gap:4px"><h2 id="mxh">分专业录取区间</h2>
-        <span class="hint">九校 × 十个专业方向，已计入各校分专业难度。点列标题或任一格，可把它设为第一志愿，上方卡片同步更新。</span></div>
+        <span class="hint">九校 × 十六个专业方向，已计入各校分专业难度。点列标题或任一格，可把它设为第一志愿，上方卡片同步更新。</span></div>
     </div>
     <div class="mx-scroll"><table class="mx" id="mx" aria-label="分专业录取区间"></table></div>
     <div class="mx-legend">
       <span class="tier lottery">彩票</span><span class="tier reach">冲刺</span><span class="tier match">匹配</span><span class="tier likely">相对可及</span>
       <span><span style="color:var(--brand-text)">▾</span> 该校这个专业更难（限额专业或国际生扎堆），已下调</span><span><span style="color:var(--t-likely)">▴</span> 该校这个专业更容易，已上调</span><span>— 该校无此本科专业或数据不足</span>
     </div>
-    <p class="hint" style="max-width:90ch">计算机本专业、工程、商学院直录和护理是按专业设名额的容器，区间单独下调。国际生与外州生另按近年真实录取结果计入专业难度：经济、心理、传播等热门社科在 UCLA、圣地亚哥更难；数学、物理、化学在尔湾、圣塔芭芭拉、戴维斯更容易；统计、数据科学、AI 等交叉专业比计算机本专业宽，在 UCLA、圣地亚哥差得最明显。专业要和学生的课程、活动、PIQ 对得上，只为录取率换专业，材料会显得对不上。伯克利不考虑备选专业，UCLA 不保证考虑，其余校区建议认真填写备选。</p>
+    <p class="hint" style="max-width:90ch">计算机本专业、工程、商学院直录和护理是按专业设名额的容器，区间单独下调。国际生与外州生另按近年真实录取结果计入专业难度：经济、心理、传播等热门社科在 UCLA、圣地亚哥更难；数学、物理、化学在尔湾、圣塔芭芭拉、戴维斯更容易；统计、数据科学、AI 等交叉专业比计算机本专业宽，在 UCLA、圣地亚哥差得最明显。环境、农业 / 食品 / 营养、公共卫生、社会学与政治等方向回测样本不足，按全校口径估算、不上调；传播与经济、心理同属热门社科；需作品集或试镜的艺术项目由院系另审，不出区间。专业要和学生的课程、活动、PIQ 对得上，只为录取率换专业，材料会显得对不上。伯克利不考虑备选专业，UCLA 不保证考虑，其余校区建议认真填写备选。</p>
     <p class="guard">区间是按公开录取数据和你填写的画像做的估算，向保守一侧取，不是录取承诺。UC 各校区一律不计入保底：录取率高的校区也只标「相对可及」，名单里仍需要 UC 之外的保底校。活动与 PIQ 的评判只给标签和追问，成稿必须由学生本人完成。数据以 UC 官网当年公布为准；选校请由顾问审定。</p>
     <div class="copy-row">
       <button class="btn primary" type="button" data-report>生成 PDF 评估报告</button>
@@ -982,7 +983,7 @@ table.bt td.hit { color: var(--t-likely); } table.bt td.miss { color: var(--t-re
         <li>起点是你所在申请池（加州 / 外州 / 国际）在该校的 Fall 2026 录取率。</li>
         <li>再看 GPA 在该校录取者 GPA 中段的位置，并按荣誉课供给做情境化：供给默认从成绩单判断，学校不开 AP 时，自学考出的 AP / IB 成绩作为课程难度证据。</li>
         <li>每个校区按学生在该校实际申报的专业排档；英语看总分与单项；活动与 PIQ 按评判档位调整；各项权重不公开。</li>
-        <li>申报专业难度：UC 多数校区按专业或学院录取，同一份成绩换一个专业，机会可以差很多。计算机、工程、商科、护理按各校公布的分专业录取率收窄。国际生与外州生另按近年真实录取结果校准：经济、心理、传播等热门社科在 UCLA、圣地亚哥明显更难；数学、物理、化学在尔湾、圣塔芭芭拉、戴维斯明显更容易；计算机本专业在 UCLA、圣地亚哥更窄；统计、数据科学、AI 等交叉专业单列，不套计算机本专业的限额，各校都比计算机本专业宽，UCLA、圣地亚哥差得最明显。生命科学、工程在圣地亚哥也偏难，但样本还不够，暂未单独调整。「分专业录取区间」表可以直接对比同一学生换专业后的区间。</li>
+        <li>申报专业难度：UC 多数校区按专业或学院录取，同一份成绩换一个专业，机会可以差很多。计算机、工程、商科、护理按各校公布的分专业录取率收窄。国际生与外州生另按近年真实录取结果校准：经济、心理、传播等热门社科在 UCLA、圣地亚哥明显更难；数学、物理、化学在尔湾、圣塔芭芭拉、戴维斯明显更容易；计算机本专业在 UCLA、圣地亚哥更窄；统计、数据科学、AI 等交叉专业单列，不套计算机本专业的限额，各校都比计算机本专业宽，UCLA、圣地亚哥差得最明显。生命科学、工程在圣地亚哥也偏难，但样本还不够，暂未单独调整。2026-11 起方向扩到十六个：传播 / 媒体从社科中拆出，沿用热门社科的口径；社会学、政治、人类学等单列，未单独校准；新增环境 / 可持续、农业 / 食品 / 营养、公共卫生，按全校口径估算，校区卡片注明各校对应专业与所在学院（伯克利 Rausser 自然资源学院、戴维斯农业与环境科学学院等）；需作品集或试镜的艺术项目不出区间。「分专业录取区间」表可以直接对比同一学生换专业后的区间。</li>
         <li>圣克鲁兹、河滨、默塞德：对成绩偏低的学生录取面明显更宽（例如 IB 总分 25–28 的学生也有录取），GPA 低于该校中段时曲线放平，不套「不加权 3.85 以下下调」，并对所有学生上调：成绩好的学生在 90% 以上，成绩一般或偏低的区间至少从 50% 起。UC 仍不计入保底。</li>
         <li>照片、截图与扫描版 PDF：能调用 Claude 时由 Claude 识别；不能调用时（例如在企业微信里打开离线文件）改在本机识别，使用开源 Tesseract（Apache-2.0）中英文字库，文件不上传，识别前先拉平阴影、纠正拍歪的角度，成绩格再单独复核一遍；只把拿不准的行标黄并写明原因，黄行下面附原件截图（截图只留在本次打开的页面里）。Excel、CSV 成绩单按原表读入，只标出 A–G 类别没认出的行。活动表能识别模板里的填写说明、类别标题和示例行，按表头、竖排表单或一行一条读取。扫描版 UC 申请打印件的成绩表常被折行，本机只导入活动、PIQ 与英语，成绩请另传文字版打印件或学校成绩单。</li>
         <li>最低 GPA（加州居民 3.0、其他 3.4）：美式成绩明显低于最低线时不出区间；IB、百分制、英式等国际成绩由 UC 自行对照换算，本页换算偏低时照常估算并提示，顶部与中部校区几乎没有机会。</li>
@@ -1049,8 +1050,14 @@ const TYPE_IDS = ['reg','hon','ap','ibhl','ibsl','cl'];
 const LETTERS = ['', 'A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F','P'];
 const MAJORS = [
   {id:'hum', zh:'人文 / 艺术', full:'人文 / 艺术（不需作品集）', kw:/(文学|历史|哲学|艺术|语言|写作|literat|histor|philosoph|art|languag|writing)/i},
-  {id:'soc', zh:'社科 / 经济', full:'社会科学 / 经济', kw:/(经济|社会|政治|心理|定价|市场|econom|social|politic|psycholog|pric|market)/i},
+  {id:'art', zh:'艺术·作品集', full:'艺术 / 影视 / 表演（需作品集或试镜）', kw:/(作品集|绘画|设计|电影|拍摄|表演|舞蹈|音乐|乐器|戏剧|portfolio|paint|design|film|perform|dance|music|theat|studio|audition)/i},
+  {id:'comm', zh:'传播 / 媒体', full:'传播 / 媒体 / 新闻', kw:/(传播|媒体|新闻|采访|拍摄|剪辑|视频|公众号|播客|广告|media|journalis|film|video|podcast|broadcast|communicat|advertis|editor|newspaper|magazine)/i},
+  {id:'soc', zh:'经济 / 心理', full:'经济 / 心理 / 认知（热门社科）', kw:/(经济|心理|定价|市场|认知|行为|econom|psycholog|pric|market|cognit|behavio)/i},
+  {id:'socx', zh:'社会 / 政治', full:'社会学 / 政治 / 人类学 / 国际关系等社科', kw:/(社会|政治|人类学|国际|政策|社区|田野|访谈|不平等|sociolog|politic|anthropolog|international|policy|community|fieldwork|interview|inequalit)/i},
   {id:'life', zh:'生命科学', full:'生命科学', kw:/(生物|医学|基因|细胞|神经|生态|biolog|medic|gene|cell|neuro|ecolog)/i},
+  {id:'pubh', zh:'公共卫生', full:'公共卫生 / 健康科学', kw:/(公共卫生|健康|疾病|流行病|医院|社区健康|public health|health|disease|epidemi|clinic|hospital|wellness)/i},
+  {id:'env', zh:'环境 / 可持续', full:'环境 / 可持续 / 地球系统', kw:/(环境|气候|可持续|碳|生态|污染|垃圾|回收|水质|保护|environment|climate|sustainab|carbon|ecolog|pollut|recycl|conservation|emission|renewable)/i},
+  {id:'agfood', zh:'农业 / 食品', full:'农业 / 食品 / 营养', kw:/(食品|食物|营养|农业|农场|种植|烹饪|饮食|food|nutrition|diet|agricultur|farm|crop|cook|culinar)/i},
   {id:'phys', zh:'数学 / 物理', full:'数学 / 物理科学', kw:/(数学|物理|化学|天文|证明|math|physic|chemi|astro|proof)/i},
   {id:'biz', zh:'商科直录', full:'商科（商学院直录）', kw:/(商业|管理|创业|营销|财务|business|manag|startup|marketing|financ)/i},
   {id:'cs', zh:'计算机', full:'计算机（本专业，含计算机工程）', kw:/(编程|代码|算法|程序|computer|code|coding|algorithm|software|program)/i},
@@ -1059,6 +1066,47 @@ const MAJORS = [
   {id:'nurse', zh:'护理', full:'护理', kw:/(护理|医院|病人|照顾|nurs|hospital|patient|care)/i},
   {id:'und', zh:'未定专业', full:'未定专业', kw:/./}
 ];
+/* 2026-11 新增方向：各校对应专业与所在学院（只改讲法与提示，不改区间；未经回测的方向按全校口径，不上调） */
+const MAJOR_AVAIL = { agfood: ['ucb', 'ucd', 'ucsc'] };
+const MAJOR_NOTES = {
+  env: {
+    ucb: '伯克利环境类分属两个学院：环境科学、环境经济与政策、社会与环境、分子环境生物学等在 Rausser 自然资源学院，环境地球科学在文理学院。申请时先选学院，录取按全校统一标准审读；只审第一志愿',
+    ucla: 'UCLA 对应环境科学 B.S.（文理学院，由环境与可持续研究所开设）；文理学院审读不看申报专业',
+    ucsd: '圣地亚哥对应环境系统（生态、行为与进化 B.S. / 环境政策 B.A.）、地球科学（斯克里普斯海洋研究所）；不在选择性名单上',
+    uci: '尔湾对应地球系统科学 B.S.、环境科学与政策 B.A.；尔湾所有专业都把第一志愿计入录取',
+    ucsb: '圣塔芭芭拉对应环境研究 B.A. / B.S.（文理学院）',
+    ucd: '戴维斯环境类大多在农业与环境科学学院（如环境科学与管理、环境政策分析与规划）；备选专业要放在另一学院',
+    ucsc: '圣克鲁兹对应环境研究 B.A.（社会科学部）、环境科学 B.S.、农业生态学 B.A.',
+    ucr: '河滨对应环境科学 B.A. / B.S.',
+    ucm: '默塞德对应环境系统科学 B.S.'
+  },
+  agfood: {
+    ucb: '伯克利对应营养类专业（营养与代谢生物学等，Rausser 自然资源学院），另有食物系统辅修；只审第一志愿',
+    ucd: '戴维斯对应食品科学、营养科学、临床营养、可持续农业与食品系统、动物科学、植物科学等（农业与环境科学学院）；备选专业要放在另一学院',
+    ucsc: '圣克鲁兹对应农业生态学 B.A.（环境研究系）'
+  },
+  comm: {
+    ucb: '伯克利对应传媒研究（文理学院）；只审第一志愿',
+    ucla: 'UCLA 对应传播学（文理学院），文理学院审读不看申报专业；电影电视在戏剧电影电视学院，要交作品，请改选「艺术·作品集」',
+    ucsd: '圣地亚哥对应传播学、媒体（社会科学部）',
+    uci: '尔湾没有传播学专业，最接近的是电影与媒体研究（人文学院）；尔湾所有专业都把第一志愿计入录取',
+    ucsb: '圣塔芭芭拉对应预科传播学或预科电影与媒体研究（文理学院）',
+    ucd: '戴维斯对应传播学、电影与数字媒体（文理学院）；备选专业要放在另一学院',
+    ucsc: '圣克鲁兹没有传播学专业，最接近的是电影与数字媒体（艺术学部）',
+    ucr: '河滨对应媒体与文化研究',
+    ucm: '默塞德对应传播与媒体（2025 年秋季新开）'
+  },
+  pubh: {
+    ucsd: '公共卫生是圣地亚哥的选择性专业（名额受限）：分专业录取数据不足，区间未单独下调，请按区间下沿看；备选要填不在选择性名单上的专业',
+    _: '各校公共卫生 / 健康科学的专业名称和所在学院差别较大，有的只在入学后申请，请按学生实际申报的专业核对；暂按生命科学口径估算'
+  },
+  art: {
+    ucla: 'UCLA 的艺术与建筑学院、戏剧电影电视学院、音乐学院多数专业要交补充申请（作品集或试镜），部分专业录取率极低。',
+    ucsb: '圣塔芭芭拉的舞蹈 B.A. 与音乐 B.M. 需要试镜。',
+    _: '需作品集 / 试镜的项目由院系另审，本页不出区间；学术部分可参照「人文 / 艺术」列。若该校此类专业不设作品集门槛，请改选「人文 / 艺术」'
+  }
+};
+function majorNote(major, cid) { const n = MAJOR_NOTES[major]; return n ? (n[cid] || n._ || '') : ''; }
 
 function honorsEligible(type, res) { return res === 'ca' ? ['hon','ap','ibhl','ibsl','cl'].includes(type) : ['ap','ibhl','ibsl','cl'].includes(type); }
 const IB_MAP = { '7':'A', '6':'A', '5':'B', '4':'C', '3':'D', '2':'F', '1':'F' };
@@ -1215,6 +1263,8 @@ const INTL_CAL = {
   // 统计 / 数据科学 / AI 等交叉专业在 UCLA、UCSD 比计算机本专业宽，计算机本专业更窄
   major: [
     { ids: ['ucla', 'ucsd'], m: 'soc', x: .3, flag: '经济、心理、传播等热门社科：国际生申请高度集中，UCLA、圣地亚哥这两校的竞争明显激烈于全校平均，区间已下调' },
+    // 2026-11：传播 / 媒体从「社科 / 经济」中拆出单列，沿用上面热门社科的回测系数（该系数的口径本就包括传播）
+    { ids: ['ucla', 'ucsd'], m: 'comm', x: .3, flag: '传播、媒体等热门社科：国际生申请高度集中，UCLA、圣地亚哥这两校的竞争明显激烈于全校平均，区间已下调' },
     { ids: ['uci', 'ucsb', 'ucd'], m: 'phys', x: 2.5, flag: '数学、物理、化学等数理专业：在尔湾、圣塔芭芭拉、戴维斯申请集中度低，学术达标时录取面明显更宽，区间已上调' },
     { ids: ['ucla', 'ucsd'], m: 'ds', x: 2, flag: '统计、数据科学、AI 等交叉专业：在 UCLA、圣地亚哥的录取面比计算机本专业宽，区间已上调' },
     { ids: ['uci', 'ucsb', 'ucd'], m: 'ds', x: 1.5, flag: '统计、数据科学、AI 等交叉专业：在尔湾、圣塔芭芭拉、戴维斯学术达标时录取面较宽，区间已上调' },
@@ -1242,6 +1292,8 @@ function campusEstimate(c, g, p) {
   if (belowMin && !foreign && minGpa - g.capped >= 0.1) { out.status = 'ineligible'; out.why = `封顶加权 GPA 低于 ${minGpa.toFixed(1)} 的最低要求`; return out; }
   const open = OPEN_CAL.ids.includes(c.id);
   if (major === 'nurse' && c.mf.nurse === null) { out.status = 'nomajor'; out.why = '该校无本科护理直录，或分专业数据不足'; return out; }
+  if (MAJOR_AVAIL[major] && !MAJOR_AVAIL[major].includes(c.id)) { out.status = 'nomajor'; out.why = '该校没有农业 / 食品 / 营养类本科专业（或未核到）；可按「生命科学」或「环境 / 可持续」看'; return out; }
+  if (major === 'art') { out.status = 'portfolio'; out.why = (MAJOR_NOTES.art[c.id] || '') + MAJOR_NOTES.art._; return out; }
   const needEng = res === 'intl', intl = needEng;
   const el = needEng ? p.engLevel : 3;
   if (needEng && (el === null || el === undefined)) { out.status = 'noeng'; out.why = '请先在「托福 / 英语」里填写成绩'; return out; }
@@ -1325,6 +1377,9 @@ function campusEstimate(c, g, p) {
   if (boosted) out.flags.push(`本校前 15%，且所在高中该校录取较多：区间已上调，档位${tier === 'match' ? '最高到匹配' : '仍只到冲刺'}`);
   if (fd === 'low' && c.tier !== 'std') out.flags.push('所在高中在该校的历史录取偏少');
   if (majCal) out.flags.push(majCal.flag);
+  if (majorNote(major, c.id)) out.flags.push(majorNote(major, c.id));
+  if (major === 'socx' && res !== 'ca' && ['ucla', 'ucsd'].includes(c.id)) out.flags.push('社会学、政治、人类学等其他社科：回测样本不足，未单独校准，不套经济、心理的下调；若这一方向在国际生中同样集中，实际会更难');
+  if (['env', 'agfood', 'pubh', 'socx'].includes(major)) out.flags.push('这一方向回测样本不足，按全校口径估算，不上调');
   if (mf < 1) out.flags.push(major === 'nurse' ? '护理是全系统最窄的容器' : '申报专业为限额 / 影响容器，按更保守口径处理');
   if (major === 'biz' && c.nobiz) out.flags.push('该校无本科商学院直录，按经济方向估算');
   if (g.low && g.low.length && res !== 'ca') out.flags.push('A–G 课有低于 C 的成绩，非加州居民不满足要求');
@@ -1334,7 +1389,7 @@ function campusEstimate(c, g, p) {
   else if (ai >= lo) say = '学术指数落在录取者 GPA 中段，结果更取决于课程难度、PIQ 和活动。';
   else if (ai >= lo - 0.15) say = '学术指数略低于录取者 GPA 中段下沿，需要课程难度或活动明显加分。';
   else say = '学术指数明显低于录取者 GPA 中段，其他维度需要非常突出。';
-  Object.assign(out, { status:'ok', ai, lo:loR, hi:hiR, pLean, tier, say, capped: mf < 1, majCal: majCal ? majCal.x : null, boosted, strong, fb, anchor: { pool, limit, just, clipped } });
+  Object.assign(out, { status:'ok', ai, lo:loR, hi:hiR, pLean, tier, say, capped: mf < 1 || (major === 'pubh' && c.id === 'ucsd'), majCal: majCal ? majCal.x : null, boosted, strong, fb, anchor: { pool, limit, just, clipped } });
   return out;
 }
 function rangeText(e) { if (e.hi <= 1) return '<1%'; if (e.lo <= 0) return `<${e.hi}%`; return `${e.lo}–${e.hi}%`; }
@@ -1490,7 +1545,7 @@ function piqText(q, text, res, major) {
   if (q === 6 && /(I want to (keep |continue )?(study|major|pursue|explor|learn)|I (hope|plan) to (study|major|keep|continue))/i.test(last)) { out.push(['题 6 以「想读某专业」收尾','w']); sig.end = true; }
   else if (/(I('ll| will) (continue|keep)|\bat UC\b|I hope to|I look forward to|I aspire to|I plan to|I want to keep)/i.test(last)) out.push(['目标式收尾：改成此后自用的一条规则或一个具体动作','i']);
   if (QUALITY.test(last) && /(sense of|more importantly|taught me|learned|became more|grew more|stronger|deeper|greater)/i.test(last)) { out.push(['品质词收尾（坚持、谦逊、责任感之类）','i']); sig.end = true; }
-  if (q === 6 && ['soc','biz'].includes(major) && /(inequalit|poverty|不平等|扶贫|trade war|belt and road|一带一路|globali[sz]ation|全球化)/i.test(t)) out.push(['宏大题目（不平等 / 扶贫 / 全球化）：需要一个只有你讲得出的具体问题','i']);
+  if (q === 6 && ['soc','socx','biz'].includes(major) && /(inequalit|poverty|不平等|扶贫|trade war|belt and road|一带一路|globali[sz]ation|全球化)/i.test(t)) out.push(['宏大题目（不平等 / 扶贫 / 全球化）：需要一个只有你讲得出的具体问题','i']);
   const nx = (t.match(/\bnot (just |only |merely )?[\w\s'’-]{1,40}[,;—–-]+\s*(but|it'?s|it was|rather)\b|isn'?t [\w\s'’-]{1,40}[,;—–-]+\s*(it'?s|but)\b/gi) || []).length;
   if (nx >= 2) { out.push([`「不是 X 而是 Y」对照句 ${nx} 处`,'w']); sig.end = true; }
   if (CAMPUS_NAMES.test(t)) out.push(['提到了具体分校：PIQ 原样发给所有分校','w']);
@@ -2015,9 +2070,16 @@ function classifyMajor(t) {
   if (/(engineer|工程)/.test(s)) return 'eng';
   if (/(nurs|护理)/.test(s)) return 'nurse';
   if (/(business|managerial|accounting|finance|marketing|商科|商学)/.test(s)) return 'biz';
-  if (/(biolog|biochem|neuro|ecolog|marine|kinesiol|public health|pharm|molecular|environment|生物|医学|环境)/.test(s)) return 'life';
+  // 2026-11 新增方向：需作品集 / 试镜的艺术项目、农业食品营养、环境、公共卫生、传播、社会学等
+  if (/(\bb\.?f\.?a\b|\bb\.?mus\b|\bb\.m\.|film and television|design media arts|music performance|\bdance\b|\bacting\b|作品集|试镜)/.test(s)) return 'art';
+  if (/(food|nutrition|dietetic|agricultur|agroecolog|animal science|plant science|viticulture|crop|soil science|食品|营养|农业)/.test(s)) return 'agfood';
+  if (/(environment|sustainab|ecosystem|conservation|natural resource|earth system|climate|society and environment|环境|可持续|气候)/.test(s)) return 'env';
+  if (/(public health|global health|health science|population health|公共卫生)/.test(s)) return 'pubh';
+  if (/(biolog|biochem|neuro|ecolog|marine|kinesiol|pharm|molecular|生物|医学)/.test(s)) return 'life';
   if (/(physic|math|chemis|astro|statistic|data theory|geolog|earth|atmospher|physical science|物理|数学|化学|统计)/.test(s)) return 'phys';
-  if (/(econom|psycholog|sociolog|politic|anthropolog|international|global|communication|policy|cognitive|geograph|经济|心理|社会|政治)/.test(s)) return 'soc';
+  if (/(communication|media|journalism|传播|媒体|新闻)/.test(s)) return 'comm';
+  if (/(econom|psycholog|cognitive|经济|心理|认知)/.test(s)) return 'soc';
+  if (/(sociolog|politic|anthropolog|international|global|policy|geograph|urban|criminolog|social|社会|政治|人类学|国际)/.test(s)) return 'socx';
   if (/(english|history|philosoph|\barts?\b|music|film|literat|linguist|language|theat|dance|design|classic|greek|roman|ancient|religio|architect|asian|area studies|cultures|humanities|ethnic|gender|chinese|japanese|korean|文学|历史|哲学|艺术|音乐|语言|区域研究)/.test(s)) return 'hum';
   if (/(undeclared|undecided|intending|exploratory|未定)/.test(s)) return 'und';
   return '';
@@ -4020,7 +4082,7 @@ function render(opts = {}) {
   $('mx').innerHTML = `<thead><tr><th style="text-align:left;padding-left:14px">校区</th>${MAJORS.map(m => `<th class="${m.id === p.major ? 'sel' : ''}"><button type="button" data-major="${m.id}" aria-pressed="${m.id === p.major}">${m.zh}</button></th>`).join('')}</tr></thead>
     <tbody>${mx.map(row => `<tr><th scope="row" title="${esc(row.c.note)}">${row.c.short}<small>${row.c.en}</small></th>${row.cells.map((e, i) => { const sel = MAJORS[i].id === p.major ? 'sel' : '';
       if (e.status === 'ok') return `<td class="${sel}"><div class="cell ${e.tier}${e.capped || (e.majCal && e.majCal < 1) ? ' cap' : e.majCal > 1 ? ' up' : ''}" role="button" tabindex="0" data-major="${MAJORS[i].id}" title="${row.c.zh} · ${MAJORS[i].full}：${TIER_NAME[e.tier]}"><span class="r">${rangeText(e)}</span><span class="d"></span></div></td>`;
-      return `<td class="${sel}"><div class="cell na" title="${esc(e.why || '')}"><span class="r">—</span></div></td>`; }).join('')}</tr>`).join('')}</tbody>`;
+      return `<td class="${sel}"><div class="cell na" title="${esc(e.why || '')}"><span class="r">${e.status === 'portfolio' ? '作品集' : '—'}</span></div></td>`; }).join('')}</tr>`).join('')}</tbody>`;
 
   // lever: pick the improvable item with the biggest effect
   const anyOk = ests.some(e => e.status === 'ok');
@@ -5224,4 +5286,5 @@ resetBar('');
 
 renderSchoolOptions(); syncControls(); renderRows(); renderExams(); renderActs(); renderMajorFor(); renderData(); render({ piqFull: true }); renderProfiles();
 </script>
+
 </body></html>
