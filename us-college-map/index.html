@@ -808,7 +808,8 @@ let lang = 'zh', view = 'map', sortKey = 'rank', sortAsc = true, selected = null
 /* ---------- 收藏 / 字号 / 舒适度 ---------- */
 let favOnly = false, fontLevel = 0;
 const FAVS = new Set((()=>{ try{ const r=JSON.parse(localStorage.getItem('cmc_favs')||'[]'); return Array.isArray(r)?r:[]; }catch(_){ return []; } })());
-function saveFavs(){ try{ localStorage.setItem('cmc_favs', JSON.stringify([...FAVS])); }catch(_){} }
+try{ const m=location.hash.match(/(?:^#|&)fav=([^&]*)/); if(m){ decodeURIComponent(m[1]).split('|').filter(Boolean).forEach(x=>FAVS.add(x)); try{ localStorage.setItem('cmc_favs', JSON.stringify([...FAVS])); }catch(_){} } }catch(_){}
+function saveFavs(){ try{ localStorage.setItem('cmc_favs', JSON.stringify([...FAVS])); }catch(_){} try{ const h=FAVS.size?'#fav='+encodeURIComponent([...FAVS].join('|')):''; history.replaceState(null,'',location.pathname+location.search+h); }catch(_){} }
 /* 清洗收藏:旧版本文件残留的编号/已改名学校会让「我的收藏」计数与实际不符,只保留当前113所里存在的。
    需在 DATA 就绪后调用(会员版 DATA 在输码后才解锁) */
 function sanitizeFavs(){
@@ -1481,10 +1482,16 @@ function exportFavs(){
     .ft .qrb{display:flex;align-items:center;gap:8px}
     .ft img{width:58px;height:58px}
     .ft .qt{font-size:9px;color:#6b6257;line-height:1.5}
-    @media print{ .noprint{display:none} }
-    .noprint{position:fixed;top:10px;right:10px;background:#F97E1C;color:#fff;border:0;border-radius:8px;padding:9px 18px;font-size:14px;cursor:pointer}
+    @media print{ .noprint{display:none !important} }
+    .bar{display:flex;justify-content:flex-end;margin-bottom:12px}
+    .bar button{background:#F97E1C;color:#fff;border:0;border-radius:8px;padding:9px 18px;font-size:14px;cursor:pointer}
+    .wxtip{display:none;margin-bottom:12px;font-size:13px;line-height:1.7;color:#5a3a12;background:#FFF4E6;border:1px solid #F2C894;border-radius:8px;padding:10px 14px}
+    .wxtip.on{display:block}
+    @media screen and (max-width:640px){ body{padding:14px} .hd{flex-wrap:wrap;gap:8px} .hd .ti{order:3;width:100%;text-align:left} .hd h1{font-size:17px;letter-spacing:1px} table{min-width:900px} html,body{overflow-x:auto} .ft .qrb{flex-shrink:0} .ft .qt{max-width:120px} }
   </style></head><body>
-  <button class="noprint" onclick="window.print()">${lang==='zh'?'打印 / 存为PDF':'Print / Save as PDF'}</button>
+  <div class="bar noprint"><button onclick="doPrint()">${lang==='zh'?'打印 / 存为PDF':'Print / Save as PDF'}</button></div>
+  <div class="wxtip noprint" id="wxtip">${lang==='zh'?'微信和企业微信里没法直接打印。请点右上角「···」，选「在默认浏览器中打开」（如果是聊天里的文件，选「用其他应用打开」，再选 Safari 或 Chrome），然后在选校地图里点「导出清单」，就能打印或存成 PDF。也可以直接截图保存这一页。':'Printing is blocked inside WeChat/WeCom. Tap "···" at the top right and open in your default browser, then export again to print or save as PDF. Or take a screenshot of this page.'}</div>
+  <script>function isWx(){return /MicroMessenger|wxwork/i.test(navigator.userAgent)}function doPrint(){if(isWx()){var t=document.getElementById('wxtip');t.classList.add('on');t.scrollIntoView({behavior:'smooth',block:'start'});return}try{window.print()}catch(e){}}<\/script>
   <div class="hd">
     <div class="lg" style="color:#000">${logo}</div>
     <div class="ti"><h1>${t.expTitle}</h1><div class="sub">${t.expSub} · ${updTxt()}</div></div>
@@ -1500,7 +1507,7 @@ function exportFavs(){
   const w = window.open('', '_blank');
   if (!w){ alert(lang==='zh'?'浏览器拦截了新窗口,请允许弹出窗口后重试':'Popup blocked — please allow popups and retry'); return; }
   w.document.write(html); w.document.close(); w.focus();
-  setTimeout(()=>{ try{ w.print(); }catch(_){} }, 500);
+  if (!/MicroMessenger|wxwork/i.test(navigator.userAgent)) setTimeout(()=>{ try{ w.print(); }catch(_){} }, 500);
 }
 function renderMap(list){
   const g = document.getElementById('dots');
