@@ -1,0 +1,2259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>科研对接工作台</title>
+<style>
+:root{
+  --bg:#F6F4EF; --panel:#FFFFFF; --ink:#1A1614; --ink2:#6B6259; --ink3:#9C9289;
+  --line:#E6DFD4; --line2:#F1ECE3;
+  --accent:#B8541B; --accent2:#D9762F; --accent-soft:#FBEEE4;
+  --red:#B3372A; --red-soft:#FBEAE7; --amber:#9A6B14; --amber-soft:#FCF3DF;
+  --green:#2C7250; --green-soft:#E8F3ED; --blue:#2A5C84; --blue-soft:#E9F1F7;
+  --r:10px; --r2:7px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  font-size:14px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0;font-weight:600;line-height:1.35}
+p{margin:0}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(184,84,27,.3)}
+a:hover{border-bottom-color:var(--accent)}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+
+/* ---------- 布局 ---------- */
+.app{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:100vh}
+.side{
+  background:var(--panel);border-right:1px solid var(--line);
+  position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+  padding:18px 0 12px;
+}
+.brand{padding:0 16px 16px;border-bottom:1px solid var(--line2)}
+.brand-name{font-size:15px;font-weight:650;letter-spacing:.2px}
+.brand-sub{font-size:11.5px;color:var(--ink3);margin-top:3px}
+.side nav{flex:1;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.navbtn{
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:8px 10px;border-radius:var(--r2);font-size:13.5px;color:var(--ink2);
+  text-align:left;transition:background .14s,color .14s;
+}
+.navbtn:hover{background:var(--line2);color:var(--ink)}
+.navbtn.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.cnt{
+  font-size:11px;min-width:18px;height:18px;line-height:18px;text-align:center;
+  border-radius:9px;background:var(--line);color:var(--ink2);padding:0 5px;font-weight:600;
+}
+.cnt:empty{display:none}
+.cnt.hot{background:var(--red);color:#fff}
+.cnt.warm{background:var(--amber);color:#fff}
+.side-foot{padding:10px 12px 0;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:4px}
+.side-foot button{
+  font-size:12px;color:var(--ink2);text-align:left;padding:5px 6px;border-radius:5px;
+}
+.side-foot button:hover{background:var(--line2);color:var(--ink)}
+
+.main{padding:0 0 96px;min-width:0}
+.wrap{padding:24px 28px 0;max-width:1180px}
+.view{display:none}
+.view.on{display:block}
+.vhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.vhead h2{font-size:23px;line-height:1.3}
+.vhead .sub{font-size:12.5px;color:var(--ink3);margin-top:4px}
+
+/* ---------- 通用块 ---------- */
+.block{margin-bottom:26px}
+.block-head{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;flex-wrap:wrap}
+.block-head h3{font-size:14.5px;letter-spacing:.2px}
+.block-head .hint{font-size:12px;color:var(--ink3)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.empty{
+  background:var(--panel);border:1px dashed var(--line);border-radius:var(--r);
+  padding:22px;text-align:center;color:var(--ink3);font-size:13px;
+}
+
+/* ---------- 任务行 ---------- */
+.tlist{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.titem{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:10px;
+  padding:11px 14px;border-bottom:1px solid var(--line2);
+}
+.titem:last-child{border-bottom:0}
+.titem:hover{background:#FCFAF7}
+.chk{
+  width:16px;height:16px;border:1.5px solid var(--ink3);border-radius:4px;margin-top:3px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;
+  transition:background .12s,border-color .12s;
+}
+.chk:hover{border-color:var(--accent)}
+.chk[aria-pressed="true"]{background:var(--green);border-color:var(--green)}
+.chk[aria-pressed="true"]::after{content:"";width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.tmain{min-width:0}
+.ttitle{font-size:13.5px;word-break:break-word}
+.titem.done .ttitle{color:var(--ink3);text-decoration:line-through}
+.tmeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;font-size:11.5px;color:var(--ink3)}
+.tag{
+  display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;
+  background:var(--line2);color:var(--ink2);white-space:nowrap;
+}
+.tag.p0{background:var(--red-soft);color:var(--red);font-weight:600}
+.tag.p1{background:var(--amber-soft);color:var(--amber);font-weight:600}
+.tag.p2{background:var(--line2);color:var(--ink2)}
+.tag.late{background:var(--red);color:#fff;font-weight:600}
+.tag.soon{background:var(--amber-soft);color:var(--amber);font-weight:600}
+.tag.ok{background:var(--green-soft);color:var(--green)}
+.tag.info{background:var(--blue-soft);color:var(--blue)}
+.tacts{display:flex;gap:2px;flex-shrink:0}
+.iconbtn{
+  width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  color:var(--ink3);font-size:13px;
+}
+.iconbtn:hover{background:var(--line2);color:var(--ink)}
+.iconbtn.danger:hover{background:var(--red-soft);color:var(--red)}
+
+/* ---------- 统计条 ---------- */
+.ledger{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;margin-bottom:22px;
+}
+.ledger div{background:var(--panel);padding:11px 14px}
+.ledger .k{font-size:11.5px;color:var(--ink3)}
+.ledger .v{font-size:19px;font-weight:650;margin-top:1px;font-variant-numeric:tabular-nums}
+.ledger .v.red{color:var(--red)}
+.ledger .v.amber{color:var(--amber)}
+.ledger .v.green{color:var(--green)}
+
+/* ---------- 科研项目卡 ---------- */
+.pcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.pcard-top{padding:15px 18px 13px;border-bottom:1px solid var(--line2)}
+.pcard-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pcard-name{font-size:15.5px;font-weight:650}
+.pcard-topic{font-size:13px;color:var(--ink2);margin-top:2px}
+.pcard-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--ink3)}
+.pcard-meta b{color:var(--ink2);font-weight:500}
+.pipe{display:flex;gap:3px;margin-top:12px}
+.pipe span{
+  flex:1;height:5px;border-radius:3px;background:var(--line);
+  transition:background .2s;
+}
+.pipe span.on{background:var(--accent2)}
+.pipe span.cur{background:var(--accent)}
+.stagelabel{font-size:11.5px;color:var(--accent);margin-top:6px;font-weight:600}
+.pcard-body{padding:14px 18px 16px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.sec-h h4{font-size:12.5px;color:var(--ink2);letter-spacing:.3px}
+
+/* 文档 */
+.docs{display:flex;flex-direction:column;gap:6px}
+.doc{
+  display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:var(--r2);background:#FCFAF7;font-size:12.5px;
+}
+.doc .dname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc .dsize{color:var(--ink3);font-size:11px;white-space:nowrap}
+
+/* 上课记录 */
+.cls{border:1px solid var(--line);border-radius:var(--r2);margin-bottom:8px;overflow:hidden}
+.cls:last-child{margin-bottom:0}
+.cls-top{display:flex;align-items:center;gap:9px;padding:8px 11px;background:#FCFAF7;flex-wrap:wrap}
+.cls-date{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.cls-topic{font-size:12.5px;color:var(--ink2);flex:1;min-width:120px}
+.cls-flags{display:flex;gap:5px;flex-wrap:wrap}
+.flag{
+  font-size:11px;padding:1px 7px;border-radius:4px;border:1px solid transparent;
+  background:var(--line2);color:var(--ink2);
+}
+.flag.off{background:var(--red-soft);color:var(--red);border-color:rgba(179,55,42,.2)}
+.flag.on{background:var(--green-soft);color:var(--green)}
+.flag.act{cursor:pointer}
+.flag.act:hover{filter:brightness(.96)}
+
+/* ---------- 合同 ---------- */
+.ccard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.ccard.late{border-color:rgba(179,55,42,.35);background:#FFFCFB}
+.ccard-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ccard-name{font-size:14.5px;font-weight:600}
+.ccard-sub{font-size:12px;color:var(--ink3);margin-top:2px}
+.steps{display:flex;flex-wrap:wrap;gap:4px;margin-top:11px}
+.step{
+  font-size:11.5px;padding:3px 8px;border-radius:4px;background:var(--line2);color:var(--ink3);
+  white-space:nowrap;
+}
+.step.done{background:var(--green-soft);color:var(--green)}
+.step.cur{background:var(--accent);color:#fff;font-weight:600}
+.ccard-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;flex-wrap:wrap}
+.note{font-size:12px;color:var(--ink2)}
+
+/* ---------- 竞赛 ---------- */
+.compcards{display:flex;flex-direction:column;gap:16px}
+.compcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.compcard-h{padding:16px 18px 14px;border-bottom:1px solid var(--line2)}
+.compcard-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.compcard-title h3{font-size:16px}
+.compcard-tag{font-size:11px;color:var(--ink3);margin-top:2px}
+.comp-intro{font-size:13px;color:var(--ink2);margin-top:9px;line-height:1.7}
+.comp-meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin-top:11px;font-size:12.5px}
+.comp-meta dt{color:var(--ink3);white-space:nowrap}
+.comp-meta dd{margin:0;color:var(--ink2)}
+.topics{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:11px}
+.topics-l{font-size:11.5px;color:var(--ink3);margin-right:3px}
+.tag{font-size:11.5px;padding:2.5px 7px;border-radius:5px;background:var(--line2);color:var(--ink2);white-space:nowrap}
+.warnbox{
+  margin-top:11px;padding:9px 11px;border-radius:var(--r2);background:var(--amber-soft);
+  color:var(--amber);font-size:12px;line-height:1.6;
+}
+.nodetable{width:100%;border-collapse:collapse;font-size:12.5px}
+.nodetable th{
+  text-align:left;font-weight:600;font-size:11.5px;color:var(--ink3);
+  padding:8px 10px;background:#FCFAF7;border-bottom:1px solid var(--line);
+}
+.nodetable td{padding:9px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+.nodetable tr:last-child td{border-bottom:0}
+.nodetable .nd{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;font-size:12px}
+.nodetable .nn{white-space:nowrap;font-weight:500}
+.nodetable .nm{color:var(--ink2);line-height:1.6}
+.nodetable tr.past .nd,.nodetable tr.past .nn{color:var(--ink3)}
+.nodetable tr.next{background:var(--accent-soft)}
+.nodetable tr.next .nd{color:var(--accent)}
+.enrollbox{padding:12px 18px 15px;background:#FCFAF7;border-top:1px solid var(--line2)}
+.enroll-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.enroll-h span{font-size:12.5px;color:var(--ink2);font-weight:600}
+.enroll-row{
+  display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);
+  flex-wrap:wrap;
+}
+.enroll-row:last-child{border-bottom:0}
+.enroll-name{font-size:13px;font-weight:600;min-width:64px}
+.dots{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+.dot{
+  width:22px;height:22px;border-radius:5px;background:var(--line2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink3);
+  font-variant-numeric:tabular-nums;
+}
+.dot.done{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.dot:hover{filter:brightness(.95)}
+
+/* ---------- 费用 ---------- */
+.feebox{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.feebox-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.feebox-h .tname{font-size:14.5px;font-weight:650}
+.feebox-h .tmeta{font-size:11.5px;color:var(--ink3)}
+.ftable{width:100%;border-collapse:collapse;font-size:12.5px}
+.ftable th{
+  text-align:left;font-size:11.5px;color:var(--ink3);font-weight:600;
+  padding:8px 12px;background:#FCFAF7;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.ftable td{padding:9px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.ftable tr:last-child td{border-bottom:0}
+.ftable .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ftable tfoot td{
+  background:#FCFAF7;font-weight:650;border-top:1px solid var(--line);border-bottom:0;
+}
+.settle{
+  font-size:11.5px;padding:2px 8px;border-radius:4px;border:1px solid transparent;white-space:nowrap;
+}
+.settle.no{background:var(--red-soft);color:var(--red)}
+.settle.yes{background:var(--green-soft);color:var(--green)}
+.settle.act{cursor:pointer}
+.settle.act:hover{filter:brightness(.96)}
+
+/* ---------- 链接 / 日志 ---------- */
+.linkday{margin-bottom:18px}
+.linkday-h{
+  display:flex;align-items:baseline;gap:8px;margin-bottom:7px;font-size:12.5px;color:var(--ink2);
+}
+.linkday-h b{font-size:13.5px;color:var(--ink);font-weight:650}
+.linkday-h .today{
+  font-size:11px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px;font-weight:600;
+}
+.linkitem{
+  display:flex;align-items:center;gap:11px;padding:9px 13px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r2);margin-bottom:6px;flex-wrap:wrap;
+}
+.linkitem .lmajor{font-size:12px;font-weight:600;min-width:76px}
+.linkitem .lurl{flex:1;min-width:150px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linkitem .lnote{font-size:11.5px;color:var(--ink3)}
+
+.logday{margin-bottom:20px}
+.logday-h{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.logday-h b{font-size:13.5px}
+.logday-h .wk{font-size:11.5px;color:var(--ink3)}
+.logline{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;
+  padding:8px 13px;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r2);margin-bottom:5px;align-items:start;
+}
+.logline .lt{font-size:11.5px;color:var(--ink3);font-variant-numeric:tabular-nums;padding-top:1px}
+.logline .lx{font-size:13px;word-break:break-word}
+.quick{
+  display:grid;grid-template-columns:110px 88px minmax(0,1fr) auto;gap:8px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px;margin-bottom:22px;
+}
+.quick input,.quick select{
+  padding:7px 9px;border:1px solid var(--line);border-radius:var(--r2);background:#fff;
+  font-size:12.5px;min-width:0;
+}
+.quick input:focus,.quick select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent2)}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r2);
+  font-size:12.5px;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--ink2);
+  transition:background .14s,border-color .14s,color .14s;
+}
+.btn:hover{background:var(--line2);color:var(--ink);border-color:var(--ink3)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{background:#A34A17;border-color:#A34A17;color:#fff}
+.btn.sm{padding:4px 9px;font-size:11.5px}
+.btn.danger{color:var(--red);border-color:rgba(179,55,42,.3)}
+.btn.danger:hover{background:var(--red-soft);color:var(--red);border-color:var(--red)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- 悬浮按钮 ---------- */
+.fab{
+  position:fixed;right:26px;bottom:26px;width:50px;height:50px;border-radius:50%;
+  background:var(--accent);color:#fff;font-size:25px;line-height:1;
+  box-shadow:0 4px 16px rgba(184,84,27,.32);display:flex;align-items:center;justify-content:center;
+  transition:transform .16s,box-shadow .16s;z-index:40;
+}
+.fab:hover{transform:scale(1.06);box-shadow:0 6px 22px rgba(184,84,27,.4)}
+
+/* ---------- 弹窗 ---------- */
+dialog{
+  border:0;border-radius:12px;padding:0;max-width:520px;width:calc(100% - 32px);
+  background:var(--panel);color:var(--ink);box-shadow:0 18px 50px rgba(26,22,20,.22);
+}
+dialog::backdrop{background:rgba(26,22,20,.34)}
+.dlg-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px 12px;border-bottom:1px solid var(--line2)}
+.dlg-h h3{font-size:15.5px}
+.dlg-body{padding:16px 20px;max-height:calc(86vh - 128px);overflow-y:auto}
+.dlg-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--line2)}
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;color:var(--ink2);margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r2);
+  background:#fff;font-size:13px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:2px solid var(--accent-soft);border-color:var(--accent2);
+}
+.field textarea{resize:vertical;min-height:62px;line-height:1.6}
+.field .fh{font-size:11.5px;color:var(--ink3);margin-top:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);
+  background:var(--ink);color:#F6F4EF;padding:9px 17px;border-radius:20px;font-size:12.5px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60;max-width:86vw;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:880px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:12px 0 8px}
+  .brand{padding:0 14px 10px}
+  .side nav{flex-direction:row;overflow-x:auto;padding:6px 10px;gap:5px}
+  .navbtn{white-space:nowrap;padding:6px 11px;font-size:13px}
+  .side-foot{flex-direction:row;flex-wrap:wrap;padding:8px 12px 0}
+  .wrap{padding:18px 16px 0}
+  .vhead h2{font-size:20px}
+  .ledger{grid-template-columns:repeat(2,1fr)}
+  .quick{grid-template-columns:1fr 1fr}
+  .quick input:nth-child(3){grid-column:1 / -1}
+  .quick button{grid-column:1 / -1;justify-content:center}
+  .nodetable{font-size:12px}
+  .ftable th:nth-child(2),.ftable td:nth-child(2){display:none}
+  .fab{right:16px;bottom:16px;width:46px;height:46px}
+  .row2{grid-template-columns:1fr}
+}
+
+@media (max-width:640px){
+  .nodetable thead{display:none}
+  .nodetable tbody,.nodetable tr,.nodetable td{display:block;width:auto}
+  .nodetable tr{padding:10px 15px;border-bottom:1px solid var(--line2)}
+  .nodetable td{padding:0;border:0}
+  .nodetable .nd{font-size:11.5px;color:var(--ink3);font-weight:500}
+  .nodetable .nn{font-size:13px;margin-top:1px}
+  .nodetable .nm{font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.6}
+  .nodetable tr.next{background:var(--accent-soft)}
+  .ftable th,.ftable td{padding:8px 9px}
+  .comp-meta{grid-template-columns:1fr;gap:0}
+  .comp-meta dt{margin-top:6px}
+  .logline{grid-template-columns:auto minmax(0,1fr);gap:8px}
+  .logline .tacts{grid-column:2;justify-self:end}
+}
+
+/* ---------- 打印 ---------- */
+@media print{
+  .side,.fab,.tacts,.side-foot,.quick,.toast{display:none !important}
+  body{background:#fff;font-size:11pt}
+  .app{grid-template-columns:1fr}
+  .view{display:none}
+  .view.on{display:block}
+  .card,.pcard,.ccard,.compcard,.feebox,.tlist{border-color:#bbb;break-inside:avoid}
+  a{color:#000;border-bottom:0}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:9pt;color:#555}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <h1 class="brand-name">科研对接工作台</h1>
+      <div class="brand-sub">曹文婷 · 师说国际教育</div>
+    </div>
+    <nav>
+      <button class="navbtn on" type="button" data-v="log"><span>每日工作</span><span class="cnt" id="c-log"></span></button>
+      <button class="navbtn" type="button" data-v="today"><span>今日提醒</span><span class="cnt" id="c-today"></span></button>
+      <button class="navbtn" type="button" data-v="research"><span>科研项目</span><span class="cnt" id="c-research"></span></button>
+      <button class="navbtn" type="button" data-v="contract"><span>合同签署</span><span class="cnt" id="c-contract"></span></button>
+      <button class="navbtn" type="button" data-v="comp"><span>竞赛节点</span><span class="cnt" id="c-comp"></span></button>
+      <button class="navbtn" type="button" data-v="fee"><span>老师费用</span><span class="cnt" id="c-fee"></span></button>
+      <button class="navbtn" type="button" data-v="link"><span>讲解链接</span><span class="cnt" id="c-link"></span></button>
+      <button class="navbtn" type="button" data-v="task"><span>全部任务</span><span class="cnt" id="c-task"></span></button>
+    </nav>
+    <div class="side-foot">
+      <button type="button" id="btn-export">导出备份</button>
+      <button type="button" id="btn-import">导入备份</button>
+      <button type="button" id="btn-demo">载入示例</button>
+      <button type="button" id="btn-clear">清空数据</button>
+      <input type="file" id="file-import" accept="application/json" hidden>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+
+      <!-- ============ 今日 ============ -->
+      <section class="view" id="v-today">
+        <div class="vhead">
+          <div>
+            <h2 id="today-title">今日</h2>
+            <div class="sub" id="today-sub"></div>
+          </div>
+        </div>
+        <div class="ledger" id="today-ledger"></div>
+        <div id="today-body"></div>
+      </section>
+
+      <!-- ============ 科研项目 ============ -->
+      <section class="view" id="v-research">
+        <div class="vhead">
+          <div>
+            <h2>科研项目</h2>
+            <div class="sub">课题确定 → 匹配老师 → 排课 → 上课 → 论文 → 投递 → 返修 → 发表</div>
+          </div>
+          <button class="btn pri" type="button" data-add="proj">+ 新建项目</button>
+        </div>
+        <div id="research-body"></div>
+      </section>
+
+      <!-- ============ 合同签署 ============ -->
+      <section class="view" id="v-contract">
+        <div class="vhead">
+          <div>
+            <h2>合同签署</h2>
+            <div class="sub">销售合同在签约时走，规划老师合同是签约完成后的选校备忘录</div>
+          </div>
+          <button class="btn pri" type="button" data-add="contract">+ 新建合同</button>
+        </div>
+        <div id="contract-body"></div>
+      </section>
+
+      <!-- ============ 竞赛节点 ============ -->
+      <section class="view" id="v-comp">
+        <div class="vhead">
+          <div>
+            <h2>竞赛节点</h2>
+            <div class="sub">六个常做赛事的官方时间线、材料清单和报名入口，按最近节点排序</div>
+          </div>
+        </div>
+        <div id="comp-body"></div>
+      </section>
+
+      <!-- ============ 老师费用 ============ -->
+      <section class="view" id="v-fee">
+        <div class="vhead">
+          <div>
+            <h2>老师费用</h2>
+            <div class="sub">专业讲解 / 科研导师 / 外教，每个老师一张表</div>
+          </div>
+          <button class="btn pri" type="button" data-add="fee">+ 记一笔课时</button>
+        </div>
+        <div id="fee-body"></div>
+      </section>
+
+      <!-- ============ 讲解链接 ============ -->
+      <section class="view" id="v-link">
+        <div class="vhead">
+          <div>
+            <h2>专业讲解链接</h2>
+            <div class="sub">每天创建了哪些链接，按日期倒序记着</div>
+          </div>
+          <button class="btn pri" type="button" data-add="link">+ 记录链接</button>
+        </div>
+        <div id="link-body"></div>
+      </section>
+
+      <!-- ============ 每日工作 ============ -->
+      <section class="view on" id="v-log">
+        <div class="vhead">
+          <div>
+            <h2>每日工作</h2>
+            <div class="sub">今天做了什么，一条条记下来，月底写总结直接翻这里</div>
+          </div>
+        </div>
+        <div class="quick">
+          <input type="date" id="q-date">
+          <input type="time" id="q-time">
+          <input type="text" id="q-text" placeholder="刚做了什么？例如：给王老师发了李同学的回放和总结">
+          <button class="btn pri" type="button" id="q-add">记下</button>
+        </div>
+        <div id="log-body"></div>
+      </section>
+
+      <!-- ============ 全部任务 ============ -->
+      <section class="view" id="v-task">
+        <div class="vhead">
+          <div>
+            <h2>全部任务</h2>
+            <div class="sub">AI 工具部署、专业讲解、突发工作，都放这里</div>
+          </div>
+          <button class="btn pri" type="button" data-add="task">+ 新建任务</button>
+        </div>
+        <div id="task-body"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<button class="fab" type="button" id="fab" title="新建">+</button>
+
+<dialog id="dlg">
+  <form id="dlg-form">
+    <div class="dlg-h">
+      <h3 id="dlg-title">新建</h3>
+      <button class="iconbtn" type="button" id="dlg-x" aria-label="关闭">✕</button>
+    </div>
+    <div class="dlg-body" id="dlg-body"></div>
+    <div class="dlg-foot">
+      <button class="btn" type="button" id="dlg-cancel">取消</button>
+      <button class="btn pri" type="button" id="dlg-save">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="doc-file" multiple hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 工具 ================= */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function pad(n){ return n < 10 ? "0" + n : "" + n; }
+function todayStr(d){
+  var t = d || new Date();
+  return t.getFullYear() + "-" + pad(t.getMonth()+1) + "-" + pad(t.getDate());
+}
+function nowTime(){
+  var t = new Date();
+  return pad(t.getHours()) + ":" + pad(t.getMinutes());
+}
+function parseD(s){
+  if(!s) return null;
+  var p = String(s).split("-");
+  if(p.length !== 3) return null;
+  return new Date(+p[0], +p[1]-1, +p[2]);
+}
+function dayDiff(a, b){
+  var da = parseD(a), db = parseD(b);
+  if(!da || !db) return 0;
+  return Math.round((da - db) / 86400000);
+}
+function fmtMD(s){
+  var p = String(s || "").split("-");
+  if(p.length !== 3) return s || "";
+  return p[1] + "-" + p[2];
+}
+var WK = ["日","一","二","三","四","五","六"];
+function wkOf(s){
+  var d = parseD(s);
+  return d ? "周" + WK[d.getDay()] : "";
+}
+function money(n){
+  var v = Number(n) || 0;
+  return v.toLocaleString("zh-CN", {maximumFractionDigits: 2});
+}
+function sizeOf(n){
+  var v = Number(n) || 0;
+  if(v < 1024) return v + " B";
+  if(v < 1048576) return (v/1024).toFixed(0) + " KB";
+  return (v/1048576).toFixed(1) + " MB";
+}
+var toastTimer = null;
+function toast(msg){
+  var el = $("toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove("on"); }, 2200);
+}
+
+/* ================= 常量 ================= */
+var KEY = "cmc_research_desk_v2";
+
+var CATS = [
+  ["research","科研对接"],
+  ["contract","合同签署"],
+  ["ai","AI 工具部署"],
+  ["comp","竞赛报名"],
+  ["link","专业讲解"],
+  ["fee","老师费用"],
+  ["urgent","突发"]
+];
+var CATLABEL = {};
+CATS.forEach(function(c){ CATLABEL[c[0]] = c[1]; });
+
+var PRIS = ["P0","P1","P2"];
+var PRILABEL = {"P0":"今天必须","P1":"本周内","P2":"有空再说"};
+
+var STAGES = ["课题确定","匹配老师","排课中","上课中","论文撰写","已投递","返修中","已发表"];
+
+var CSTAGES = ["待上传","企业微信合同上传","待生成签署链接","待发老师","待家长签","已签署","已同步老师"];
+var CKINDS = [["sales","销售合同"],["memo","选校备忘录"]];
+
+var FEEKINDS = [["lecture","专业讲解"],["research","科研导师"],["foreign","外教"]];
+
+var COMPS = [
+  {
+    id:"ctb",
+    name:"CTB 全球青年研究创新大挑战",
+    en:"China Thinks Big",
+    org:"哈佛商学院与清华经管学者联合发起",
+    intro:"以学术研究 + 社会实践推动创新的跨学科青年研究项目，覆盖六大学科方向，分学术研究、创新行动、公益三类。评审重心不是论文写得多厚，而是项目有没有产生真实影响、能不能被传播出去，官方建议实际行动投入不少于 40 小时。",
+    team:"Senior 组 9-12 年级 1-10 人，Junior 组 6-8 年级 1-5 人，可跨校，每队须配 1 名 18 岁以上教练",
+    fee:"1490 元/人（215 美元）",
+    url:"https://www.chinathinksbig.com/",
+    site:"chinathinksbig.com",
+    warn:"",
+    nodes:[
+      {d:"2026-11-30", n:"报名截止", m:"官网注册、组队、课题立项登记"},
+      {d:"2026-12-07", n:"组队锁定", m:"锁定后小队成员名单不可更换，队长与分工必须在此前定好"},
+      {d:"2027-01-20", n:"线上站成果提交", m:"论文 8000-15000 字（或创新报告 / 公益报告）+ 过程材料：签到表、活动照片、问卷原始数据"},
+      {d:"2027-02-26", n:"全国站", m:"展板、答辩 PPT、项目展示物料（北京 / 上海，暂定）"},
+      {d:"2027-04-03", n:"全球站（哈佛）", m:"英文展示视频 + 英文论文（波士顿，暂定）"}
+    ]
+  },
+  {
+    id:"forum",
+    name:"全球院士论坛",
+    en:"Global Academician Forum",
+    org:"京领 KingLead 主办，面向全球青少年，不限国籍",
+    intro:"分全球初赛（论文提交）与全球决赛（Zoom 答辩，每人 30 分钟）两个阶段。按 12 个当下全球共同面对的前沿主题征稿，寻找未来的研究者、创新者、全球领导者与艺术创新者。",
+    team:"个人或小组，须从 12 个主题中选定一个",
+    fee:"以主办方通知为准",
+    url:"https://jinglingedu.com/kingleadies2/gaf2026/topicSelect.php?sessionid=",
+    site:"GAF 2026 征稿与选题页",
+    topics:["生物健康、医疗与医药产业","数学前沿与大数据应用","计算机与人工智能","化学与新材料产业","物理前沿与太空探索","工程前沿与智能制造","创新经济与金融工程","领导力与商业创新","脑科学与积极心理学","社会学前沿与社会创新","文学理论与文化创意产业","艺术创作与创意产业"],
+    warn:"2026 赛季已经走完（初赛 10 月 8 日、决赛 10 月 25 日都已结束），下面是刚结束这一季的完整节奏。2027 赛季通常次年 9-10 月启动，按同样节奏提前备稿。",
+    nodes:[
+      {d:"2026-10-08", n:"初赛论文提交截止", m:"按选定主题提交论文，北京时间 10 月 8 日 23:59 截止"},
+      {d:"2026-10-15", n:"初赛结果 + 决赛报名开放", m:"10:00 公布初赛结果，晋级者开始报名决赛"},
+      {d:"2026-10-18", n:"决赛报名截止", m:"23:59 前完成决赛报名确认"},
+      {d:"2026-10-25", n:"全球决赛答辩", m:"Zoom 线上答辩，每人 30 分钟，08:00-24:00（北京时间）"}
+    ]
+  },
+  {
+    id:"diamond",
+    name:"钻石挑战赛",
+    en:"Diamond Challenge",
+    org:"特拉华大学 Horn Entrepreneurship",
+    intro:"2012 年起的全球高中生创业赛事，16000+ 校友、覆盖 111 个国家，免费参加。分 Business Innovation（商业创新）和 Social Innovation（社会创新）两条赛道，核心逻辑是发现问题、提出方案、用数据和逻辑说服评委，不考经济学理论也没有笔试。",
+    team:"2-4 名高中生（截止日 14-18 岁）+ 1 名 21 岁以上成人顾问，可跨校；每人每年只能进一队、交一个概念",
+    fee:"免费，决赛线下差旅自理；奖金池 10 万美元以上，各赛道第一名 1.2 万美元",
+    url:"https://www.diamondchallenge.org/competition/",
+    site:"diamondchallenge.org",
+    warn:"",
+    nodes:[
+      {d:"2027-01-14", n:"提交截止", m:"3-5 页双倍行距 12pt 英文 PDF 概念陈述（不要封面页）+ 60 秒介绍视频的公开链接，美东 17:00 截止"},
+      {d:"2027-02-10", n:"晋级通知", m:"晋级团队收到通知"},
+      {d:"2027-03-09", n:"决赛选手公布", m:"公布入围 Limitless World Summit 的名单"},
+      {d:"2027-04-29", n:"全球决赛", m:"特拉华州威尔明顿现场，4 月 29-30 日，需本人到场；晋级后要交 pitch deck 并做 5 分钟路演"}
+    ]
+  },
+  {
+    id:"immc",
+    name:"IMMC 国际数学建模挑战赛",
+    en:"International Mathematical Modeling Challenge",
+    org:"COMAP 与 NeUnion 联合组织",
+    intro:"2014 年创立于波士顿，覆盖 54 个国家和地区，面向 7-12 年级。中华区设秋季赛和冬季赛两季，可以两季都打、取最好成绩参加年度总评；除命题论文外还有自主选题赛道，平时做的科研项目可以直接用上。",
+    team:"2-4 名同校学生 + 1 名本校指导教师",
+    fee:"100 美元 / 队",
+    url:"https://immchallenge.org/",
+    site:"immchallenge.org",
+    warn:"秋季赛（11 月 19-23 日）已经结束，现在能报的是冬季赛。",
+    nodes:[
+      {d:"2027-01-28", n:"冬季赛报名截止", m:"报名窗口 2026-11-23 至 2027-01-28"},
+      {d:"2027-01-28", n:"冬季赛开赛", m:"1 月 28 日 20:00 起连续 96 小时，至 2 月 1 日 20:00 交命题论文"},
+      {d:"2027-03-03", n:"中华区国际赛程", m:"3 月 3 日 20:00 至 3 月 8 日 20:00，连续 120 小时，晋级队伍参加"},
+      {d:"2027-04-25", n:"香港答辩决赛", m:"4 月下旬现场答辩"},
+      {d:"2027-07-15", n:"国际峰会暨颁奖", m:"2027 年暑期，中国香港"}
+    ]
+  },
+  {
+    id:"mec",
+    name:"MEC 哥大全球模拟企业家大赛",
+    en:"Model Entrepreneur Competition",
+    org:"哥伦比亚大学商学院全球创业中心 Venture For All × IEG Global",
+    intro:"2014 年创立，常春藤盟校里第一个面向全球高中生的创业赛事。区域赛 → 全球总决赛两级赛制，分中国站、北美站、全球线上赛等独立赛区，各自评审各自晋级。全程英文路演与答辩，评委是藤校教授和世界 500 强专家，优胜队有创业基金和教授推荐信。",
+    team:"9-12 年级在读，每队 3-6 人，可跨校",
+    fee:"以官网当季公示为准",
+    url:"https://officialmec.org/",
+    site:"officialmec.org",
+    warn:"下面是中国站时间。如果学生报的是全球线上赛，时间完全不同：报名和 BP 截止 2027-02-28、晋级公布 03-12、决赛 04-24 至 04-25。",
+    nodes:[
+      {d:"2027-02-07", n:"中国站报名 + 作品提交截止", m:"商业计划书 12-15 页 PDF 或 PPT"},
+      {d:"2027-02-21", n:"线下初赛（上海）", m:"全英文路演 + 答辩；2 月 26 日深圳场"},
+      {d:"2027-03-17", n:"晋级结果公布", m:"上海线下公布"},
+      {d:"2027-06-04", n:"中国区总决赛", m:"6 月 4-6 日，决出中国代表队参加全球赛"}
+    ]
+  },
+  {
+    id:"himcm",
+    name:"HiMCM 美国高中生数学建模竞赛",
+    en:"High School Mathematical Contest in Modeling",
+    org:"COMAP 美国数学及其应用联合会",
+    intro:"1999 年起的团队建模赛事，第 29 届，全球 20 个国家近千支队伍参加，MIT 等校申请系统里专门设有填写该项目经历的栏目。14 天窗口内从 A 题（理工工程）或 B 题（社科商科）选一道，交一篇 25 页以内的全英文论文。O 奖获奖率约 1%。",
+    team:"1-4 名同校高中生 + 1 名学校指导老师，学生不能自己报名，必须由老师通过 COMAP 系统注册",
+    fee:"100 美元 / 队，不可退",
+    url:"https://www.himcmcontest.com/",
+    site:"himcmcontest.com",
+    warn:"2026 赛季已经在 11 月 17 日结束，成绩 2027 年 1 月 31 日前公布。下面是本赛季节点，留档用；2027 赛季时间一般次年 9 月公布。",
+    nodes:[
+      {d:"2026-11-04", n:"报名截止", m:"美东 14:00 截止，与开赛同一天，系统准时关闭不收逾期"},
+      {d:"2026-11-04", n:"赛题发布", m:"美东 15:01 开窗，14 天窗口启动"},
+      {d:"2026-11-17", n:"论文提交截止", m:"美东 21:00（北京时间 11 月 18 日 10:00），只收一份英文 PDF"},
+      {d:"2026-11-18", n:"提交确认", m:"登录官网确认 COMAP 已收到论文"},
+      {d:"2027-01-31", n:"成绩公布", m:"最迟 2027 年 1 月 31 日"}
+    ]
+  }
+];
+
+/* ================= 状态 ================= */
+var S = { tasks:[], projects:[], contracts:[], enroll:[], fees:[], links:[], logs:[] };
+
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw){
+      var o = JSON.parse(raw);
+      if(o && typeof o === "object"){
+        S.tasks = Array.isArray(o.tasks) ? o.tasks : [];
+        S.projects = Array.isArray(o.projects) ? o.projects : [];
+        S.contracts = Array.isArray(o.contracts) ? o.contracts : [];
+        S.enroll = Array.isArray(o.enroll) ? o.enroll : [];
+        S.fees = Array.isArray(o.fees) ? o.fees : [];
+        S.links = Array.isArray(o.links) ? o.links : [];
+        S.logs = Array.isArray(o.logs) ? o.logs : [];
+      }
+    }
+  }catch(e){ /* 隐私模式或配额满，忽略 */ }
+}
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(S));
+    return true;
+  }catch(e){
+    toast("保存失败：浏览器存储空间可能已满，先导出备份");
+    return false;
+  }
+}
+
+/* ================= IndexedDB 存课题文档 ================= */
+var IDB = { db:null, failed:false };
+function idbOpen(cb){
+  if(IDB.db){ cb(null, IDB.db); return; }
+  if(IDB.failed || !window.indexedDB){ cb("当前浏览器不支持本地文件存储"); return; }
+  var req;
+  try{ req = indexedDB.open("cmc_desk_files", 1); }
+  catch(e){ IDB.failed = true; cb("无法打开本地文件库"); return; }
+  req.onupgradeneeded = function(){
+    var db = req.result;
+    if(!db.objectStoreNames.contains("files")) db.createObjectStore("files");
+  };
+  req.onsuccess = function(){ IDB.db = req.result; cb(null, IDB.db); };
+  req.onerror = function(){ IDB.failed = true; cb("本地文件库打开失败"); };
+}
+function idbPut(key, val, cb){
+  idbOpen(function(err, db){
+    if(err){ cb(err); return; }
+    try{
+      var tx = db.transaction("files", "readwrite");
+      tx.objectStore("files").put(val, key);
+      tx.oncomplete = function(){ cb(null); };
+      tx.onerror = function(){ cb("写入失败"); };
+      tx.onabort = function(){ cb("写入被中断"); };
+    }catch(e){ cb("写入失败"); }
+  });
+}
+function idbGet(key, cb){
+  idbOpen(function(err, db){
+    if(err){ cb(err); return; }
+    try{
+      var tx = db.transaction("files", "readonly");
+      var r = tx.objectStore("files").get(key);
+      r.onsuccess = function(){ cb(null, r.result); };
+      r.onerror = function(){ cb("读取失败"); };
+    }catch(e){ cb("读取失败"); }
+  });
+}
+function idbDel(key, cb){
+  idbOpen(function(err, db){
+    if(err){ if(cb) cb(err); return; }
+    try{
+      var tx = db.transaction("files", "readwrite");
+      tx.objectStore("files").delete(key);
+      tx.oncomplete = function(){ if(cb) cb(null); };
+    }catch(e){ if(cb) cb("删除失败"); }
+  });
+}
+function downloadDoc(docId, name){
+  idbGet(docId, function(err, blob){
+    if(err || !blob){ toast("文件读不出来，可能已被浏览器清理"); return; }
+    try{
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = name || "文档";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    }catch(e){ toast("下载失败"); }
+  });
+}
+
+/* ================= 派生提醒 ================= */
+function overdueTasks(){
+  var td = todayStr();
+  return S.tasks.filter(function(t){
+    return !t.done && t.due && t.due < td;
+  }).sort(function(a,b){ return a.due < b.due ? -1 : 1; });
+}
+function todayTasks(){
+  var td = todayStr();
+  var pv = {"P0":0,"P1":1,"P2":2};
+  return S.tasks.filter(function(t){
+    return !t.done && t.due === td;
+  }).sort(function(a,b){ return pv[a.pri] - pv[b.pri]; });
+}
+function tomorrowTasks(){
+  var d = new Date(); d.setDate(d.getDate() + 1);
+  var tm = todayStr(d);
+  return S.tasks.filter(function(t){ return !t.done && t.due === tm; });
+}
+function classAlerts(){
+  var out = [], td = todayStr();
+  S.projects.forEach(function(p){
+    (p.classes || []).forEach(function(c){
+      if(!c.d) return;
+      var diff = dayDiff(td, c.d);
+      if(diff < 1) return;
+      var need = [];
+      if(!c.replay) need.push("回放");
+      if(!c.summary) need.push("课程总结");
+      if(need.length) out.push({ p:p, c:c, need:need.join(" + "), days:diff });
+    });
+  });
+  out.sort(function(a,b){ return b.days - a.days; });
+  return out;
+}
+function todayClasses(){
+  var td = todayStr(), out = [];
+  S.projects.forEach(function(p){
+    (p.classes || []).forEach(function(c){
+      if(c.d === td) out.push({ p:p, c:c });
+    });
+  });
+  return out;
+}
+function classNoLog(){
+  var td = todayStr(), out = [];
+  S.projects.forEach(function(p){
+    (p.classes || []).forEach(function(c){
+      if(c.d === td && (!c.replay || !c.summary)) out.push({ p:p, c:c });
+    });
+  });
+  return out;
+}
+function contractAlerts(){
+  var td = todayStr();
+  return S.contracts.filter(function(c){
+    return Number(c.status) === 5 && dayDiff(td, c.ts) >= 3;
+  });
+}
+function nextNodeOf(comp){
+  var td = todayStr();
+  var up = comp.nodes.filter(function(n){ return n.d >= td; });
+  if(!up.length) return null;
+  up.sort(function(a,b){ return a.d < b.d ? -1 : 1; });
+  return up[0];
+}
+function compSorted(){
+  var arr = COMPS.slice();
+  arr.sort(function(a,b){
+    var na = nextNodeOf(a), nb = nextNodeOf(b);
+    var da = na ? na.d : "9999-99-99";
+    var db = nb ? nb.d : "9999-99-99";
+    return da < db ? -1 : (da > db ? 1 : 0);
+  });
+  return arr;
+}
+function compSoon(){
+  var td = todayStr(), out = [];
+  COMPS.forEach(function(c){
+    var n = nextNodeOf(c);
+    if(!n) return;
+    var diff = dayDiff(n.d, td);
+    if(diff >= 0 && diff <= 14) out.push({ comp:c, node:n, days:diff });
+  });
+  out.sort(function(a,b){ return a.days - b.days; });
+  return out;
+}
+function linksToday(){
+  var td = todayStr();
+  return S.links.filter(function(l){ return l.date === td; });
+}
+function feesUnsettled(){
+  return S.fees.filter(function(f){ return !f.settled; });
+}
+function logsToday(){
+  var td = todayStr();
+  return S.logs.filter(function(l){ return l.date === td; });
+}
+
+/* ================= 渲染：导航计数 ================= */
+function renderCounts(){
+  function set(id, n, hot){
+    var el = $(id);
+    if(!el) return;
+    el.textContent = n ? String(n) : "";
+    el.className = "cnt" + (n && hot ? " hot" : "");
+  }
+  var over = overdueTasks();
+  var cls = classAlerts();
+  var con = contractAlerts();
+  var csoon = compSoon().filter(function(x){ return x.days <= 7; });
+  var unf = feesUnsettled();
+
+  set("c-today", over.length + todayTasks().length + cls.length + con.length, true);
+  set("c-research", cls.length, true);
+  set("c-contract", con.length, true);
+  set("c-comp", csoon.length, false);
+  set("c-fee", unf.length, false);
+  set("c-link", linksToday().length, false);
+  set("c-log", S.logs.filter(function(l){ return l.date === todayStr(); }).length, false);
+  set("c-task", S.tasks.filter(function(t){ return !t.done; }).length, false);
+}
+
+/* ================= 渲染：任务行 ================= */
+function taskRow(t, opts){
+  opts = opts || {};
+  var td = todayStr();
+  var meta = [];
+  if(t.cat) meta.push('<span class="tag">' + esc(CATLABEL[t.cat] || t.cat) + '</span>');
+  if(t.pri) meta.push('<span class="tag ' + t.pri.toLowerCase() + '">' + esc(t.pri) + '</span>');
+  if(t.due){
+    var diff = dayDiff(t.due, td);
+    var cls = "";
+    var txt = fmtMD(t.due);
+    if(!t.done && diff < 0){ cls = "late"; txt += " 逾期" + Math.abs(diff) + "天"; }
+    else if(!t.done && diff === 0){ cls = "soon"; txt = "今天"; }
+    else if(!t.done && diff === 1){ cls = "soon"; txt = "明天"; }
+    else if(!t.done && diff > 1 && diff <= 3){ cls = "soon"; txt += " 还剩" + diff + "天"; }
+    meta.push('<span class="tag ' + cls + '">' + esc(txt) + '</span>');
+  }
+  if(t.note) meta.push('<span>' + esc(t.note) + '</span>');
+
+  return '<div class="titem' + (t.done ? " done" : "") + '">' +
+    '<button class="chk" type="button" aria-pressed="' + (t.done ? "true" : "false") +
+      '" data-toggle-task="' + esc(t.id) + '" aria-label="标记完成"></button>' +
+    '<div class="tmain"><div class="ttitle">' + esc(t.title) + '</div>' +
+      (meta.length ? '<div class="tmeta">' + meta.join("") + '</div>' : '') +
+    '</div>' +
+    '<div class="tacts">' +
+      '<button class="iconbtn" type="button" data-edit-task="' + esc(t.id) + '" title="编辑">✎</button>' +
+      '<button class="iconbtn danger" type="button" data-del-task="' + esc(t.id) + '" title="删除">✕</button>' +
+    '</div>' +
+  '</div>';
+}
+function taskList(arr, emptyText){
+  if(!arr.length) return '<div class="empty">' + esc(emptyText) + '</div>';
+  return '<div class="tlist">' + arr.map(function(t){ return taskRow(t); }).join("") + '</div>';
+}
+
+/* ================= 渲染：今日 ================= */
+function renderToday(){
+  var td = todayStr();
+  var d = parseD(td);
+  $("today-title").textContent = "今日提醒";
+  $("today-sub").textContent = td + " " + (d ? "周" + WK[d.getDay()] : "");
+
+  var over = overdueTasks();
+  var tdy = todayTasks();
+  var cls = classAlerts();
+  var tcls = todayClasses();
+  var nolog = classNoLog();
+  var con = contractAlerts();
+  var soon = compSoon().filter(function(x){ return x.days <= 14; });
+  var unf = feesUnsettled();
+
+  var totalH = 0;
+  unf.forEach(function(f){ totalH += Number(f.hours) || 0; });
+
+  $("today-ledger").innerHTML =
+    '<div><div class="k">逾期</div><div class="v' + (over.length ? " red" : "") + '">' + over.length + '</div></div>' +
+    '<div><div class="k">今天要做</div><div class="v">' + tdy.length + '</div></div>' +
+    '<div><div class="k">课后待补</div><div class="v' + (cls.length ? " red" : "") + '">' + cls.length + '</div></div>' +
+    '<div><div class="k">合同催办</div><div class="v' + (con.length ? " amber" : "") + '">' + con.length + '</div></div>' +
+    '<div><div class="k">今天有课</div><div class="v">' + tcls.length + '</div></div>' +
+    '<div><div class="k">未结算课时</div><div class="v' + (totalH ? " amber" : "") + '">' + money(totalH) + '</div></div>';
+
+  var h = "";
+
+  if(over.length){
+    h += '<div class="block"><div class="block-head"><h3>已过期</h3><span class="hint">先处理这些</span></div>' +
+      taskList(over, "") + '</div>';
+  }
+  if(cls.length){
+    h += '<div class="block"><div class="block-head"><h3>课后待补</h3><span class="hint">超过 24 小时没发回放或总结</span></div>' +
+      '<div class="tlist">' + cls.map(function(x){
+        return '<div class="titem">' +
+          '<div class="chk" style="border-color:transparent;background:transparent"></div>' +
+          '<div class="tmain"><div class="ttitle">' + esc(x.p.student) + ' · ' + esc(x.c.topic || "未填主题") + '</div>' +
+            '<div class="tmeta">' +
+              '<span class="tag late">拖了 ' + x.days + ' 天</span>' +
+              '<span class="tag">缺 ' + esc(x.need) + '</span>' +
+              '<span>' + esc(fmtMD(x.c.d)) + ' 上课</span>' +
+            '</div></div>' +
+          '<div class="tacts"><button class="btn sm" type="button" data-fix="1">去补</button></div>' +
+        '</div>';
+      }).join("") + '</div></div>';
+  }
+  if(con.length){
+    h += '<div class="block"><div class="block-head"><h3>合同催办</h3><span class="hint">停在「待家长签」超过 3 天</span></div>' +
+      '<div class="tlist">' + con.map(function(c){
+        var diff = dayDiff(td, c.ts);
+        return '<div class="titem">' +
+          '<div class="chk" style="border-color:transparent;background:transparent"></div>' +
+          '<div class="tmain"><div class="ttitle">' + esc(c.student) + ' · ' + esc(kinLabel(c.kind)) + '</div>' +
+            '<div class="tmeta"><span class="tag late">等了 ' + diff + ' 天</span>' +
+            (c.teacher ? '<span>' + esc(c.teacher) + '</span>' : '') + '</div></div>' +
+          '<div class="tacts"><button class="btn sm" type="button" data-goto-contract="1">去看</button></div>' +
+        '</div>';
+      }).join("") + '</div></div>';
+  }
+  if(tcls.length){
+    h += '<div class="block"><div class="block-head"><h3>今天有课</h3><span class="hint">上完记得登记回放和总结</span></div>' +
+      '<div class="tlist">' + tcls.map(function(x){
+        return '<div class="titem">' +
+          '<div class="chk" style="border-color:transparent;background:transparent"></div>' +
+          '<div class="tmain"><div class="ttitle">' + esc(x.p.student) + ' · ' + esc(x.c.topic || "未填主题") + '</div>' +
+            '<div class="tmeta">' +
+              (x.c.time ? '<span class="tag info">' + esc(x.c.time) + '</span>' : '') +
+              '<span>' + esc(x.p.teacher || "老师待定") + '</span>' +
+            '</div></div>' +
+          '<div class="tacts"><button class="btn sm" type="button" data-goto-research="1">去登记</button></div>' +
+        '</div>';
+      }).join("") + '</div></div>';
+  }
+  if(tdy.length){
+    h += '<div class="block"><div class="block-head"><h3>今日待办</h3><span class="hint">按优先级</span></div>' +
+      taskList(tdy, "") + '</div>';
+  }
+  if(soon.length){
+    h += '<div class="block"><div class="block-head"><h3>临近节点</h3><span class="hint">14 天内</span></div>' +
+      '<div class="tlist">' + soon.map(function(x){
+        var t = x.days === 0 ? "今天" : (x.days + " 天后");
+        var cls2 = x.days <= 3 ? "late" : "soon";
+        return '<div class="titem">' +
+          '<div class="chk" style="border-color:transparent;background:transparent"></div>' +
+          '<div class="tmain"><div class="ttitle">' + esc(x.comp.name) + ' · ' + esc(x.node.n) + '</div>' +
+            '<div class="tmeta"><span class="tag ' + cls2 + '">' + t + '</span>' +
+              '<span>' + esc(x.node.d) + '</span></div></div>' +
+          '<div class="tacts"><button class="btn sm" type="button" data-goto-comp="1">去看</button></div>' +
+        '</div>';
+      }).join("") + '</div></div>';
+  }
+
+  var todayLogs = logsToday();
+  if(todayLogs.length){
+    h += '<div class="block"><div class="block-head"><h3>今天记了 ' + todayLogs.length + ' 条</h3>' +
+      '<span class="hint">去「每日工作」看全部</span></div>' +
+      '<div class="card">' + todayLogs.slice(0, 4).map(function(l){
+        return '<div style="font-size:12.5px;color:var(--ink2);padding:2px 0">' +
+          esc(l.time || "") + '　' + esc(l.text) + '</div>';
+      }).join("") + '</div></div>';
+  }
+
+  if(!h){
+    h = '<div class="empty">今天没有待办，也没有需要补的课。' +
+      '<br><br>可以先点右上角「+」建个项目，或者去「每日工作」记两笔。</div>';
+  }
+  $("today-body").innerHTML = h;
+}
+
+/* ================= 渲染：科研项目 ================= */
+function projCard(p){
+  var idx = STAGES.indexOf(p.stage);
+  if(idx < 0) idx = 0;
+
+  var pipe = '<div class="pipe">' + STAGES.map(function(s, i){
+    var cls = i < idx ? " on" : (i === idx ? " cur" : "");
+    return '<span class="' + cls.trim() + '" title="' + esc(s) + '"></span>';
+  }).join("") + '</div>';
+
+  var classes = (p.classes || []).slice().sort(function(a,b){ return a.d < b.d ? 1 : -1; });
+  var clsHtml = classes.length ? classes.map(function(c){
+    var diff = c.d ? dayDiff(todayStr(), c.d) : 0;
+    var late = diff >= 1 && (!c.replay || !c.summary);
+    return '<div class="cls">' +
+      '<div class="cls-top">' +
+        '<span class="cls-date">' + esc(fmtMD(c.d)) + '</span>' +
+        (c.time ? '<span class="tag info">' + esc(c.time) + '</span>' : '') +
+        '<span class="cls-topic">' + esc(c.topic || "未填主题") + '</span>' +
+        '<span class="cls-flags">' +
+          '<button class="flag act ' + (c.replay ? "on" : "off") + '" type="button" data-flag="replay|' + esc(p.id) + '|' + esc(c.id) + '">' +
+            (c.replay ? "回放已发" : "回放未发") + '</button>' +
+          '<button class="flag act ' + (c.summary ? "on" : "off") + '" type="button" data-flag="summary|' + esc(p.id) + '|' + esc(c.id) + '">' +
+            (c.summary ? "总结已发" : "总结未发") + '</button>' +
+          (late ? '<span class="tag late">待补</span>' : '') +
+        '</span>' +
+        '<span class="tacts">' +
+          '<button class="iconbtn" type="button" data-edit-class="' + esc(p.id) + '|' + esc(c.id) + '" title="编辑">✎</button>' +
+          '<button class="iconbtn danger" type="button" data-del-class="' + esc(p.id) + '|' + esc(c.id) + '" title="删除">✕</button>' +
+        '</span>' +
+      '</div>' +
+      (c.note ? '<div style="padding:6px 11px;font-size:12px;color:var(--ink2);border-top:1px solid var(--line2)">' + esc(c.note) + '</div>' : '') +
+    '</div>';
+  }).join("") : '<div class="empty" style="padding:14px">还没上课记录</div>';
+
+  var docs = (p.docs || []);
+  var docHtml = docs.length ? '<div class="docs">' + docs.map(function(d){
+    return '<div class="doc">' +
+      '<span class="dname" title="' + esc(d.name) + '">' + esc(d.name) + '</span>' +
+      '<span class="dsize">' + sizeOf(d.size) + '</span>' +
+      '<button class="btn sm" type="button" data-dl-doc="' + esc(d.id) + '|' + esc(p.id) + '">下载</button>' +
+      '<button class="iconbtn danger" type="button" data-del-doc="' + esc(d.id) + '|' + esc(p.id) + '" title="删除">✕</button>' +
+    '</div>';
+  }).join("") + '</div>' : '<div class="empty" style="padding:14px">还没上传课题文档</div>';
+
+  return '<article class="pcard">' +
+    '<div class="pcard-top">' +
+      '<div class="pcard-h">' +
+        '<div>' +
+          '<div class="pcard-name">' + esc(p.student) + '</div>' +
+          '<div class="pcard-topic">' + esc(p.topic || "课题待定") + '</div>' +
+        '</div>' +
+        '<div class="tacts">' +
+          '<button class="iconbtn" type="button" data-edit-proj="' + esc(p.id) + '" title="编辑">✎</button>' +
+          '<button class="iconbtn danger" type="button" data-del-proj="' + esc(p.id) + '" title="删除">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="pcard-meta">' +
+        '<span>老师 <b>' + esc(p.teacher || "待匹配") + '</b></span>' +
+        '<span>下节课 <b>' + esc(p.nextClass || "未排") + '</b></span>' +
+        '<span>已上 <b>' + classes.length + '</b> 次</span>' +
+      '</div>' +
+      pipe +
+      '<div class="stagelabel">当前阶段：' + esc(p.stage || STAGES[0]) +
+        '　<button class="btn sm" type="button" data-next-stage="' + esc(p.id) + '">推进到下一阶段 →</button></div>' +
+      (p.note ? '<div style="font-size:12.5px;color:var(--ink2);margin-top:8px">' + esc(p.note) + '</div>' : '') +
+    '</div>' +
+    '<div class="pcard-body">' +
+      '<div class="sec-h"><h4>课题文档</h4>' +
+        '<button class="btn sm" type="button" data-up-doc="' + esc(p.id) + '">+ 上传文档</button></div>' +
+      docHtml +
+      '<div class="sec-h" style="margin-top:16px"><h4>上课记录</h4>' +
+        '<button class="btn sm" type="button" data-add-class="' + esc(p.id) + '">+ 记一次课</button></div>' +
+      clsHtml +
+    '</div>' +
+  '</article>';
+}
+
+function renderResearch(){
+  var arr = S.projects.slice().sort(function(a,b){
+    return (STAGES.indexOf(a.stage) - STAGES.indexOf(b.stage));
+  });
+  if(!arr.length){
+    $("research-body").innerHTML = '<div class="empty">还没有科研项目。<br><br>点右上角「+ 新建项目」，填学生、课题、阶段就行。</div>';
+    return;
+  }
+  $("research-body").innerHTML = arr.map(projCard).join("");
+}
+
+/* ================= 渲染：合同 ================= */
+function kinLabel(k){
+  for(var i = 0; i < CKINDS.length; i++) if(CKINDS[i][0] === k) return CKINDS[i][1];
+  return "合同";
+}
+function contractCard(c){
+  var st = Number(c.status) || 0;
+  if(st >= CSTAGES.length) st = CSTAGES.length - 1;
+  var late = st === 5 && dayDiff(todayStr(), c.ts) >= 3;
+
+  var steps = CSTAGES.map(function(s, i){
+    var cls = i < st ? "done" : (i === st ? "cur" : "");
+    return '<span class="step ' + cls + '">' + esc(s) + '</span>';
+  }).join("");
+
+  return '<div class="ccard' + (late ? " late" : "") + '">' +
+    '<div class="ccard-h">' +
+      '<div>' +
+        '<div class="ccard-name">' + esc(c.student) + ' · ' + esc(kinLabel(c.kind)) + '</div>' +
+        '<div class="ccard-sub">' +
+          (c.sales ? "销售 " + esc(c.sales) + "　" : "") +
+          (c.teacher ? "规划老师 " + esc(c.teacher) + "　" : "") +
+          (c.ts ? "建单 " + esc(c.ts) : "") +
+        '</div>' +
+      '</div>' +
+      '<div class="tacts">' +
+        '<button class="iconbtn" type="button" data-edit-contract="' + esc(c.id) + '" title="编辑">✎</button>' +
+        '<button class="iconbtn danger" type="button" data-del-contract="' + esc(c.id) + '" title="删除">✕</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="steps">' + steps + '</div>' +
+    (c.note ? '<div class="note" style="margin-top:9px">' + esc(c.note) + '</div>' : '') +
+    '<div class="ccard-foot">' +
+      '<span class="note">当前：<b>' + esc(CSTAGES[st]) + '</b>' +
+        (late ? '　<span class="tag late">待家长签已 ' + dayDiff(todayStr(), c.ts) + ' 天</span>' : '') + '</span>' +
+      '<span>' +
+        (st > 0 ? '<button class="btn sm" type="button" data-contract-back="' + esc(c.id) + '">← 退回</button> ' : '') +
+        (st < CSTAGES.length - 1
+          ? '<button class="btn pri sm" type="button" data-contract-next="' + esc(c.id) + '">标记「' + esc(CSTAGES[st+1]) + '」</button>'
+          : '<span class="tag ok">已完成</span>') +
+      '</span>' +
+    '</div>' +
+  '</div>';
+}
+function renderContract(){
+  var h = "";
+  CKINDS.forEach(function(k){
+    var arr = S.contracts.filter(function(c){ return (c.kind || "sales") === k[0]; });
+    arr.sort(function(a,b){
+      return (Number(a.status)||0) - (Number(b.status)||0);
+    });
+    h += '<div class="block"><div class="block-head"><h3>' + esc(k[1]) + '</h3>' +
+      '<span class="hint">' + (k[0] === "sales" ? "学生签约时签" : "签约完成后签的选校备忘录") +
+      '　共 ' + arr.length + ' 份</span></div>';
+    h += arr.length ? arr.map(contractCard).join("")
+      : '<div class="empty">还没有' + esc(k[1]) + '</div>';
+    h += '</div>';
+  });
+  $("contract-body").innerHTML = h;
+}
+
+/* ================= 渲染：竞赛 ================= */
+function renderComp(){
+  var td = todayStr();
+  var arr = compSorted();
+  var h = '<div class="compcards">';
+
+  arr.forEach(function(c){
+    var nx = nextNodeOf(c);
+    var nxTxt = "";
+    if(nx){
+      var diff = dayDiff(nx.d, td);
+      var cls = diff <= 3 ? "late" : (diff <= 14 ? "soon" : "info");
+      nxTxt = '<span class="tag ' + cls + '">' + esc(nx.n) + ' · ' +
+        (diff === 0 ? "今天" : (diff > 0 ? "还剩 " + diff + " 天" : "已过")) + '</span>';
+    }else{
+      nxTxt = '<span class="tag">本赛季节点已全部过去</span>';
+    }
+
+    var rows = c.nodes.map(function(n){
+      var diff = dayDiff(n.d, td);
+      var cls = "";
+      if(diff < 0) cls = "past";
+      else if(nx && n.d === nx.d && n.n === nx.n) cls = "next";
+      return '<tr class="' + cls + '">' +
+        '<td class="nd">' + esc(n.d) + '</td>' +
+        '<td class="nn">' + esc(n.n) + '</td>' +
+        '<td class="nm">' + esc(n.m) + '</td>' +
+      '</tr>';
+    }).join("");
+
+    var mine = S.enroll.filter(function(e){ return e.compId === c.id; });
+    var mineHtml = mine.length ? mine.map(function(e){
+      var dots = c.nodes.map(function(n, i){
+        var done = e.done && e.done[n.d + "|" + n.n];
+        return '<button class="dot' + (done ? " done" : "") + '" type="button" ' +
+          'data-comp-dot="' + esc(e.id) + '|' + esc(n.d) + '|' + esc(n.n) + '" ' +
+          'title="' + esc(n.d + " " + n.n) + '">' + (i + 1) + '</button>';
+      }).join("");
+      return '<div class="enroll-row">' +
+        '<span class="enroll-name">' + esc(e.student) + '</span>' +
+        '<span class="dots">' + dots + '</span>' +
+        '<button class="iconbtn danger" type="button" data-del-enroll="' + esc(e.id) + '" title="移除">✕</button>' +
+      '</div>';
+    }).join("") : '<div class="note" style="padding:2px 0">还没有学生报名这项</div>';
+
+    h += '<article class="compcard">' +
+      '<div class="compcard-h">' +
+        '<div class="compcard-title">' +
+          '<div>' +
+            '<h3>' + esc(c.name) + '</h3>' +
+            '<div class="compcard-tag">' + esc(c.en) + '　·　' + esc(c.org) + '</div>' +
+          '</div>' +
+          '<div>' + nxTxt + '</div>' +
+        '</div>' +
+        '<p class="comp-intro">' + esc(c.intro) + '</p>' +
+        '<dl class="comp-meta">' +
+          '<dt>组队</dt><dd>' + esc(c.team) + '</dd>' +
+          '<dt>费用</dt><dd>' + esc(c.fee) + '</dd>' +
+          '<dt>报名</dt><dd><a href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer">' + esc(c.site) + '</a></dd>' +
+        '</dl>' +
+        (c.topics && c.topics.length
+          ? '<div class="topics"><span class="topics-l">' + c.topics.length + ' 个征稿主题</span>' +
+            c.topics.map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join("") + '</div>'
+          : '') +
+        (c.warn ? '<div class="warnbox">' + esc(c.warn) + '</div>' : '') +
+      '</div>' +
+      '<table class="nodetable">' +
+        '<thead><tr><th style="width:96px">日期</th><th style="width:132px">节点</th><th>要交什么</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>' +
+      '<div class="enrollbox">' +
+        '<div class="enroll-h"><span>我的参赛学生</span>' +
+          '<button class="btn sm" type="button" data-add-enroll="' + esc(c.id) + '">+ 添加学生</button></div>' +
+        mineHtml +
+      '</div>' +
+    '</article>';
+  });
+
+  h += '</div>';
+  $("comp-body").innerHTML = h;
+}
+
+/* ================= 渲染：老师费用 ================= */
+function renderFee(){
+  if(!S.fees.length){
+    $("fee-body").innerHTML = '<div class="empty">还没有课时记录。<br><br>点「+ 记一笔课时」，填老师、日期、课时、单价就行。</div>';
+    return;
+  }
+  var groups = {};
+  S.fees.forEach(function(f){
+    var k = f.teacher || "未填老师";
+    (groups[k] = groups[k] || []).push(f);
+  });
+  var names = Object.keys(groups).sort();
+
+  var h = "";
+  names.forEach(function(nm){
+    var rows = groups[nm].slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+    var th = 0, tm = 0, tuns = 0;
+    var kinds = {};
+    rows.forEach(function(r){
+      var hrs = Number(r.hours) || 0;
+      var rate = Number(r.rate) || 0;
+      th += hrs; tm += hrs * rate;
+      if(!r.settled) tuns += hrs * rate;
+      kinds[r.kind] = true;
+    });
+    var kindTxt = Object.keys(kinds).map(function(k){
+      for(var i = 0; i < FEEKINDS.length; i++) if(FEEKINDS[i][0] === k) return FEEKINDS[i][1];
+      return k;
+    }).join(" / ");
+
+    var body = rows.map(function(r){
+      var hrs = Number(r.hours) || 0;
+      var rate = Number(r.rate) || 0;
+      return '<tr>' +
+        '<td>' + esc(r.date || "") + '</td>' +
+        '<td>' + esc(feeKindLabel(r.kind)) + '</td>' +
+        '<td class="num">' + money(hrs) + '</td>' +
+        '<td class="num">' + money(rate) + '</td>' +
+        '<td class="num">' + money(hrs * rate) + '</td>' +
+        '<td><button class="settle act ' + (r.settled ? "yes" : "no") + '" type="button" ' +
+          'data-settle="' + esc(r.id) + '">' + (r.settled ? "已结算" : "未结算") + '</button></td>' +
+        '<td><button class="iconbtn" type="button" data-edit-fee="' + esc(r.id) + '" title="编辑">✎</button>' +
+          '<button class="iconbtn danger" type="button" data-del-fee="' + esc(r.id) + '" title="删除">✕</button></td>' +
+      '</tr>';
+    }).join("");
+
+    h += '<div class="feebox">' +
+      '<div class="feebox-h">' +
+        '<div><div class="tname">' + esc(nm) + '</div>' +
+          '<div class="tmeta">' + esc(kindTxt) + '　共 ' + rows.length + ' 次</div></div>' +
+        '<div class="tmeta">未结算 <b style="color:var(--red)">' + money(tuns) + '</b> 元</div>' +
+      '</div>' +
+      '<table class="ftable">' +
+        '<thead><tr><th>上课时间</th><th>类型</th><th class="num">课时</th>' +
+          '<th class="num">单价</th><th class="num">金额</th><th>状态</th><th></th></tr></thead>' +
+        '<tbody>' + body + '</tbody>' +
+        '<tfoot><tr><td colspan="2">合计</td>' +
+          '<td class="num">' + money(th) + '</td><td></td>' +
+          '<td class="num">' + money(tm) + '</td><td colspan="2"></td></tr></tfoot>' +
+      '</table>' +
+    '</div>';
+  });
+  $("fee-body").innerHTML = h;
+}
+function feeKindLabel(k){
+  for(var i = 0; i < FEEKINDS.length; i++) if(FEEKINDS[i][0] === k) return FEEKINDS[i][1];
+  return k || "专业讲解";
+}
+
+/* ================= 渲染：讲解链接 ================= */
+function renderLink(){
+  var td = todayStr();
+  if(!S.links.length){
+    $("link-body").innerHTML = '<div class="empty">还没有记录链接。<br><br>点「+ 记录链接」，填专业和链接地址，以后家长问直接来这里复制。</div>';
+    return;
+  }
+  var groups = {};
+  S.links.forEach(function(l){
+    var d = l.date || "未填日期";
+    (groups[d] = groups[d] || []).push(l);
+  });
+  var days = Object.keys(groups).sort(function(a,b){ return a < b ? 1 : -1; });
+
+  var h = '<div class="ledger">' +
+    '<div><div class="k">今天创建</div><div class="v">' + linksToday().length + '</div></div>' +
+    '<div><div class="k">近 7 天</div><div class="v">' + S.links.filter(function(l){
+      return l.date && dayDiff(td, l.date) >= 0 && dayDiff(td, l.date) <= 6;
+    }).length + '</div></div>' +
+    '<div><div class="k">累计</div><div class="v">' + S.links.length + '</div></div>' +
+  '</div>';
+
+  days.forEach(function(d){
+    var arr = groups[d];
+    h += '<div class="linkday">' +
+      '<div class="linkday-h"><b>' + esc(d) + '</b>' +
+        (d === td ? '<span class="today">今天</span>' : '<span>' + esc(wkOf(d)) + '</span>') +
+        '<span>' + arr.length + ' 条</span></div>' +
+      arr.map(function(l){
+        return '<div class="linkitem">' +
+          '<span class="lmajor">' + esc(l.major || "未填专业") + '</span>' +
+          '<span class="lurl"><a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.url) + '</a></span>' +
+          (l.note ? '<span class="lnote">' + esc(l.note) + '</span>' : '') +
+          '<button class="iconbtn" type="button" data-copy-link="' + esc(l.id) + '" title="复制链接">⧉</button>' +
+          '<button class="iconbtn" type="button" data-edit-link="' + esc(l.id) + '" title="编辑">✎</button>' +
+          '<button class="iconbtn danger" type="button" data-del-link="' + esc(l.id) + '" title="删除">✕</button>' +
+        '</div>';
+      }).join("") +
+    '</div>';
+  });
+  $("link-body").innerHTML = h;
+}
+
+/* ================= 渲染：每日工作 ================= */
+function renderLog(){
+  var td = todayStr();
+  var q = $("q-date");
+  if(q && !q.value) q.value = td;
+
+  if(!S.logs.length){
+    $("log-body").innerHTML = '<div class="empty">还没有工作记录。<br><br>上面输入框里写一句，点「记下」就行，不用讲究格式。</div>';
+    return;
+  }
+  var groups = {};
+  S.logs.forEach(function(l){
+    var d = l.date || "未填日期";
+    (groups[d] = groups[d] || []).push(l);
+  });
+  var days = Object.keys(groups).sort(function(a,b){ return a < b ? 1 : -1; });
+
+  var h = '<div class="ledger">' +
+    '<div><div class="k">今天记了</div><div class="v">' + logsToday().length + '</div></div>' +
+    '<div><div class="k">本周记了</div><div class="v">' + S.logs.filter(function(l){
+      var df = l.date ? dayDiff(td, l.date) : -1;
+      return df >= 0 && df <= 6;
+    }).length + '</div></div>' +
+    '<div><div class="k">累计</div><div class="v">' + S.logs.length + '</div></div>' +
+  '</div>';
+
+  days.forEach(function(d){
+    var arr = groups[d].slice().sort(function(a,b){
+      return (a.time || "") < (b.time || "") ? -1 : 1;
+    });
+    h += '<div class="logday">' +
+      '<div class="logday-h"><b>' + esc(d) + '</b><span class="wk">' + esc(wkOf(d)) + '</span>' +
+        (d === td ? '<span class="tag info">今天</span>' : '') + '</div>' +
+      arr.map(function(l){
+        return '<div class="logline">' +
+          '<span class="lt">' + esc(l.time || "") + '</span>' +
+          '<span class="lx">' + esc(l.text) + '</span>' +
+          '<span class="tacts">' +
+            '<button class="iconbtn" type="button" data-edit-log="' + esc(l.id) + '" title="编辑">✎</button>' +
+            '<button class="iconbtn danger" type="button" data-del-log="' + esc(l.id) + '" title="删除">✕</button>' +
+          '</span>' +
+        '</div>';
+      }).join("") +
+    '</div>';
+  });
+  $("log-body").innerHTML = h;
+}
+
+/* ================= 渲染：全部任务 ================= */
+var uiFilter = "all";
+function renderTask(){
+  var filters = [["all","全部"]].concat(CATS.map(function(c){ return [c[0], c[1]]; }));
+  var bar = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">' +
+    filters.map(function(f){
+      return '<button class="btn sm' + (uiFilter === f[0] ? " pri" : "") + '" type="button" data-filter="' + f[0] + '">' +
+        esc(f[1]) + '</button>';
+    }).join("") + '</div>';
+
+  var arr = S.tasks.slice().sort(function(a,b){
+    if(a.done !== b.done) return a.done ? 1 : -1;
+    var pv = {"P0":0,"P1":1,"P2":2};
+    if(pv[a.pri] !== pv[b.pri]) return pv[a.pri] - pv[b.pri];
+    return (a.due || "9999") < (b.due || "9999") ? -1 : 1;
+  });
+  if(uiFilter !== "all") arr = arr.filter(function(t){ return t.cat === uiFilter; });
+
+  var open = arr.filter(function(t){ return !t.done; });
+  var done = arr.filter(function(t){ return t.done; });
+
+  var h = bar;
+  h += '<div class="block"><div class="block-head"><h3>进行中</h3><span class="hint">' + open.length + ' 条</span></div>' +
+    taskList(open, "这类没有进行中的任务") + '</div>';
+  if(done.length){
+    h += '<div class="block"><div class="block-head"><h3>已完成</h3><span class="hint">' + done.length + ' 条</span></div>' +
+      taskList(done.slice(0, 40), "") + '</div>';
+  }
+  $("task-body").innerHTML = h;
+}
+
+/* ================= 总渲染 ================= */
+function rerender(){
+  var y = window.scrollY || window.pageYOffset || 0;
+  renderAll();
+  window.scrollTo(0, y);
+}
+function renderAll(){
+  renderCounts();
+  renderToday();
+  renderResearch();
+  renderContract();
+  renderComp();
+  renderFee();
+  renderLink();
+  renderLog();
+  renderTask();
+}
+
+/* ================= 视图切换 ================= */
+function go(v){
+  var btns = document.querySelectorAll(".navbtn");
+  for(var i = 0; i < btns.length; i++){
+    btns[i].classList.toggle("on", btns[i].getAttribute("data-v") === v);
+  }
+  var vs = document.querySelectorAll(".view");
+  for(var j = 0; j < vs.length; j++){
+    vs[j].classList.toggle("on", vs[j].id === "v-" + v);
+  }
+  window.scrollTo(0, 0);
+}
+
+/* ================= 表单定义 ================= */
+var F_TASK = [
+  { k:"title", label:"要做什么", type:"text", ph:"例如：给李同学约王老师周六上午的课" },
+  { k:"cat", label:"属于哪块工作", type:"select", opts:CATS, half:true },
+  { k:"pri", label:"优先级", type:"select", opts:PRIS.map(function(p){ return [p, p + " " + PRILABEL[p]]; }), half:true },
+  { k:"due", label:"截止日期", type:"date" },
+  { k:"note", label:"备注", type:"textarea" }
+];
+var F_PROJ = [
+  { k:"student", label:"学生", type:"text", ph:"学生姓名" },
+  { k:"topic", label:"课题", type:"text", ph:"例如：社交媒体对青少年自我认知的影响" },
+  { k:"teacher", label:"对接老师", type:"text", ph:"老师姓名 + 所属院校 / 专业", half:true },
+  { k:"nextClass", label:"下节课时间", type:"date", half:true },
+  { k:"stage", label:"当前阶段", type:"select", opts:STAGES.map(function(s){ return [s, s]; }) },
+  { k:"note", label:"备注", type:"textarea", ph:"进度、卡点、家长反馈都写这" }
+];
+var F_CONTRACT = [
+  { k:"student", label:"学生", type:"text", ph:"学生姓名" },
+  { k:"kind", label:"合同类型", type:"select", opts:CKINDS, half:true },
+  { k:"status", label:"当前状态", type:"select", opts:CSTAGES.map(function(s, i){ return [String(i), s]; }), half:true },
+  { k:"sales", label:"销售", type:"text", ph:"销售老师姓名", half:true },
+  { k:"teacher", label:"规划老师", type:"text", ph:"规划老师姓名", half:true },
+  { k:"ts", label:"建单日期", type:"date" },
+  { k:"note", label:"备注", type:"textarea" }
+];
+var F_FEE = [
+  { k:"teacher", label:"老师", type:"text", ph:"老师姓名" },
+  { k:"kind", label:"费用类型", type:"select", opts:FEEKINDS, half:true },
+  { k:"date", label:"上课时间", type:"date", half:true },
+  { k:"hours", label:"课时", type:"number", ph:"例如 1.5", half:true },
+  { k:"rate", label:"单价（元 / 课时）", type:"number", ph:"例如 800", half:true },
+  { k:"note", label:"备注", type:"textarea", ph:"学生、课题、特殊说明" }
+];
+var F_LINK = [
+  { k:"date", label:"创建日期", type:"date", half:true },
+  { k:"major", label:"专业方向", type:"text", ph:"例如：计算机 / 生物医学", half:true },
+  { k:"url", label:"链接地址", type:"text", ph:"https://" },
+  { k:"note", label:"备注", type:"textarea", ph:"给谁发的、讲什么" }
+];
+var F_CLASS = [
+  { k:"d", label:"上课日期", type:"date", half:true },
+  { k:"time", label:"上课时间", type:"time", half:true },
+  { k:"topic", label:"这节课讲什么", type:"text", ph:"例如：文献综述框架搭建" },
+  { k:"note", label:"课后备注", type:"textarea", ph:"学生状态、下次要补什么" }
+];
+var F_LOG = [
+  { k:"date", label:"日期", type:"date", half:true },
+  { k:"time", label:"时间", type:"time", half:true },
+  { k:"text", label:"做了什么", type:"textarea", ph:"一句话就行" }
+];
+var F_ENROLL = [
+  { k:"student", label:"学生", type:"text", ph:"参赛学生姓名" },
+  { k:"note", label:"备注", type:"textarea", ph:"队伍、指导老师、赛道" }
+];
+
+/* ================= 弹窗表单 ================= */
+var dlgState = { save:null };
+
+function fieldHtml(f, val){
+  var v = val == null ? "" : val;
+  var h = '<div class="field' + (f.half ? ' half' : '') + '"><label for="f-' + f.k + '">' + esc(f.label) + '</label>';
+  if(f.type === "select"){
+    h += '<select id="f-' + f.k + '">' +
+      (f.ph ? '<option value="">' + esc(f.ph) + '</option>' : '') +
+      f.opts.map(function(o){
+        var sel = String(o[0]) === String(v) ? " selected" : "";
+        return '<option value="' + esc(o[0]) + '"' + sel + '>' + esc(o[1]) + '</option>';
+      }).join("") + '</select>';
+  }else if(f.type === "textarea"){
+    h += '<textarea id="f-' + f.k + '" placeholder="' + esc(f.ph || "") + '">' + esc(v) + '</textarea>';
+  }else{
+    h += '<input id="f-' + f.k + '" type="' + f.type + '" value="' + esc(v) +
+      '" placeholder="' + esc(f.ph || "") + '"' +
+      (f.type === "number" ? ' step="0.5" min="0"' : '') + '>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function openForm(title, fields, data, onSave){
+  var body = $("dlg-body");
+  var html = "", half = "";
+  fields.forEach(function(f){
+    if(f.half){
+      half += fieldHtml(f, data[f.k]);
+    }else{
+      if(half){ html += '<div class="row2">' + half + '</div>'; half = ""; }
+      html += fieldHtml(f, data[f.k]);
+    }
+  });
+  if(half) html += '<div class="row2">' + half + '</div>';
+
+  body.innerHTML = html;
+  $("dlg-title").textContent = title;
+  dlgState.save = function(){
+    var out = {};
+    fields.forEach(function(f){
+      var el = $("f-" + f.k);
+      out[f.k] = el ? el.value.trim() : "";
+    });
+    return out;
+  };
+  dlgState.onSave = onSave;
+  var dlg = $("dlg");
+  if(typeof dlg.showModal === "function") dlg.showModal();
+  else dlg.setAttribute("open", "");
+
+  var first = body.querySelector("input,select,textarea");
+  if(first) setTimeout(function(){ first.focus(); }, 60);
+}
+function closeDlg(){
+  var dlg = $("dlg");
+  if(typeof dlg.close === "function") dlg.close();
+  else dlg.removeAttribute("open");
+}
+
+/* ================= 增删改：任务 ================= */
+function editTask(id){
+  var t = null;
+  for(var i = 0; i < S.tasks.length; i++) if(S.tasks[i].id === id) t = S.tasks[i];
+  var data = t || { cat:"research", pri:"P1", due:todayStr() };
+  openForm(t ? "编辑任务" : "新建任务", F_TASK, data, function(v){
+    if(!v.title){ toast("先填要做什么"); return false; }
+    if(t){ Object.keys(v).forEach(function(k){ t[k] = v[k]; }); }
+    else{
+      v.id = uid(); v.done = false;
+      S.tasks.push(v);
+    }
+    save(); renderAll(); toast(t ? "已更新" : "已新建");
+    return true;
+  });
+}
+
+/* ================= 增删改：科研项目 ================= */
+function editProj(id){
+  var p = null;
+  for(var i = 0; i < S.projects.length; i++) if(S.projects[i].id === id) p = S.projects[i];
+  var data = p || { stage:STAGES[0], nextClass:"" };
+  openForm(p ? "编辑项目" : "新建科研项目", F_PROJ, data, function(v){
+    if(!v.student){ toast("先填学生姓名"); return false; }
+    if(p){
+      Object.keys(v).forEach(function(k){ p[k] = v[k]; });
+    }else{
+      v.id = uid(); v.classes = []; v.docs = [];
+      S.projects.push(v);
+    }
+    save(); renderAll(); toast(p ? "已更新" : "已新建");
+    return true;
+  });
+}
+function nextStage(id){
+  var p = null;
+  for(var i = 0; i < S.projects.length; i++) if(S.projects[i].id === id) p = S.projects[i];
+  if(!p) return;
+  var i2 = STAGES.indexOf(p.stage);
+  if(i2 < 0 || i2 >= STAGES.length - 1){ toast("已经是最后一个阶段了"); return; }
+  p.stage = STAGES[i2 + 1];
+  save(); renderAll(); toast("推进到「" + p.stage + "」");
+}
+function editClass(pid, cid){
+  var p = null;
+  for(var i = 0; i < S.projects.length; i++) if(S.projects[i].id === pid) p = S.projects[i];
+  if(!p) return;
+  p.classes = p.classes || [];
+  var c = null;
+  for(var j = 0; j < p.classes.length; j++) if(p.classes[j].id === cid) c = p.classes[j];
+  var data = c || { d:todayStr(), time:"", topic:"", note:"" };
+  openForm(c ? "编辑上课记录" : "记一次课", F_CLASS, data, function(v){
+    if(!v.d){ toast("先填上课日期"); return false; }
+    if(c){ Object.keys(v).forEach(function(k){ c[k] = v[k]; }); }
+    else{
+      v.id = uid(); v.replay = false; v.summary = false;
+      p.classes.push(v);
+    }
+    save(); renderAll(); toast(c ? "已更新" : "已记录，记得发回放和总结");
+    return true;
+  });
+}
+
+/* ================= 文档上传 ================= */
+var pendingProjId = null;
+function pickDocs(pid){
+  pendingProjId = pid;
+  var inp = $("doc-file");
+  inp.value = "";
+  inp.click();
+}
+function handleDocFiles(files){
+  if(!pendingProjId || !files || !files.length) return;
+  var p = null;
+  for(var i = 0; i < S.projects.length; i++) if(S.projects[i].id === pendingProjId) p = S.projects[i];
+  if(!p) return;
+  p.docs = p.docs || [];
+
+  var list = Array.prototype.slice.call(files);
+  var ok = 0, fail = 0, left = list.length;
+
+  list.forEach(function(file){
+    var fid = uid();
+    idbPut(fid, file, function(err){
+      left--;
+      if(err){ fail++; }
+      else{
+        ok++;
+        p.docs.push({ id:fid, name:file.name, size:file.size, ts:todayStr() });
+      }
+      if(left === 0){
+        save(); renderAll();
+        if(ok && !fail) toast("已上传 " + ok + " 个文档");
+        else if(ok && fail) toast("成功 " + ok + " 个，失败 " + fail + " 个");
+        else toast("上传失败：" + (err || "浏览器不支持"));
+        pendingProjId = null;
+      }
+    });
+  });
+}
+
+/* ================= 合同 ================= */
+function editContract(id){
+  var c = null;
+  for(var i = 0; i < S.contracts.length; i++) if(S.contracts[i].id === id) c = S.contracts[i];
+  var data = c || { kind:"sales", status:"0", ts:todayStr() };
+  openForm(c ? "编辑合同" : "新建合同", F_CONTRACT, data, function(v){
+    if(!v.student){ toast("先填学生姓名"); return false; }
+    v.status = String(v.status || 0);
+    if(c){ Object.keys(v).forEach(function(k){ c[k] = v[k]; }); }
+    else{ v.id = uid(); S.contracts.push(v); }
+    save(); renderAll(); toast(c ? "已更新" : "已新建");
+    return true;
+  });
+}
+function contractStep(id, delta){
+  var c = null;
+  for(var i = 0; i < S.contracts.length; i++) if(S.contracts[i].id === id) c = S.contracts[i];
+  if(!c) return;
+  var st = Number(c.status) || 0;
+  var nx = st + delta;
+  if(nx < 0) nx = 0;
+  if(nx >= CSTAGES.length) nx = CSTAGES.length - 1;
+  c.status = String(nx);
+  save(); renderAll();
+  toast("当前状态：" + CSTAGES[nx]);
+}
+
+/* ================= 竞赛 ================= */
+function addEnroll(compId){
+  var c = null;
+  for(var i = 0; i < COMPS.length; i++) if(COMPS[i].id === compId) c = COMPS[i];
+  if(!c) return;
+  openForm("添加参赛学生 · " + c.name, F_ENROLL, { student:"", note:"" }, function(v){
+    if(!v.student){ toast("先填学生姓名"); return false; }
+    S.enroll.push({ id:uid(), compId:compId, student:v.student, note:v.note, done:{} });
+    save(); renderAll(); toast("已添加");
+    return true;
+  });
+}
+function toggleDot(eid, d, n){
+  for(var i = 0; i < S.enroll.length; i++){
+    if(S.enroll[i].id === eid){
+      var e = S.enroll[i];
+      e.done = e.done || {};
+      var k = d + "|" + n;
+      if(e.done[k]) delete e.done[k];
+      else e.done[k] = true;
+      save(); renderComp(); renderCounts();
+      return;
+    }
+  }
+}
+
+/* ================= 费用 ================= */
+function editFee(id){
+  var f = null;
+  for(var i = 0; i < S.fees.length; i++) if(S.fees[i].id === id) f = S.fees[i];
+  var data = f || { kind:"lecture", date:todayStr(), hours:"1", rate:"", note:"" };
+  openForm(f ? "编辑课时" : "记一笔课时", F_FEE, data, function(v){
+    if(!v.teacher){ toast("先填老师姓名"); return false; }
+    if(f){ Object.keys(v).forEach(function(k){ f[k] = v[k]; }); }
+    else{ v.id = uid(); v.settled = false; S.fees.push(v); }
+    save(); renderAll(); toast(f ? "已更新" : "已记录");
+    return true;
+  });
+}
+
+/* ================= 链接 ================= */
+function editLink(id){
+  var l = null;
+  for(var i = 0; i < S.links.length; i++) if(S.links[i].id === id) l = S.links[i];
+  var data = l || { date:todayStr(), major:"", url:"", note:"" };
+  openForm(l ? "编辑链接" : "记录讲解链接", F_LINK, data, function(v){
+    if(!v.url){ toast("先填链接地址"); return false; }
+    if(l){ Object.keys(v).forEach(function(k){ l[k] = v[k]; }); }
+    else{ v.id = uid(); S.links.push(v); }
+    save(); renderAll(); toast(l ? "已更新" : "已记录");
+    return true;
+  });
+}
+function copyLink(id){
+  var l = null;
+  for(var i = 0; i < S.links.length; i++) if(S.links[i].id === id) l = S.links[i];
+  if(!l) return;
+  var done = function(){ toast("链接已复制"); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(l.url).then(done, function(){
+      window.prompt("手动复制：", l.url);
+    });
+  }else{
+    window.prompt("手动复制：", l.url);
+  }
+}
+
+/* ================= 日志 ================= */
+function editLog(id){
+  var l = null;
+  for(var i = 0; i < S.logs.length; i++) if(S.logs[i].id === id) l = S.logs[i];
+  var data = l || { date:todayStr(), time:nowTime(), text:"" };
+  openForm(l ? "编辑记录" : "记一条", F_LOG, data, function(v){
+    if(!v.text){ toast("先填做了什么"); return false; }
+    if(l){ Object.keys(v).forEach(function(k){ l[k] = v[k]; }); }
+    else{ v.id = uid(); S.logs.push(v); }
+    save(); renderAll(); toast(l ? "已更新" : "已记下");
+    return true;
+  });
+}
+
+/* ================= 导出 / 导入 ================= */
+function doExport(){
+  var blob = new Blob([JSON.stringify(S, null, 2)], { type:"application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "科研对接工作台备份-" + todayStr() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  toast("已导出。注意：上传的课题文档本体不在备份里");
+}
+function doImport(file){
+  var r = new FileReader();
+  r.onload = function(){
+    try{
+      var o = JSON.parse(String(r.result));
+      if(!o || typeof o !== "object") throw new Error("格式不对");
+      S.tasks = Array.isArray(o.tasks) ? o.tasks : [];
+      S.projects = Array.isArray(o.projects) ? o.projects : [];
+      S.contracts = Array.isArray(o.contracts) ? o.contracts : [];
+      S.enroll = Array.isArray(o.enroll) ? o.enroll : [];
+      S.fees = Array.isArray(o.fees) ? o.fees : [];
+      S.links = Array.isArray(o.links) ? o.links : [];
+      S.logs = Array.isArray(o.logs) ? o.logs : [];
+      save(); renderAll();
+      toast("导入完成");
+    }catch(e){
+      toast("导入失败：文件不是有效备份");
+    }
+  };
+  r.onerror = function(){ toast("读取文件失败"); };
+  r.readAsText(file);
+}
+
+/* ================= 示例数据 ================= */
+function loadDemo(){
+  var td = todayStr();
+  function dOff(n){
+    var d = new Date();
+    d.setDate(d.getDate() + n);
+    return todayStr(d);
+  }
+  S.tasks = [
+    { id:uid(), title:"给李同学约王老师周六上午的课", cat:"research", pri:"P0", due:td, note:"王老师周三之后才空", done:false },
+    { id:uid(), title:"陈同学销售合同传企业微信，生成上上签链接", cat:"contract", pri:"P0", due:td, note:"", done:false },
+    { id:uid(), title:"把老板给的文献检索工作流部署到企微", cat:"ai", pri:"P1", due:dOff(3), note:"先在自己账号测一遍", done:false },
+    { id:uid(), title:"提醒赵同学 CTB 11 月 30 日报名截止", cat:"comp", pri:"P0", due:dOff(2), note:"", done:false },
+    { id:uid(), title:"给生物方向家长做一份专业讲解链接", cat:"link", pri:"P1", due:dOff(1), note:"", done:false },
+    { id:uid(), title:"核对 11 月外教课时，发财务", cat:"fee", pri:"P1", due:dOff(5), note:"", done:false },
+    { id:uid(), title:"临时：家长会要一份本周进度汇总", cat:"urgent", pri:"P0", due:dOff(-1), note:"已经拖了一天", done:false }
+  ];
+  S.projects = [
+    {
+      id:uid(), student:"李同学", topic:"社交媒体使用强度对青少年自我认知的影响",
+      teacher:"王老师 · 北师大 心理学", stage:"上课中", nextClass:dOff(3),
+      note:"学生访谈数据已收 42 份，老师建议补一组对照", classes:[
+        { id:uid(), d:dOff(-9), time:"19:00", topic:"研究设计与变量界定", replay:true, summary:true, note:"" },
+        { id:uid(), d:dOff(-2), time:"19:00", topic:"问卷设计与预调研", replay:false, summary:false, note:"学生说问卷太长，要精简" }
+      ],
+      docs:[]
+    },
+    {
+      id:uid(), student:"陈同学", topic:"城市热岛效应对老旧小区能耗的影响",
+      teacher:"张老师 · 同济 建筑", stage:"排课中", nextClass:dOff(5),
+      note:"老师只有周末有空", classes:[], docs:[]
+    },
+    {
+      id:uid(), student:"赵同学", topic:"短视频算法推荐对消费决策的作用机制",
+      teacher:"刘老师 · 复旦 传播学", stage:"论文撰写", nextClass:"",
+      note:"初稿 12 月中旬给老师看", classes:[
+        { id:uid(), d:dOff(-16), time:"20:00", topic:"文献综述框架", replay:true, summary:true, note:"" }
+      ],
+      docs:[]
+    }
+  ];
+  S.contracts = [
+    { id:uid(), student:"陈同学", kind:"sales", status:"6", sales:"周老师", teacher:"", ts:dOff(-8), note:"已签完，家长很配合" },
+    { id:uid(), student:"李同学", kind:"memo", status:"5", sales:"周老师", teacher:"孙老师", ts:dOff(-6), note:"家长在出差，催一下" },
+    { id:uid(), student:"赵同学", kind:"memo", status:"2", sales:"吴老师", teacher:"孙老师", ts:dOff(-2), note:"" }
+  ];
+  S.enroll = [
+    { id:uid(), compId:"ctb", student:"赵同学", note:"三人队，我做教练", done:{} },
+    { id:uid(), compId:"diamond", student:"陈同学", note:"社会创新赛道", done:{} }
+  ];
+  S.fees = [
+    { id:uid(), teacher:"王老师", kind:"research", date:dOff(-9), hours:"1.5", rate:"900", note:"李同学 · 研究设计", settled:true },
+    { id:uid(), teacher:"王老师", kind:"research", date:dOff(-2), hours:"1.5", rate:"900", note:"李同学 · 问卷设计", settled:false },
+    { id:uid(), teacher:"张老师", kind:"research", date:dOff(-5), hours:"2", rate:"1000", note:"陈同学 · 选题讨论", settled:false },
+    { id:uid(), teacher:"刘老师", kind:"lecture", date:dOff(-3), hours:"1", rate:"600", note:"短视频专业讲解", settled:false },
+    { id:uid(), teacher:"David", kind:"foreign", date:dOff(-7), hours:"1", rate:"1200", note:"外教口语模拟面试", settled:true }
+  ];
+  S.links = [
+    { id:uid(), date:td, major:"计算机", url:"https://cmcshishuo.cn/public/major-compass/", note:"给李同学家长发的" },
+    { id:uid(), date:td, major:"生物医学", url:"https://cmcshishuo.cn/public/bio-drill/", note:"家长问生物方向刷题" },
+    { id:uid(), date:dOff(-1), major:"心理学", url:"https://cmcshishuo.cn/public/humanities-mentor/", note:"" }
+  ];
+  S.logs = [
+    { id:uid(), date:td, time:"09:20", text:"跟王老师确认周六上午 10 点的课，已发会议链接" },
+    { id:uid(), date:td, time:"11:05", text:"陈同学销售合同传企业微信，等上上签生成链接" },
+    { id:uid(), date:dOff(-1), time:"14:30", text:"给李同学家长发课程回放和总结" },
+    { id:uid(), date:dOff(-1), time:"16:10", text:"把文献检索工作流部署到企微，测了三遍没问题" }
+  ];
+  save(); renderAll();
+  toast("示例数据已载入，看完点「清空数据」就是干净的");
+}
+
+/* ================= 事件 ================= */
+document.addEventListener("click", function(e){
+  var el;
+
+  if((el = e.target.closest(".navbtn"))){
+    go(el.getAttribute("data-v"));
+    return;
+  }
+  if((el = e.target.closest("[data-add]"))){
+    var kind = el.getAttribute("data-add");
+    if(kind === "task") editTask(null);
+    else if(kind === "proj") editProj(null);
+    else if(kind === "contract") editContract(null);
+    else if(kind === "fee") editFee(null);
+    else if(kind === "link") editLink(null);
+    return;
+  }
+  if(e.target.closest("#fab")){ editTask(null); return; }
+
+  // 任务
+  if((el = e.target.closest("[data-toggle-task]"))){
+    var id = el.getAttribute("data-toggle-task");
+    for(var i = 0; i < S.tasks.length; i++){
+      if(S.tasks[i].id === id){ S.tasks[i].done = !S.tasks[i].done; break; }
+    }
+    save(); rerender();
+    return;
+  }
+  if((el = e.target.closest("[data-edit-task]"))){ editTask(el.getAttribute("data-edit-task")); return; }
+  if((el = e.target.closest("[data-del-task]"))){
+    var tid = el.getAttribute("data-del-task");
+    S.tasks = S.tasks.filter(function(t){ return t.id !== tid; });
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+
+  // 项目
+  if((el = e.target.closest("[data-edit-proj]"))){ editProj(el.getAttribute("data-edit-proj")); return; }
+  if((el = e.target.closest("[data-del-proj]"))){
+    var pid = el.getAttribute("data-del-proj");
+    S.projects = S.projects.filter(function(p){ return p.id !== pid; });
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+  if((el = e.target.closest("[data-next-stage]"))){ nextStage(el.getAttribute("data-next-stage")); return; }
+  if((el = e.target.closest("[data-add-class]"))){ editClass(el.getAttribute("data-add-class"), null); return; }
+  if((el = e.target.closest("[data-edit-class]"))){
+    var pr = el.getAttribute("data-edit-class").split("|");
+    editClass(pr[0], pr[1]);
+    return;
+  }
+  if((el = e.target.closest("[data-del-class]"))){
+    var pr2 = el.getAttribute("data-del-class").split("|");
+    for(var a = 0; a < S.projects.length; a++){
+      if(S.projects[a].id === pr2[0]){
+        S.projects[a].classes = (S.projects[a].classes || []).filter(function(c){ return c.id !== pr2[1]; });
+        break;
+      }
+    }
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+  if((el = e.target.closest("[data-flag]"))){
+    var pr3 = el.getAttribute("data-flag").split("|");
+    for(var b = 0; b < S.projects.length; b++){
+      if(S.projects[b].id === pr3[1]){
+        var cs = S.projects[b].classes || [];
+        for(var c2 = 0; c2 < cs.length; c2++){
+          if(cs[c2].id === pr3[2]){ cs[c2][pr3[0]] = !cs[c2][pr3[0]]; break; }
+        }
+        break;
+      }
+    }
+    save(); rerender();
+    return;
+  }
+  if((el = e.target.closest("[data-up-doc]"))){ pickDocs(el.getAttribute("data-up-doc")); return; }
+  if((el = e.target.closest("[data-dl-doc]"))){
+    var pd = el.getAttribute("data-dl-doc").split("|");
+    for(var q = 0; q < S.projects.length; q++){
+      if(S.projects[q].id === pd[1]){
+        (S.projects[q].docs || []).forEach(function(d){
+          if(d.id === pd[0]) downloadDoc(d.id, d.name);
+        });
+        break;
+      }
+    }
+    return;
+  }
+  if((el = e.target.closest("[data-del-doc]"))){
+    var pd2 = el.getAttribute("data-del-doc").split("|");
+    for(var r = 0; r < S.projects.length; r++){
+      if(S.projects[r].id === pd2[1]){
+        S.projects[r].docs = (S.projects[r].docs || []).filter(function(d){ return d.id !== pd2[0]; });
+        break;
+      }
+    }
+    idbDel(pd2[0]);
+    save(); renderAll(); toast("已删除文档");
+    return;
+  }
+
+  // 合同
+  if((el = e.target.closest("[data-edit-contract]"))){ editContract(el.getAttribute("data-edit-contract")); return; }
+  if((el = e.target.closest("[data-del-contract]"))){
+    var cid = el.getAttribute("data-del-contract");
+    S.contracts = S.contracts.filter(function(c){ return c.id !== cid; });
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+  if((el = e.target.closest("[data-contract-next]"))){ contractStep(el.getAttribute("data-contract-next"), 1); return; }
+  if((el = e.target.closest("[data-contract-back]"))){ contractStep(el.getAttribute("data-contract-back"), -1); return; }
+
+  // 竞赛
+  if((el = e.target.closest("[data-add-enroll]"))){ addEnroll(el.getAttribute("data-add-enroll")); return; }
+  if((el = e.target.closest("[data-comp-dot]"))){
+    var dd = el.getAttribute("data-comp-dot").split("|");
+    toggleDot(dd[0], dd[1], dd[2]);
+    return;
+  }
+  if((el = e.target.closest("[data-del-enroll]"))){
+    var eid = el.getAttribute("data-del-enroll");
+    S.enroll = S.enroll.filter(function(x){ return x.id !== eid; });
+    save(); renderAll(); toast("已移除");
+    return;
+  }
+
+  // 费用
+  if((el = e.target.closest("[data-settle]"))){
+    var fid = el.getAttribute("data-settle");
+    for(var s = 0; s < S.fees.length; s++){
+      if(S.fees[s].id === fid){ S.fees[s].settled = !S.fees[s].settled; break; }
+    }
+    save(); rerender();
+    return;
+  }
+  if((el = e.target.closest("[data-edit-fee]"))){ editFee(el.getAttribute("data-edit-fee")); return; }
+  if((el = e.target.closest("[data-del-fee]"))){
+    var fid2 = el.getAttribute("data-del-fee");
+    S.fees = S.fees.filter(function(f2){ return f2.id !== fid2; });
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+
+  // 链接
+  if((el = e.target.closest("[data-copy-link]"))){ copyLink(el.getAttribute("data-copy-link")); return; }
+  if((el = e.target.closest("[data-edit-link]"))){ editLink(el.getAttribute("data-edit-link")); return; }
+  if((el = e.target.closest("[data-del-link]"))){
+    var lid = el.getAttribute("data-del-link");
+    S.links = S.links.filter(function(l2){ return l2.id !== lid; });
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+
+  // 日志
+  if((el = e.target.closest("[data-edit-log]"))){ editLog(el.getAttribute("data-edit-log")); return; }
+  if((el = e.target.closest("[data-del-log]"))){
+    var gid = el.getAttribute("data-del-log");
+    S.logs = S.logs.filter(function(l3){ return l3.id !== gid; });
+    save(); renderAll(); toast("已删除");
+    return;
+  }
+
+  // 今日页跳转
+  if(e.target.closest("[data-fix]")){ go("research"); toast("展开课程记录，点「未发」就能标记已发"); return; }
+  if(e.target.closest("[data-goto-contract]")){ go("contract"); return; }
+  if(e.target.closest("[data-goto-research]")){ go("research"); return; }
+  if(e.target.closest("[data-goto-comp]")){ go("comp"); return; }
+
+  // 筛选
+  if((el = e.target.closest("[data-filter]"))){
+    uiFilter = el.getAttribute("data-filter");
+    renderTask();
+    return;
+  }
+
+  // 弹窗
+  if(e.target.closest("#dlg-cancel") || e.target.closest("#dlg-x")){ closeDlg(); return; }
+  if(e.target.closest("#dlg-save")){
+    if(dlgState.save && dlgState.onSave){
+      var vals = dlgState.save();
+      if(dlgState.onSave(vals) !== false) closeDlg();
+    }
+    return;
+  }
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && $("dlg").hasAttribute("open")) closeDlg();
+});
+
+/* 表单回车不刷新 */
+$("dlg-form").addEventListener("submit", function(e){ e.preventDefault(); });
+
+/* 文档选择 */
+$("doc-file").addEventListener("change", function(e){
+  handleDocFiles(e.target.files);
+});
+
+/* 快速记一条 */
+$("q-add").addEventListener("click", function(){
+  var txt = $("q-text").value.trim();
+  if(!txt){ toast("先写一句做了什么"); return; }
+  var d = $("q-date").value || todayStr();
+  var t = $("q-time").value || nowTime();
+  S.logs.push({ id:uid(), date:d, time:t, text:txt });
+  save(); renderAll();
+  $("q-text").value = "";
+  $("q-time").value = "";
+  toast("已记下");
+});
+$("q-text").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){ e.preventDefault(); $("q-add").click(); }
+});
+
+/* 侧栏操作 */
+$("btn-export").addEventListener("click", doExport);
+$("btn-import").addEventListener("click", function(){ $("file-import").click(); });
+$("file-import").addEventListener("change", function(e){
+  if(e.target.files && e.target.files[0]) doImport(e.target.files[0]);
+  e.target.value = "";
+});
+$("btn-demo").addEventListener("click", function(){
+  if(S.tasks.length || S.projects.length || S.logs.length){
+    if(!window.confirm("载入示例会覆盖现在所有数据，确定？")) return;
+  }
+  loadDemo();
+});
+$("btn-clear").addEventListener("click", function(){
+  if(!window.confirm("确定清空所有数据？这个操作没法撤销，建议先导出备份。")) return;
+  S = { tasks:[], projects:[], contracts:[], enroll:[], fees:[], links:[], logs:[] };
+  save(); renderAll(); go("log"); toast("已清空");
+});
+
+/* ================= 启动 ================= */
+load();
+renderAll();
+go("log");
+
+})();
+</script>
+</body>
+</html>
