@@ -7626,7 +7626,7 @@ function result(){const f=F;const list=RES;if(!list)return '';const secs=[];list
    <section class="bl-cta"><img src="${QR}" alt="${T('CMC 师说顾问微信二维码','CMC advisor QR code')}"><div><b>${T('扫码添加 CMC 师说顾问','Scan to reach a CMC advisor')}</b><p>${T('想知道这份书单怎么读、读完怎么写成文章，或者想聊聊孩子的升学规划，扫码加顾问微信，带上这份书单来问就行。','Questions about how to read this list, how to turn it into writing, or your child\'s path to university? Scan to add an advisor on WeChat and bring this list along.')}</p><span class="bl-cmc">CMC 师说留学 · Considerate Marvelous Career-planning</span></div></section>
    <footer class="bl-foot">${T('书单按孩子的年级、读书情况和兴趣生成。读完一本，在右边的方框里打个勾。','Made from your child\'s grade, reading habits and interests. Tick the box when a book is done.')} · ${new Date().toLocaleDateString(EN()?'en-US':'zh-CN')}</footer></div>
    <div class="bl-acts"><button type="button" class="btn" data-blpdf="1">${T('下载 PDF','Download PDF')}</button><button type="button" class="btn ghost" data-blimg="1">${T('存成图片','Save as images')}</button>${IS_WX?'':`<button type="button" class="btn ghost" data-blprint="1">${T('打印','Print')}</button>`}<button type="button" class="btn ghost" data-blshelf="1">${T('把能加的都加入书架','Add these to my shelf')}</button><button type="button" class="btn ghost" data-blagain="1">${T('换一批','Shuffle')}</button></div>
-   <p class="bl-tip" id="blDone"></p><p class="bl-tip">${IS_WX?T('在微信、企业微信里点「下载 PDF」会生成书单图片，长按就能保存或转发。','In WeChat, "Download PDF" makes images you can press and hold to save or forward.'):T('「下载 PDF」直接存成文件；「存成图片」适合发到微信；「打印」可以直接连打印机。','"Download PDF" saves a file, "Save as images" is handy for WeChat, and "Print" goes straight to a printer.')}</p>`}
+   <p class="bl-tip" id="blDone"></p><p class="bl-tip">${IS_WX?T('在微信、企业微信里点「下载 PDF」，会弹出书单，可以保存为 PDF，也可以长按图片保存。','In WeChat, "Download PDF" opens the list: save it as a PDF or press and hold the images.'):T('「下载 PDF」直接存成文件；「存成图片」适合发到微信；「打印」可以直接连打印机。','"Download PDF" saves a file, "Save as images" is handy for WeChat, and "Print" goes straight to a printer.')}</p>`}
 function render(){const box=document.getElementById('blBox');if(!box)return;
   box.innerHTML=`<div class="sec-head"><div><div class="eyebrow">${T('定制书单 · PDF','Custom reading list · PDF')}</div><h2>${T('一份只给你家孩子的书单','A reading list made for your child')}</h2>
    <p class="intro">${T('选年级、读书情况和兴趣，30 秒生成一年的书单。每本书写了为什么读、读完想什么，还按月份排好，可以下载成 PDF 打印出来贴在书桌前。','Pick a grade, reading habits and interests, and get a year of books in 30 seconds. Each book says why to read it and what to think about after, laid out month by month. Download it as a PDF and pin it above the desk.')}</p></div></div>
@@ -7693,18 +7693,28 @@ function mkPdf(jp){const enc=new TextEncoder();const parts=[];let len=0;const of
   const xr=len,tot=3+3*n;let x=`xref\n0 ${tot}\n0000000000 65535 f \n`;for(let i=1;i<tot;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
   push(x+`trailer\n<< /Size ${tot} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF\n`);return new Blob(parts,{type:'application/pdf'})}
 function fname(){return (F.name?F.name+'_':'')+T('书单_G','ReadingList_G')+F.g}
+let PDFF=null,PDFU='';
+function pdfName(){return 'CMC-ReadingList-G'+F.g+'.pdf'}
+function savePdf(){if(!PDFF)return;
+  try{if(navigator.canShare&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)&&navigator.canShare({files:[PDFF]})){navigator.share({files:[PDFF],title:pdfName()}).catch(()=>{});return}}catch(e){}
+  const a=document.createElement('a');a.href=PDFU;a.download=pdfName();a.rel='noopener';document.body.append(a);a.click();a.remove()}
 function showImgs(cs,why){let o=document.getElementById('blImgs');if(!o){o=document.createElement('div');o.id='blImgs';o.className='bl-ov';o.setAttribute('data-noi18n','');document.body.append(o)}
-  o.innerHTML=`<div class="bl-ovbox" role="dialog" aria-modal="true" aria-label="${T('书单图片','Reading list images')}"><div class="bl-ovh"><b>${T('长按图片，保存到相册或发给家人','Press and hold an image to save or share it')}</b><button type="button" class="btn ghost" data-blclose="1">${T('关闭','Close')}</button></div>
-   ${why==='wx'?`<p class="bl-ovtip">${T('微信和企业微信里不能直接下载文件。要 PDF 文件的话，点右上角「···」，选「在默认浏览器中打开」，再点「下载 PDF」。','WeChat cannot download files directly. For the PDF, tap "···" at the top right, choose "Open in browser", then tap "Download PDF".')}</p>`:''}
+  const wx=why==='wx';
+  o.innerHTML=`<div class="bl-ovbox" role="dialog" aria-modal="true" aria-label="${T('书单','Reading list')}"><div class="bl-ovh"><b>${wx?T('书单已生成','Your list is ready'):T('长按图片，保存到相册或发给家人','Press and hold an image to save or share it')}</b><button type="button" class="btn ghost" data-blclose="1">${T('关闭','Close')}</button></div>
+   ${wx?`<div class="bl-ovacts"><button type="button" class="btn" data-blsave="1">${T('保存为 PDF','Save as PDF')}</button><a class="btn ghost" href="${PDFU}" target="_blank" rel="noopener" download="${pdfName()}">${T('打开 PDF','Open the PDF')}</a></div>
+   <p class="bl-ovtip">${T('先点「保存为 PDF」。如果企业微信没反应，点「打开 PDF」，在打开的页面里保存或转发。还不行的话：电脑上点右上角「在浏览器中打开」，手机上点右上角「···」选「在默认浏览器中打开」，再点「下载 PDF」。也可以直接长按下面的图片保存。','Tap "Save as PDF". If nothing happens, tap "Open the PDF" and save from there, or open this page in your browser.')}</p>`:''}
    ${cs.map((c,i)=>`<img src="${c.toDataURL('image/jpeg',.9)}" alt="${T(`书单第 ${i+1} 页`,`Page ${i+1}`)}">`).join('')}</div>`;o.hidden=false;o.scrollTop=0}
 async function makePdf(mode,btn){const old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent=T('正在生成…','Working…')}
   try{const cs=await drawPages();
-    if(mode==='img'||IS_WX){showImgs(cs,IS_WX&&mode!=='img'?'wx':'');return}
-    const blob=mkPdf(cs.map(c=>({bytes:b64Bytes(c.toDataURL('image/jpeg',.9)),w:c.width,h:c.height})));const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='CMC-ReadingList-G'+F.g+'.pdf';a.rel='noopener';document.body.append(a);a.click();a.remove();
-    const n=document.getElementById('blDone');if(n)n.innerHTML=`${T('PDF 已生成。没看到下载？','PDF ready. Nothing downloaded?')} <a href="${url}" target="_blank" rel="noopener">${T('点这里打开','Open it here')}</a>`}
+    if(mode==='img'){showImgs(cs,'');return}
+    const blob=mkPdf(cs.map(c=>({bytes:b64Bytes(c.toDataURL('image/jpeg',.9)),w:c.width,h:c.height})));
+    if(PDFU)URL.revokeObjectURL(PDFU);PDFU=URL.createObjectURL(blob);try{PDFF=new File([blob],pdfName(),{type:'application/pdf'})}catch(e){PDFF=blob}
+    if(IS_WX){showImgs(cs,'wx');return}
+    savePdf();
+    const n=document.getElementById('blDone');if(n)n.innerHTML=`${T('PDF 已生成。没看到下载？','PDF ready. Nothing downloaded?')} <a href="${PDFU}" target="_blank" rel="noopener">${T('点这里打开','Open it here')}</a>`}
   catch(e){console.error(e);const cs=await drawPages().catch(()=>null);if(cs)showImgs(cs,'')}
   finally{if(btn){btn.disabled=false;btn.textContent=old}}}
+document.addEventListener('click',e=>{if(e.target.closest('[data-blsave]'))savePdf()});
 document.addEventListener('click',e=>{const t=e.target;if(t.closest('[data-blclose]')||t.id==='blImgs'){const o=document.getElementById('blImgs');if(o)o.hidden=true}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=document.getElementById('blImgs');if(o&&!o.hidden)o.hidden=true}});
 document.addEventListener('click',e=>{const box=document.getElementById('blBox');if(!box||!box.contains(e.target))return;const t=e.target;let x;
@@ -7801,9 +7811,10 @@ html[data-band="s1"] .bl-doc{border-radius:22px;border:2px solid var(--line);bac
 .bl-ovtip{font-size:13.5px;line-height:1.7;color:var(--muted);margin:0 0 10px;border-left:3px solid #F97E1C;padding-left:10px}
 .bl-ovbox img{display:block;width:100%;height:auto;margin:0 0 12px;box-shadow:0 1px 6px rgba(0,0,0,.15);-webkit-touch-callout:default;user-select:auto}
 #blDone a{color:var(--ink);text-decoration:underline;text-decoration-color:#F97E1C}
+.bl-ovacts{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.bl-ovacts a.btn{text-decoration:none;display:inline-flex;align-items:center}
 
 </style>
-
 <div id="cmc-reg-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;justify-content:center;align-items:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;">
   <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;position:relative;">
     <div style="font-size:48px;margin-bottom:16px;">📖</div>
