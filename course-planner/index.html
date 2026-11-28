@@ -365,7 +365,14 @@
   .pv-title{font-weight:800; font-size:16px; flex:1;}
   .pv-back{display:inline-flex; align-items:center; gap:4px; background:transparent; border:1px solid #4A4A47; color:#fff; border-radius:999px; padding:5px 12px 5px 8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;}
   .pv-save{padding:9px 18px; font-size:15px;}
-  .pv-save:disabled{opacity:.7; cursor:wait;}
+  .pv-save:disabled,.pv-img:disabled{opacity:.7; cursor:wait;}
+  .pv-img{background:transparent; border:1px solid #4A4A47; color:#fff; border-radius:var(--r-sm); padding:8px 14px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;}
+  .pv-done{max-width:440px; margin:8vh auto 0; background:#fff; border-radius:16px; padding:24px 22px 20px; color:var(--ink);}
+  .pv-done h4{font-size:19px; font-weight:800; margin-bottom:6px;}
+  .pv-done .pd-meta{font-size:14px; color:var(--muted); margin-bottom:16px;}
+  .pv-done .pd-btns{display:flex; flex-direction:column; gap:10px;}
+  .pv-done .pd-btns .btn{justify-content:center; width:100%; text-decoration:none;}
+  .pv-done .pd-tip{margin-top:14px; font-size:13.5px; line-height:1.7; color:var(--ink2); background:var(--sunk); border-radius:10px; padding:10px 12px;}
   .pv-tip{max-width:860px; margin:8px auto 0; font-size:13.5px; line-height:1.65; color:#D6D6D1;}
   body.pv .band,body.pv .panel-wrap,body.pv .print-hide,body.pv .qr-float,body.pv .qr-pill,body.pv .navchips,body.pv .cta,body.pv .foot-qr{display:none!important;}
   body.pv{background:#fff;}
@@ -376,13 +383,24 @@
   body.pv .pe-qr{width:120px; height:120px; flex:none;} body.pv .pe-logo{height:24px; display:block; margin-bottom:8px;}
   body.pv .pe-h{font-size:16px; font-weight:800; margin-bottom:4px;} body.pv .pe-p{font-size:13.5px; color:#333; line-height:1.7;}
   body.pv .foot{max-width:860px;}
-  @media(max-width:600px){ body.pv .print-end{margin:18px 16px 8px;} body.pv .pe-qr{width:96px; height:96px;} body.pv .ph-qr{width:60px; height:60px;} body.pv .ph-logo{height:26px;} .pv-save{padding:8px 14px; font-size:14px;} body.pv .ph-r{font-size:11.5px; line-height:1.5;} }
+  @media(max-width:600px){ body.pv .print-end{margin:18px 16px 8px;} body.pv .pe-qr{width:96px; height:96px;} body.pv .ph-qr{width:60px; height:60px;} body.pv .ph-logo{height:26px;} .pv-save{padding:8px 14px; font-size:14px;} .pv-img{padding:7px 10px; font-size:13px;} .pv-title{display:none;} .pv-row{gap:8px;} .pv-back{margin-right:auto;} body.pv .ph-r{font-size:11.5px; line-height:1.5;} }
   /* 生成长图时临时固定成 820 宽 */
   body.pv-cap{width:820px!important; min-width:820px;}
   body.pv-cap .result,body.pv-cap .print-head,body.pv-cap .foot{max-width:none; width:820px; margin-left:0; margin-right:0;}
   body.pv-cap .print-end{max-width:none; width:788px; margin:18px 16px 8px;}
   body.pv-cap .lad-wrap,body.pv-cap .cmp-wrap{overflow:visible;}
   body.pv-cap .sec{box-shadow:none;}
+  body.pv-cap details:not([open]) > *:not(summary){display:none!important;}
+  body.pv-cap details.syl summary::after{display:none;}
+  body.pv-cap .stage.hl{box-shadow:none; border-top:3px solid var(--brand);}
+  body.pv-cap td.lcell.cur{box-shadow:none; border:1.5px solid var(--brand-line);}
+  body.pv-cap *{box-shadow:none!important;}
+  body.pv-cap table.lad,body.pv-cap table.cmp{min-width:0!important; width:100%;}
+  body.pv-cap table.lad{border-spacing:3px;}
+  body.pv-cap table.lad th{font-size:12px; padding:5px 6px;}
+  body.pv-cap td.lline{font-size:12px; white-space:normal; padding:6px!important;}
+  body.pv-cap .lchip{font-size:11.5px; margin:3px; padding:4px 6px; line-height:1.4;}
+  body.pv-cap .lchip .lv{font-size:10px; padding:0 4px;}
   .pv-shot{position:fixed; inset:0; z-index:300; background:rgba(14,14,14,.92); display:flex; flex-direction:column;}
   .pv-shot-top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; color:#fff; font-weight:700; font-size:15px;}
   .pv-shot-body{flex:1; overflow:auto; padding:0 12px 24px; -webkit-overflow-scrolling:touch;}
@@ -518,6 +536,7 @@
   <div class="pv-row">
     <button class="pv-back" id="pvBack" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span id="pvBackT"></span></button>
     <div class="pv-title" id="pvTitle"></div>
+    <button class="pv-img" id="pvImg" type="button"></button>
     <button class="btn gold pv-save" id="pvSave" type="button"></button>
   </div>
   <div class="pv-tip" id="pvTip"></div>
@@ -731,22 +750,30 @@ const IS_WECOM = /wxwork/i.test(navigator.userAgent);
 const PRINT_TXT={
  cn:{foot:'微信扫码添加 CMC 师说小助手，领取孩子的个性化选课方案',
      endH:'想让顾问帮孩子把这份规划落到具体课表上？', endP:'微信扫左边的二维码，添加 CMC 师说小助手，回复“选课”，预约一次一对一的选课和升学定位诊断。',
-     back:'返回', title:'打印版', save:'保存为长图',
-     tipApp:(IS_WECOM?'企业微信':'微信')+'里不能直接打印。可以先点“保存为长图”，长按图片就能保存或发给家人。要 PDF 的话，点右上角“···”，选“在默认浏览器中打开”，再点“打印 / 存 PDF”。',
-     tipWeb:'这个窗口不能直接打印。可以先点“保存为长图”；要 PDF 的话，用 Chrome、Safari 或 Edge 打开这个文件再点打印，或者按 ⌘P（Windows 按 Ctrl+P），打印机选“存储为 PDF”。',
-     making:'正在生成图片，大约需要几秒…', shotT:'长按图片，保存或发送给家人', fail:'图片没生成成功，可以直接截屏保存。'},
+     back:'返回', title:'打印版', save:'保存为 PDF', img:'存成长图',
+     tipApp:(IS_WECOM?'企业微信':'微信')+'里不能直接打印，点右上角“保存为 PDF”就能得到 PDF 文件，可以转发给家人或存到手机。想发图片的话，点“存成长图”。',
+     tipWeb:'这个窗口不能直接打印，点“保存为 PDF”就能得到 PDF 文件。',
+     making:'正在生成 PDF…', page:(a,b)=>'正在生成第 '+a+' / '+b+' 页…', makingImg:'正在生成图片…',
+     shotT:'长按图片，保存或发送给家人', doneT:'PDF 已经生成', meta:(n,kb)=>'共 '+n+' 页，约 '+kb,
+     dl:'下载 PDF', open:'打开 PDF 预览', share:'发送 / 存到文件',
+     dlTip:'手机上没有弹出下载的话，点“打开 PDF 预览”，再在预览页右上角“···”里转发或保存。还不行就点企业微信右上角“···”，选“在默认浏览器中打开”，再保存一次。',
+     fail:'没生成成功，可以直接截屏保存，或者换浏览器打开后再试。', brand:'CMC 师说留学 · 名校选课规划', file:'CMC-course-plan'},
  en:{foot:'Scan with WeChat to add the CMC assistant for a personalized course plan',
      endH:'Want an advisor to turn this into an actual timetable?', endP:'Scan the QR code to add the CMC assistant and book a one-on-one course-planning session.',
-     back:'Back', title:'Print view', save:'Save as image',
-     tipApp:'This app can’t print. Tap “Save as image”, then long-press the image to save or share it. For a PDF, open the page in your browser from the “···” menu and tap Print.',
-     tipWeb:'This window can’t print. Tap “Save as image”, or open the file in Chrome, Safari or Edge and press ⌘P / Ctrl+P, then choose “Save as PDF”.',
-     making:'Making the image, a few seconds…', shotT:'Long-press the image to save or share', fail:'Couldn’t make the image. Please take a screenshot instead.'}
+     back:'Back', title:'Print view', save:'Save as PDF', img:'Save as image',
+     tipApp:'This app can’t print. Tap “Save as PDF” to get a PDF you can share or keep, or “Save as image” for a picture.',
+     tipWeb:'This window can’t print. Tap “Save as PDF” to get a PDF file.',
+     making:'Making the PDF…', page:(a,b)=>'Page '+a+' of '+b+'…', makingImg:'Making the image…',
+     shotT:'Long-press the image to save or share', doneT:'Your PDF is ready', meta:(n,kb)=>n+' pages, about '+kb,
+     dl:'Download PDF', open:'Open PDF preview', share:'Share / Save to Files',
+     dlTip:'If nothing downloads on your phone, tap “Open PDF preview” and use the “···” menu there, or open this page in your browser and try again.',
+     fail:'Couldn’t make the file. Please take a screenshot, or open the page in a browser and try again.', brand:'CMC Shishuo · Course Planner', file:'CMC-course-plan'}
 };
 function PT(){ return PRINT_TXT[(typeof LANG!=='undefined'&&LANG==='en')?'en':'cn']; }
 function setPrintText(){
   const t=PT(); const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
   set('pfT',t.foot); set('peH',t.endH); set('peP',t.endP);
-  set('pvBackT',t.back); set('pvTitle',t.title); set('pvSave',t.save); set('pvShotT',t.shotT);
+  set('pvBackT',t.back); set('pvTitle',t.title); set('pvSave',t.save); set('pvImg',t.img); set('pvShotT','');
   set('pvTip', IN_APP?t.tipApp:t.tipWeb);
 }
 window.addEventListener('beforeprint', setPrintText);
@@ -760,22 +787,113 @@ function openPrintView(){
 function closePrintView(){
   document.body.classList.remove('pv'); document.getElementById('pvBar').hidden=true; scrollTo(0,pvY);
 }
+const CAP_W=820;
+const CAP_IGNORE=el=>el.id==='pvBar'||el.id==='pvShot'||(el.classList&&(el.classList.contains('qr-float')||el.classList.contains('qr-pill')));
+function capture(y,h,scale){
+  return html2canvas(document.body,{backgroundColor:'#ffffff', scale, x:0, y, width:CAP_W, height:h, windowWidth:CAP_W, scrollX:0, scrollY:0, useCORS:true, logging:false, ignoreElements:CAP_IGNORE});
+}
+function showOverlay(title, node){
+  document.getElementById('pvShotT').textContent=title;
+  const body=document.getElementById('pvShotBody'); body.innerHTML=''; body.appendChild(node);
+  document.getElementById('pvShot').hidden=false;
+}
+function busy(btn,on,label){ document.getElementById('pvSave').disabled=on; document.getElementById('pvImg').disabled=on; if(label) btn.textContent=label; }
+
+/* ---- 长图 ---- */
 function makeLongImage(){
-  const t=PT(), btn=document.getElementById('pvSave'); if(btn.disabled) return;
-  btn.disabled=true; btn.textContent=t.making;
-  const done=()=>{ btn.disabled=false; btn.textContent=t.save; };
-  if(typeof html2canvas!=='function'){ alert(t.fail); done(); return; }
+  const t=PT(), btn=document.getElementById('pvImg'); if(btn.disabled) return;
+  if(typeof html2canvas!=='function'){ alert(t.fail); return; }
+  busy(btn,true,t.makingImg); scrollTo(0,0);
   document.body.classList.add('pv-cap');
-  const W=820, H=document.body.scrollHeight;
-  const scale=Math.max(1, Math.min(2, Math.sqrt(15e6/(W*H))));
-  html2canvas(document.body,{backgroundColor:'#ffffff', scale, width:W, windowWidth:W, useCORS:true, logging:false,
-    ignoreElements:el=>el.id==='pvBar'||el.id==='pvShot'||el.classList&&el.classList.contains('qr-float')||el.classList&&el.classList.contains('qr-pill')})
-  .then(cv=>{
-    document.body.classList.remove('pv-cap');
+  const H=document.body.scrollHeight, scale=Math.max(1, Math.min(2, Math.sqrt(15e6/(CAP_W*H))));
+  capture(0,H,scale).then(cv=>{
     const img=new Image(); img.alt='CMC 师说选课规划'; img.src=cv.toDataURL('image/jpeg',0.9);
-    const body=document.getElementById('pvShotBody'); body.innerHTML=''; body.appendChild(img);
-    document.getElementById('pvShot').hidden=false; done();
-  }).catch(()=>{ document.body.classList.remove('pv-cap'); alert(t.fail); done(); });
+    showOverlay(t.shotT, img);
+  }).catch(()=>alert(t.fail)).finally(()=>{ document.body.classList.remove('pv-cap'); busy(btn,false,t.img); });
+}
+
+/* ---- PDF：按 A4 分页，在段落之间断页，每页带页脚 ---- */
+const A4={w:595.28,h:841.89,mx:28,top:30,bottom:46};
+function pageBreaks(){
+  const k=(A4.w-2*A4.mx)/CAP_W, maxH=Math.floor((A4.h-A4.top-A4.bottom)/k), ft=document.querySelector('.foot'), H=ft?Math.ceil(ft.getBoundingClientRect().bottom+scrollY):document.body.scrollHeight;
+  const sel='.print-head,.season,.sec,.sec-h,.sec-b > *,.school-block,.req-card,tr,.stage,li,.callout,.gloss-list > div,.print-end,.foot,.foot .fn,p,.lad-wrap,.cmp-wrap,.sp-block';
+  const cand=new Set([H]);
+  document.querySelectorAll(sel).forEach(el=>{ const r=el.getBoundingClientRect(); if(r.height>0){ cand.add(Math.round(r.top+scrollY)); cand.add(Math.round(r.bottom+scrollY)); } });
+  const bad=[]; document.querySelectorAll('.sec-h,h4,.prod-head,.school-head,.stage-h,.sys-title,.sp-t,.lad-legend,thead').forEach(el=>{ const r=el.getBoundingClientRect(); if(r.height>0) bad.push([r.top+scrollY+2, r.bottom+scrollY+40]); });
+  const pts=[...cand].filter(p=>!bad.some(([a,b])=>p>a&&p<b)).sort((a,b)=>a-b); const out=[]; let y=0;
+  while(y<H-4){
+    const lim=y+maxH; let best=0;
+    for(const p of pts){ if(p>y+maxH*0.45 && p<=lim) best=p; }
+    const end = (H<=lim) ? H : (best||lim);
+    out.push([y,end-y]); y=end;
+  }
+  return {pages:out,k};
+}
+function b64ToBytes(d){ const s=atob(d.split(',')[1]); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+function buildPdf(jpegs){ // jpegs: [{bytes,w,h}] 每页一张整页图
+  const enc=new TextEncoder(), parts=[], offs=[]; let len=0;
+  const push=x=>{ const b=typeof x==='string'?enc.encode(x):x; parts.push(b); len+=b.length; };
+  push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n'.replace(/[\u0080-ÿ]/g,'')+'\n');
+  const n=jpegs.length, obj=(id,body)=>{ offs[id]=len; push(id+' 0 obj\n'); body(); push('\nendobj\n'); };
+  const kids=jpegs.map((_,i)=>(3+i*3)+' 0 R').join(' ');
+  obj(1,()=>push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2,()=>push('<< /Type /Pages /Kids ['+kids+'] /Count '+n+' >>'));
+  jpegs.forEach((j,i)=>{
+    const p=3+i*3, c=p+1, im=p+2, cs='q '+A4.w+' 0 0 '+A4.h+' 0 0 cm /Im0 Do Q';
+    obj(p,()=>push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+A4.w+' '+A4.h+'] /Resources << /XObject << /Im0 '+im+' 0 R >> >> /Contents '+c+' 0 R >>'));
+    obj(c,()=>push('<< /Length '+cs.length+' >>\nstream\n'+cs+'\nendstream'));
+    obj(im,()=>{ push('<< /Type /XObject /Subtype /Image /Width '+j.w+' /Height '+j.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+j.bytes.length+' >>\nstream\n'); push(j.bytes); push('\nendstream'); });
+  });
+  const total=3+n*3, xref=len;
+  let x='xref\n0 '+total+'\n0000000000 65535 f \n'; for(let i=1;i<total;i++) x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  push(x+'trailer\n<< /Size '+total+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF');
+  return new Blob(parts,{type:'application/pdf'});
+}
+async function makePdf(){
+  const t=PT(), btn=document.getElementById('pvSave'); if(btn.disabled) return;
+  if(typeof html2canvas!=='function'){ alert(t.fail); return; }
+  busy(btn,true,t.making); scrollTo(0,0);
+  document.body.classList.add('pv-cap');
+  try{
+    const {pages,k}=pageBreaks(), S=2, PW=Math.round(A4.w*S), PH=Math.round(A4.h*S), jpegs=[];
+    for(let i=0;i<pages.length;i++){
+      btn.textContent=t.page(i+1,pages.length);
+      const [y,h]=pages[i]; const slice=await capture(y,h,2);
+      const pc=document.createElement('canvas'); pc.width=PW; pc.height=PH; const g=pc.getContext('2d');
+      g.fillStyle='#fff'; g.fillRect(0,0,PW,PH);
+      g.drawImage(slice, A4.mx*S, A4.top*S, (A4.w-2*A4.mx)*S, h*k*S);
+      const fy=(A4.h-A4.bottom+14)*S;
+      g.strokeStyle='#E4E4DF'; g.lineWidth=1*S; g.beginPath(); g.moveTo(A4.mx*S,fy); g.lineTo(PW-A4.mx*S,fy); g.stroke();
+      g.font='600 '+(8.5*S)+'px "PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif'; g.textBaseline='top';
+      g.fillStyle='#8A8A84'; g.textAlign='left'; g.fillText(t.brand, A4.mx*S, fy+6*S);
+      g.fillStyle='#A94B06'; g.textAlign='center'; g.fillText(t.foot, PW/2, fy+6*S);
+      g.fillStyle='#8A8A84'; g.textAlign='right'; g.fillText((i+1)+' / '+pages.length, PW-A4.mx*S, fy+6*S);
+      jpegs.push({bytes:b64ToBytes(pc.toDataURL('image/jpeg',0.88)), w:PW, h:PH});
+      await new Promise(r=>setTimeout(r,0));
+    }
+    document.body.classList.remove('pv-cap');
+    const blob=buildPdf(jpegs), nm=t.file+'.pdf';
+    window.__lastPdf=blob;
+    deliverPdf(blob,nm,pages.length);
+  }catch(err){ document.body.classList.remove('pv-cap'); alert(t.fail); }
+  finally{ busy(btn,false,t.save); }
+}
+function deliverPdf(blob,name,n){
+  const t=PT(), url=URL.createObjectURL(blob), kb=blob.size>1048576?(blob.size/1048576).toFixed(1)+' MB':Math.round(blob.size/1024)+' KB';
+  const box=document.createElement('div'); box.className='pv-done';
+  box.innerHTML='<h4></h4><div class="pd-meta"></div><div class="pd-btns"></div><div class="pd-tip"></div>';
+  box.querySelector('h4').textContent=t.doneT; box.querySelector('.pd-meta').textContent=t.meta(n,kb); box.querySelector('.pd-tip').textContent=t.dlTip;
+  const btns=box.querySelector('.pd-btns');
+  const a=document.createElement('a'); a.className='btn gold'; a.href=url; a.download=name; a.textContent=t.dl; btns.appendChild(a);
+  try{
+    const f=new File([blob],name,{type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[f]})){
+      const s=document.createElement('button'); s.type='button'; s.className='btn'; s.textContent=t.share;
+      s.onclick=()=>navigator.share({files:[f], title:name}).catch(()=>{}); btns.appendChild(s);
+    }
+  }catch(e){}
+  const o=document.createElement('a'); o.className='btn ghost'; o.href=url; o.target='_blank'; o.rel='noopener'; o.textContent=t.open; btns.appendChild(o);
+  showOverlay('', box);
 }
 function doPrint(){
   setPrintText();
@@ -786,7 +904,8 @@ function doPrint(){
   setTimeout(()=>{ window.removeEventListener('beforeprint', on); if(!fired) openPrintView(); }, 900);
 }
 document.getElementById('pvBack').addEventListener('click', closePrintView);
-document.getElementById('pvSave').addEventListener('click', makeLongImage);
+document.getElementById('pvSave').addEventListener('click', makePdf);
+document.getElementById('pvImg').addEventListener('click', makeLongImage);
 document.getElementById('pvShotClose').addEventListener('click', ()=>{ document.getElementById('pvShot').hidden=true; });
 
 
@@ -2644,7 +2763,7 @@ cn:{
  ctaScan:'扫码添加 CMC 师说小助手，回复“<b>选课</b>”，预约一次一对一的选课和升学定位诊断。',
  ctaQr:'CMC 师说小助手', ctaSave:'打印或存成 PDF',
  naT:'没有这个专业的本科。', naAlt:'可以考虑：',
- footTxt:'<b>关于这些资料：</b>本工具由 CMC 师说教研组整理。录取要求和考试大纲在 2026 年 7 月对照各大学和考试局官网核对过：英国、香港、新加坡写的是官方公布的科目要求和分数线，美国写的是官方建议的高中课程。香港公布的是最低录取线，不是一般录取分；剑桥各学院实际给的 offer 常常比官方最低要求高。所有内容只供规划参考，<b>不代表任何录取承诺</b>，申请那一年请以学校官网为准。标化考试政策这几年变动多，可能有变化的学校已经单独标出。<br>© CMC 师说留学 · 选课规划工具 V3.8',
+ footTxt:'<b>关于这些资料：</b>本工具由 CMC 师说教研组整理。录取要求和考试大纲在 2026 年 7 月对照各大学和考试局官网核对过：英国、香港、新加坡写的是官方公布的科目要求和分数线，美国写的是官方建议的高中课程。香港公布的是最低录取线，不是一般录取分；剑桥各学院实际给的 offer 常常比官方最低要求高。所有内容只供规划参考，<b>不代表任何录取承诺</b>，申请那一年请以学校官网为准。标化考试政策这几年变动多，可能有变化的学校已经单独标出。<br>© CMC 师说留学 · 选课规划工具 V3.9',
  footQr:'<b>添加 CMC 师说小助手</b><br>领取孩子的个性化方案<br>（截图后用微信扫码）',
  qrT:'扫码添加<br>CMC 师说小助手', qrS:'领取孩子的个性化方案', qrPill:'领取个性化方案'
 },
@@ -2703,7 +2822,7 @@ en:{
  ctaScan:'Scan to add the CMC assistant and book a one-on-one course-planning session.',
  ctaQr:'CMC assistant', ctaSave:'Print / Save PDF',
  naT:'does not offer this major.', naAlt:'Consider: ',
- footTxt:'<b>About the data:</b> compiled by the CMC research team and checked against university and exam-board websites in July 2026. UK, HK and SG entries are official subject requirements and grade thresholds; US entries are recommended coursework. Hong Kong publishes minimum scores, not typical ones, and Cambridge colleges often ask for more than the published minimum. For planning only and <b>not a promise of admission</b>. Always confirm on official sites in your application year.<br>© CMC 师说留学 · Course Planner V3.8',
+ footTxt:'<b>About the data:</b> compiled by the CMC research team and checked against university and exam-board websites in July 2026. UK, HK and SG entries are official subject requirements and grade thresholds; US entries are recommended coursework. Hong Kong publishes minimum scores, not typical ones, and Cambridge colleges often ask for more than the published minimum. For planning only and <b>not a promise of admission</b>. Always confirm on official sites in your application year.<br>© CMC 师说留学 · Course Planner V3.9',
  footQr:'<b>Add the CMC assistant</b><br>for a personalized plan<br>(scan with WeChat)',
  qrT:'Scan to add the<br>CMC assistant', qrS:'Get a personalized plan', qrPill:'Get a personalized plan'
 }
