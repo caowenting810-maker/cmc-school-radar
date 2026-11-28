@@ -4592,7 +4592,7 @@ function advHTML(p){const d=p.d,e=advEsc,today=new Date();const ds=today.getFull
  return blocks.map(b=>b.replace(/<ol>([\s\S]*?)<\/ol>/g,(m,x)=>{let n=0;return'<ol>'+x.replace(/<li>/g,()=>'<li><em class="rp-n">'+(++n)+'</em>')+'</ol>'}).replace(/<ul>([\s\S]*?)<\/ul>/g,(m,x)=>'<ul>'+x.replace(/<li>/g,'<li><em class="rp-n rp-dot"></em>')+'</ul>'))}
 function advMake(){const d=advData();const msg=document.getElementById('advmsg');if(!d){msg.textContent='请先选择年级';document.getElementById('adv-g').focus();return}
  msg.textContent='';const p=advPlan(d);window._adv=p;const out=document.getElementById('advout');
- out.innerHTML=`<div class="advbar"><b>已生成</b>${ADV_INAPP?'<button class="btn pri" type="button" id="advimg" onclick="advImg()">保存为图片</button>':'<button class="btn pri" type="button" id="advpdf" onclick="advPDF()">下载 PDF</button><button class="btn sec2" type="button" id="advimg" onclick="advImg()">保存为图片</button><button class="btn sec2" type="button" onclick="advPrint()">打印</button>'}</div><p class="advmsg advmsg2" id="advmsg2" aria-live="polite">${ADV_INAPP?'在企业微信或微信里不能直接下载 PDF 或打印。请点“保存为图片”，长按图片保存或转发；需要 PDF 时，点右上角“···”，选“在浏览器中打开”。':''}</p><div id="advimgbox" class="advimgbox" hidden></div><div class="rp" id="advrp">${advHTML(p).join('')}</div>`;
+ out.innerHTML=`<div class="advbar"><b>已生成</b><button class="btn pri" type="button" id="advpdf" onclick="advPDF()">下载 PDF</button><button class="btn sec2" type="button" id="advimg" onclick="advImg()">保存为图片</button>${ADV_INAPP?'':'<button class="btn sec2" type="button" onclick="advPrint()">打印</button>'}</div><p class="advmsg advmsg2" id="advmsg2" aria-live="polite">${ADV_INAPP?'在企业微信或微信里，点“下载 PDF”生成后，再点出现的“打开 PDF”，用右上角菜单保存或转发。如果打不开，点右上角“···”选“在浏览器中打开”，或改用“保存为图片”。':''}</p><div id="advimgbox" class="advimgbox" hidden></div><div class="rp" id="advrp">${advHTML(p).join('')}</div>`;
  out.scrollIntoView({behavior:'smooth',block:'start'})}
 function advLoad(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 const ADV_INAPP=/wxwork|MicroMessenger|DingTalk|QQ\/|Lark|Feishu/i.test(navigator.userAgent);
@@ -4615,7 +4615,10 @@ async function advPDF(){const p=window._adv;if(!p)return;const msg=document.getE
   const fn=(p.d.name||'孩子')+'-'+p.d.g+'年级-AI学习建议.pdf';const blob=pdf.output('blob');
   let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){}
   if(dl){try{await dl.save({filename:fn,data:blob});msg.textContent='PDF 已生成'}catch(e){msg.textContent=e&&e.code==='declined'?'已取消保存':'这里无法直接保存，可以点“保存为图片”'}}
-  else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);msg.textContent='PDF 已生成。如果没有开始下载，请点“保存为图片”。'}
+  else{const url=URL.createObjectURL(blob);if(window._advUrl)URL.revokeObjectURL(window._advUrl);window._advUrl=url;
+   if(!ADV_INAPP){const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),2000)}
+   const box=document.getElementById('advimgbox');box.innerHTML=`<p class="advtip"><b>PDF 已生成。</b>${ADV_INAPP?'点下面的按钮打开 PDF，再用右上角菜单“保存”或“转发”。':'如果没有自动开始下载，点下面的按钮。'}</p><a class="btn pri" href="${url}" download="${advEsc(fn)}" target="_blank" rel="noopener">打开 PDF：${advEsc(fn)}</a>`;box.hidden=false;
+   msg.textContent='';box.scrollIntoView({behavior:'smooth',block:'nearest'})}
  }catch(e){msg.textContent='生成失败，可以点“保存为图片”'}
  finally{advBusy('advpdf',false,'下载 PDF')}}
 async function advImg(){const p=window._adv;if(!p)return;const msg=document.getElementById('advmsg2');advBusy('advimg',true);
